@@ -252,7 +252,7 @@ sub second_pass()
     for($i=0;$i<=$#Operations;$i++)
     {
 	undef($syllable);
-	if($Operations[$i+1] =~ /\;\;/)
+	if($Operations[$i+1] =~ /\;/)
 	{
 	    $clock = 1;
 	}
@@ -260,7 +260,7 @@ sub second_pass()
 	{
 	    $clock = 1;
 	}
-	if(($Operations[$i+1] =~ /\;\;/) && ($Operations[$i] =~ /^\-/))
+	if(($Operations[$i+1] =~ /\;/) && ($Operations[$i] =~ /^\-/))
 	{
 	    $syllable = 1 << 31;
 	    push @output, "$instruction_address - $syllable - Auto Inserted NOP2|NOP";
@@ -280,7 +280,7 @@ sub second_pass()
 	    $instruction_address++;
 	    $clock = 0;
 	}
-	if(($Operations[$i] =~ /\;\;/) && ($Operations[$i+1] =~ /\;\;/))
+	if(($Operations[$i] =~ /\;/) && ($Operations[$i+1] =~ /\;/))
 	{
 	    $syllable = 1 << 31;
 	    push @output, "$instruction_address - $syllable - Auto Inserted NOP|NOP";
@@ -314,7 +314,7 @@ sub second_pass()
 	{
 	    &other($Operations[$i]);
 	}
-	elsif($Operations[$i] =~ /\;\;/)
+	elsif($Operations[$i] =~ /\;/)
 	{
 	}
 	elsif($Operations[$i] =~ /^(ENDOF)?FILE/)
@@ -430,6 +430,7 @@ sub operation()
     {
 	$syllable |= 1 << 31;
     }
+# TODO: work out this moving from clusters in new Assembly
     if(($ops[0] =~ /c(\d+)=c(\d+)/) && (($ops[1] eq "mov") || ($ops[1] eq "MOV")))
     {
 	if($clock == 1)
@@ -446,7 +447,7 @@ sub operation()
 	$syllable |= $1 << 6;
 	return("$instruction_address - $syllable - MVCL|@_[0]");
     }
-    else
+    elsif(0)
     {
 	$ops[0] =~ /c(\d+)/;
 	if($1 == $current_cluster)
@@ -471,11 +472,39 @@ sub operation()
 	    }
 	}
     }
-    $opcode_name = uc($ops[1]);
+
+    # ops now in the form opcode.cluster
+    $ops[0] =~ /\s*(\w+)\.(\d+)/;
+
+    #$opcode_name = uc($ops[1]);
+    $opcode_name = uc($1);
+    if($2 == $current_cluster)
+    {
+    }
+    elsif($2 == $current_cluster + 1)
+    {
+	$syllable |= 1 << 30;
+	$current_cluster++;
+    }
+    else
+    {
+	if($2 == 0)
+	{
+	    $syllable |= 1 << 30;
+	    $current_cluster = 0;
+	}
+	else
+	{
+	    $ok = 0;
+	    print "ERROR - Cluster numbers increment too high - @_[0]\n";
+	}
+    }
+
     if($opcode_name =~ /[SZ]XT[BH]/)
     {
 	$syllable |= 1 << 6;
     }
+
     if($opcode_name =~ /^ASM,(\d+)/)
     {
 	$custom_instid = $1;
@@ -1199,13 +1228,13 @@ sub return_layout()
     @layout = split(/\s+/, @_[0]);
     undef($type);
     undef($value);
-    $reg = '\$([rbl])(\d+)\.(\d+)';
+    $reg = '([rbl])(\d+)\.(\d+)';
     $hex_num = '([-~]?)0x(\w+)';
     $label = '(\w+\??\.?\w*\.?\d*)';
     $label2 = '(\w+\?\w+(\.\w+)+)';
     $sim_imm = '(-?\d+)';
     $func = '(\w+\??\w*)';
-    for($lay=2;$lay<=$#layout;$lay++)
+    for($lay=1;$lay<=$#layout;$lay++)
     {
 	if($layout[$lay] ne "=")
 	{
