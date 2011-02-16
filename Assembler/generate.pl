@@ -98,8 +98,6 @@ perl generate.pl <dir> -d -k -s=0x0 -oNAME <args> -mem_align
 <args>       - Will be passed to gcc/VEX
 -mem_align   - output load/store ops to use char/short/word aligned offsets
 
-~/.assem holds directory listings for VEX and LE1, if you are having problems -
-remove this file and run this script again, it will ask you to set this up.
 See readme.txt for more info
 HELP
 	exit(0);
@@ -328,20 +326,20 @@ EOH
 	print "Running secondpass on: $file3\n";
 	if($mem_align)
 	{
-	    print "Running Command: $perl $secondpass -s=$stack_size -d=0 -mem_align $file3 2>&1\n";
+	    print "Running Command: $perl $secondpass -s=$stack_size -d=0 -mem_align $file3 -OPC=$opcodes 2>&1\n";
 	}
 	else
 	{
-	    print "Running Command: $perl $secondpass -s=$stack_size -d=0 $file3 2>&1\n";
+	    print "Running Command: $perl $secondpass -s=$stack_size -d=0 $file3 -OPC=$opcodes 2>&1\n";
 	}
     }
     if($mem_align)
     {
-	@return = readpipe("$perl $secondpass -s=$stack_size -d=0 -mem_align $file3 2>&1");
+	@return = readpipe("$perl $secondpass -s=$stack_size -d=0 -mem_align $file3 -OPC=$opcodes 2>&1");
     }
     else
     {
-	@return = readpipe("$perl $secondpass -s=$stack_size -d=0 $file3 2>&1");
+	@return = readpipe("$perl $secondpass -s=$stack_size -d=0 $file3 -OPC=$opcodes 2>&1");
     }
     &check_return();
     print "Secondpass completed\n";
@@ -491,36 +489,36 @@ if($keep != 1)
 	system("rm -f *.cs.c *.o *.s *.txt");
     }
     exit(0);
-    sub setup()
-    {
-	print "Needs setting up!\n";
-	while($vex_cc eq "")
-	{
-	    print "Please type the location of VEX cc:\n";
-	    chomp($vex_cc = <>);
-	    $vex_cc =~ s/~/$home/;
-	    if(!(-e($vex_cc)))
-	    {
-		$vex_cc = "";
-	    }
-	}
-	while($le1_folder eq "")
-	{
-	    print "Please type the location of LE1 folder:\n";
-	    chomp($le1_folder = <>);
-	    $le1_folder =~ s/~/$home/;
-	    if(!(-d($le1_folder)))
-	    {
-		$le1_folder = "";
-	    }
-	}
-	open ASSEM, "> $home/.assem" or die
-	    "Could not open file to write to (.assem: $!)\n";
-	print ASSEM "VEX=$vex_cc\n";
-	print ASSEM "LE1=$le1_folder\n";
-	close ASSEM;
-	print "Thanks :)\n";
-    }
+#    sub setup()
+#    {
+#	print "Needs setting up!\n";
+#	while($vex_cc eq "")
+#	{
+#	    print "Please type the location of VEX cc:\n";
+#	    chomp($vex_cc = <>);
+#	    $vex_cc =~ s/~/$home/;
+#	    if(!(-e($vex_cc)))
+#	    {
+#		$vex_cc = "";
+#	    }
+#	}
+#	while($le1_folder eq "")
+#	{
+#	    print "Please type the location of LE1 folder:\n";
+#	    chomp($le1_folder = <>);
+#	    $le1_folder =~ s/~/$home/;
+#	    if(!(-d($le1_folder)))
+#	    {
+#		$le1_folder = "";
+#	    }
+#	}
+#	open ASSEM, "> $home/.assem" or die
+#	    "Could not open file to write to (.assem: $!)\n";
+#	print ASSEM "VEX=$vex_cc\n";
+#	print ASSEM "LE1=$le1_folder\n";
+#	close ASSEM;
+#	print "Thanks :)\n";
+#    }
 sub check_return()
 {
     $error = 0;

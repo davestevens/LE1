@@ -10,17 +10,7 @@
 $total_1 = 0;
 $ok = 1;
 $return_count = 0;
-$home = $ENV{ HOME };
-open SETTINGS, "< $home/.assem" or die "Could not find .assem file in home dir\n";
-@settings = <SETTINGS>;
-close SETTINGS;
-if($le1_folder eq "")
-{
-    ($LE1, $le1_folder) = split(/=/, $settings[1]);
-    chomp($le1_folder);
-    undef($LE1);
-}
-$opcodes_txt = $le1_folder . "/Assembler/includes/opcodes.txt";
+
 $debug = 0;
 $mem_align = 0;
 if($ARGV[0] eq "")
@@ -48,6 +38,10 @@ else
 	elsif($arg =~ /-mem_align/)
 	{
 	    $mem_align = 1;
+	}
+	elsif($arg =~ /-OPC=(.+)/)
+	{
+	    $opcodes_txt = $1;
 	}
 	else
 	{

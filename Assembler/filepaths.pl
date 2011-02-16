@@ -18,6 +18,7 @@ $transform_name   = "trans.pl";
 # these should be removed at some point soon
 $pthread_name     = "pthread.pl";
 $floatlib         = "includes/floatlib.c";
+$opcodes          = "includes/opcodes.txt";
 
 # perl location, found by running "which perl"
 $perl             = "/usr/bin/perl";
@@ -31,3 +32,4 @@ $transform  = $le1_folder . "/" . $assembler_folder . "/" . $transform_name;
 # these should be removed at some point soon
 $pthread    = $le1_folder . "/" . $assembler_folder . "/" . $pthread_name;
 $floatlib   = $le1_folder . "/" . $assembler_folder . "/" . $floatlib;
+$opcodes    = $le1_folder . "/" . $assembler_folder . "/" . $opcodes;
