@@ -8,23 +8,10 @@
 #                              D.Stevens.ac.uk                                #
 ###############################################################################
 use File::Path;
-$home = $ENV{ HOME };
-open SETTINGS, "< $home/.assem" or &setup();
-@settings = <SETTINGS>;
-close SETTINGS;
-if(($vex_cc eq "") && ($le1_folder eq ""))
-{
-    ($VEX, $vex_cc) = split(/=/, $settings[0]);
-    chomp($vex_cc);
-    ($LE1, $le1_folder) = split(/=/, $settings[1]);
-    chomp($le1_folder);
-    $le1_folder =~ s/\/$//;
-    undef($VEX);
-    undef($LE1);
-}
-$vex_location = $vex_cc;
-$ass_location = $le1_folder . "/Assembler/assem.pl";
-$forq_location = $le1_folder . "/For_q/for_qv3.pl";
+
+# include the filepaths.pl script
+do('filepaths.pl');
+
 $debug = 0;
 $stack_size = "0x0";
 $keep = 0;
@@ -135,8 +122,6 @@ HELP
     if($debug == 1)
     {
 	print "Vex : $vex_location\n";
-	print "Ass : $ass_location\n";
-	print "Forq: $forq_location\n";
 	print "Debug = $debug\n";
 	print "Stack = $stack_size\n";
 	print "Output File = $output_file\n";
@@ -208,7 +193,8 @@ EOH
 		if(/_(r|d)_(r|d|add|sub|mul|div|eq|le|lt|ilfloat|ufloat)/)
 		{
 		    print "Including softfloat library\n";
-		    @return = readpipe("cp $le1_folder/Assembler/includes/floatlib.c . 2>&1");
+#		    @return = readpipe("cp $le1_folder/Assembler/includes/floatlib.c . 2>&1");
+		    @return = readpipe("cp $floatlib . 2>&1");
 		    &check_return();
 		    $floatlib_args = $arguments;
 		    $floatlib_args =~ s/-c99inline//g;
@@ -251,12 +237,8 @@ EOH
     }
     foreach $file (@cfiles)
     {
-	readpipe("perl $le1_folder/Assembler/pthread.pl $file > pthread_$file\.txt");
+	readpipe("$perl $pthread $file > pthread_$file\.txt");
     }
-    $firstpass = $le1_folder . "/Assembler/firstpass.pl";
-    $midpass = $le1_folder. "/Assembler/midpass.pl";
-    $secondpass = $le1_folder . "/Assembler/secondpass.pl";
-    $transform = $le1_folder . "/Assembler/trans.pl";
     print<<EOH;
 --------------------------------------------------------------------------------
     Running Assembler
@@ -283,9 +265,9 @@ EOH
 	if($debug == 1)
 	{
 	    print "Running firstpass on: $file\n";
-	    print "Running Command: /usr/bin/perl $firstpass $file -s=$stack_size 2>&1\n";
+	    print "Running Command: $perl $firstpass $file -s=$stack_size 2>&1\n";
 	}
-	@return = readpipe("/usr/bin/perl $firstpass $file -s=$stack_size 2>&1");
+	@return = readpipe("$perl $firstpass $file -s=$stack_size 2>&1");
 	&check_return();
 	($filename, $rest) = split(/ contains /, $return[$#return]);
 	push @files2, $filename;
@@ -308,9 +290,9 @@ EOH
 	}
 	if($debug == 1)
 	{
-	    print "Running Command: /usr/bin/perl $midpass $midpassfiles -o$output_file 2>&1\n";
+	    print "Running Command: $perl $midpass $midpassfiles -o$output_file 2>&1\n";
 	}
-	@return = readpipe("/usr/bin/perl $midpass $midpassfiles -o$output_file 2>&1");
+	@return = readpipe("$perl $midpass $midpassfiles -o$output_file 2>&1");
 	&check_return();
 	$return[$#return] =~ s/ORDER//;
 	@order = split(/ /, $return[$#return]);
@@ -330,10 +312,10 @@ EOH
 
 if($debug == 1)
 {
-    print "Running Command: /usr/bin/perl $transform $file3 > $file3.new.s\n";
+    print "Running Command: $perl $transform $file3 > $file3.new.s\n";
 }
 
-@return = readpipe("/usr/bin/perl $transform $file3 > $file3.new.s");
+@return = readpipe("$perl $transform $file3 > $file3.new.s");
     &check_return();
 
     print<<EOH;
@@ -346,20 +328,20 @@ EOH
 	print "Running secondpass on: $file3\n";
 	if($mem_align)
 	{
-	    print "Running Command: /usr/bin/perl $secondpass -s=$stack_size -d=0 -mem_align $file3 2>&1\n";
+	    print "Running Command: $perl $secondpass -s=$stack_size -d=0 -mem_align $file3 2>&1\n";
 	}
 	else
 	{
-	    print "Running Command: /usr/bin/perl $secondpass -s=$stack_size -d=0 $file3 2>&1\n";
+	    print "Running Command: $perl $secondpass -s=$stack_size -d=0 $file3 2>&1\n";
 	}
     }
     if($mem_align)
     {
-	@return = readpipe("/usr/bin/perl $secondpass -s=$stack_size -d=0 -mem_align $file3 2>&1");
+	@return = readpipe("$perl $secondpass -s=$stack_size -d=0 -mem_align $file3 2>&1");
     }
     else
     {
-	@return = readpipe("/usr/bin/perl $secondpass -s=$stack_size -d=0 $file3 2>&1");
+	@return = readpipe("$perl $secondpass -s=$stack_size -d=0 $file3 2>&1");
     }
     &check_return();
     print "Secondpass completed\n";
@@ -458,9 +440,9 @@ EOH
     }
     if($debug == 1)
     {
-	print "Running Command: perl $forq_location -s=$stack_size -d=$debug $cscfiles -o$output_file\_q -df=$data_file 2>&1\n";
+	print "Running Command: $perl $forq_location -s=$stack_size -d=$debug $cscfiles -o$output_file\_q -df=$data_file 2>&1\n";
     }
-    @return = readpipe("/usr/bin/perl $forq_location -s=$stack_size -d=$debug $cscfiles -o$output_file\_q -df=$data_file 2>&1");
+    @return = readpipe("$perl $forq_location -s=$stack_size -d=$debug $cscfiles -o$output_file\_q -df=$data_file 2>&1");
     &check_return();
     if($debug == 1)
     {
