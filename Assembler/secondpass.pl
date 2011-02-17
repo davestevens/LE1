@@ -1238,7 +1238,7 @@ sub return_layout()
     {
 	if($layout[$lay] ne "=")
 	{
-	    if($layout[$lay] =~ /^$reg/)
+	    if($layout[$lay] =~ /^$reg,?$/)
 	    {
 		$type .= uc($1);
 		$value .= $3 . ",";
@@ -1248,15 +1248,16 @@ sub return_layout()
 		    $value .= $clus . ",";
 		}
 	    }
-	    elsif($layout[$lay] =~ /\(?$hex_num\)?\[$reg\]/)
+	    #elsif($layout[$lay] =~ /\(?$hex_num\)?\[$reg\]/)
+	    elsif($layout[$lay] =~ /$reg\[$hex_num\]/)
 	    {
-		$dec = hex($2);
-		$reg_num = $5;
-		if($1 eq "~")
+		$dec = hex($5);
+		$reg_num = $3;
+		if($4 eq "~")
 		{
 		    $dec = ($dec+1) * -1;
 		}
-		elsif($1 eq "-")
+		elsif($4 eq "-")
 		{
 		    $dec *= -1;
 		}
@@ -1305,10 +1306,11 @@ sub return_layout()
 		}
 		undef($dec);
 	    }
-	    elsif($layout[$lay] =~ /$sim_imm\[$reg\]/)
+	    #elsif($layout[$lay] =~ /$sim_imm\[$reg\]/)
+	    elsif($layout[$lay] =~ /$reg\[$sim_imm\]/)
 	    {
-		$dec = $1;
-		$reg_num = $4;
+		$dec = $4;
+		$reg_num = $3;
 		if((($opcode_name =~ /^ldw/i) || ($opcode_name =~ /^stw/i)) && ($mem_align))
 		{
 		    $dec = $dec >> 2;
@@ -1344,58 +1346,11 @@ sub return_layout()
 		}
 		$value .= $1 . ",";
 	    }
-	    elsif($layout[$lay] =~ /\($label\+$sim_imm\)\[$reg\]/)
+	    #elsif($layout[$lay] =~ /\($label\+$sim_imm\)\[$reg\]/)
+	    elsif($layout[$lay] =~ /$reg\[\($label\+$sim_imm\)\]/)
 	    {
-		$size = ($Data_Label{$1} + $2);
-		$reg_num = $5;
-		if((($opcode_name =~ /^ldw/i) || ($opcode_name =~ /^stw/i)) && ($mem_align))
-		{
-		    $size = $size >> 2;
-		}
-		elsif((($opcode_name =~ /^ldh/i) || ($opcode_name =~ /^sth/i)) && ($mem_align))
-		{
-		    $size = $size >> 1;
-		}
-		$value .= "$size^$reg_num,";
-		if(($size > 0x7FF) || ($size < -0xFFF))
-		{
-		    $type .= "A";
-		}
-		else
-		{
-		    $type .= "a";
-		}
-		undef($size);
-		undef($reg_num);
-	    }
-	    elsif($layout[$lay] =~ /\(\($label\+$sim_imm\)\+$sim_imm\)\[$reg\]/)
-	    {
-		$size = (($Data_Label{$1} + $2) + $3);
-		$reg_num = $6;
-		if((($opcode_name =~ /^ldw/i) || ($opcode_name =~ /^stw/i)) && ($mem_align))
-		{
-		    $size = $size >> 2;
-		}
-		elsif((($opcode_name =~ /^ldh/i) || ($opcode_name =~ /^sth/i)) && ($mem_align))
-		{
-		    $size = $size >> 1;
-		}
-		$value .= "$size^$reg_num,";
-		if(($size > 0x7FF) || ($size < -0xFFF))
-		{
-		    $type .= "A";
-		}
-		else
-		{
-		    $type .= "a";
-		}
-		undef($size);
-		undef($reg_num);
-	    }
-	    elsif($layout[$lay] =~ /\(\(\($label\+$sim_imm\)\+$sim_imm\)\+$sim_imm\)\[$reg\]/)
-	    {
-		$size = ((($Data_Label{$1} + $2) + $3) + $4);
-		$reg_num = $7;
+		$size = ($Data_Label{$4} + $5);
+		$reg_num = $3;
 		if((($opcode_name =~ /^ldw/i) || ($opcode_name =~ /^stw/i)) && ($mem_align))
 		{
 		    $size = $size >> 2;
