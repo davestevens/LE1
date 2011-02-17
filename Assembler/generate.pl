@@ -316,6 +316,8 @@ if($debug == 1)
 @return = readpipe("$perl $transform $file3 > $file3.new.s");
     &check_return();
 
+$file3 = $file3 . ".new.s";
+
     print<<EOH;
 --------------------------------------------------------------------------------
     Running Second Pass

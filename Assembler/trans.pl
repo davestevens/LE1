@@ -67,12 +67,12 @@ while( <> )
 	    }
 	    elsif(/^;;/)
 	    {
-		if($prev eq "CLOCK")
-		{
-		    print "nop.0\n";
-		}
+#		if($prev eq "CLOCK")
+#		{
+#		    print "nop.0\n";
+#		}
 		print ";\n";
-		$prev = "CLOCK";
+#		$prev = "CLOCK";
 	    }
 	    elsif((/^\.(entry)/) || (/^\.(return)/) || (/^.(call)/))
 	    {

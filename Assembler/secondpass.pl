@@ -246,7 +246,7 @@ sub second_pass()
     for($i=0;$i<=$#Operations;$i++)
     {
 	undef($syllable);
-	if($Operations[$i+1] =~ /\;\;/)
+	if($Operations[$i+1] =~ /\;/)
 	{
 	    $clock = 1;
 	}
@@ -254,7 +254,7 @@ sub second_pass()
 	{
 	    $clock = 1;
 	}
-	if(($Operations[$i+1] =~ /\;\;/) && ($Operations[$i] =~ /^\-/))
+	if(($Operations[$i+1] =~ /\;/) && ($Operations[$i] =~ /^\-/))
 	{
 	    $syllable = 1 << 31;
 	    push @output, "$instruction_address - $syllable - Auto Inserted NOP2|NOP";
@@ -274,7 +274,7 @@ sub second_pass()
 	    $instruction_address++;
 	    $clock = 0;
 	}
-	if(($Operations[$i] =~ /\;\;/) && ($Operations[$i+1] =~ /\;\;/))
+	if(($Operations[$i] =~ /\;/) && ($Operations[$i+1] =~ /\;/))
 	{
 	    $syllable = 1 << 31;
 	    push @output, "$instruction_address - $syllable - Auto Inserted NOP|NOP";
@@ -308,7 +308,7 @@ sub second_pass()
 	{
 	    &other($Operations[$i]);
 	}
-	elsif($Operations[$i] =~ /\;\;/)
+	elsif($Operations[$i] =~ /\;/)
 	{
 	}
 	elsif($Operations[$i] =~ /^(ENDOF)?FILE/)
@@ -424,6 +424,7 @@ sub operation()
     {
 	$syllable |= 1 << 31;
     }
+# TODO: work out this moving from clusters in new Assembly
     if(($ops[0] =~ /c(\d+)=c(\d+)/) && (($ops[1] eq "mov") || ($ops[1] eq "MOV")))
     {
 	if($clock == 1)
@@ -440,7 +441,7 @@ sub operation()
 	$syllable |= $1 << 6;
 	return("$instruction_address - $syllable - MVCL|@_[0]");
     }
-    else
+    elsif(0)
     {
 	$ops[0] =~ /c(\d+)/;
 	if($1 == $current_cluster)
@@ -465,11 +466,39 @@ sub operation()
 	    }
 	}
     }
-    $opcode_name = uc($ops[1]);
+
+    # ops now in the form opcode.cluster
+    $ops[0] =~ /\s*(\w+)\.(\d+)/;
+
+    #$opcode_name = uc($ops[1]);
+    $opcode_name = uc($1);
+    if($2 == $current_cluster)
+    {
+    }
+    elsif($2 == $current_cluster + 1)
+    {
+	$syllable |= 1 << 30;
+	$current_cluster++;
+    }
+    else
+    {
+	if($2 == 0)
+	{
+	    $syllable |= 1 << 30;
+	    $current_cluster = 0;
+	}
+	else
+	{
+	    $ok = 0;
+	    print "ERROR - Cluster numbers increment too high - @_[0]\n";
+	}
+    }
+
     if($opcode_name =~ /[SZ]XT[BH]/)
     {
 	$syllable |= 1 << 6;
     }
+
     if($opcode_name =~ /^ASM,(\d+)/)
     {
 	$custom_instid = $1;
@@ -1193,17 +1222,17 @@ sub return_layout()
     @layout = split(/\s+/, @_[0]);
     undef($type);
     undef($value);
-    $reg = '\$([rbl])(\d+)\.(\d+)';
+    $reg = '([rbl])(\d+)\.(\d+)';
     $hex_num = '([-~]?)0x(\w+)';
     $label = '(\w+\??\.?\w*\.?\d*)';
     $label2 = '(\w+\?\w+(\.\w+)+)';
     $sim_imm = '(-?\d+)';
     $func = '(\w+\??\w*)';
-    for($lay=2;$lay<=$#layout;$lay++)
+    for($lay=1;$lay<=$#layout;$lay++)
     {
 	if($layout[$lay] ne "=")
 	{
-	    if($layout[$lay] =~ /^$reg/)
+	    if($layout[$lay] =~ /^$reg,?$/)
 	    {
 		$type .= uc($1);
 		$value .= $3 . ",";
@@ -1213,15 +1242,16 @@ sub return_layout()
 		    $value .= $clus . ",";
 		}
 	    }
-	    elsif($layout[$lay] =~ /\(?$hex_num\)?\[$reg\]/)
+	    #elsif($layout[$lay] =~ /\(?$hex_num\)?\[$reg\]/)
+	    elsif($layout[$lay] =~ /$reg\[$hex_num\]/)
 	    {
-		$dec = hex($2);
-		$reg_num = $5;
-		if($1 eq "~")
+		$dec = hex($5);
+		$reg_num = $3;
+		if($4 eq "~")
 		{
 		    $dec = ($dec+1) * -1;
 		}
-		elsif($1 eq "-")
+		elsif($4 eq "-")
 		{
 		    $dec *= -1;
 		}
@@ -1270,10 +1300,11 @@ sub return_layout()
 		}
 		undef($dec);
 	    }
-	    elsif($layout[$lay] =~ /$sim_imm\[$reg\]/)
+	    #elsif($layout[$lay] =~ /$sim_imm\[$reg\]/)
+	    elsif($layout[$lay] =~ /$reg\[$sim_imm\]/)
 	    {
-		$dec = $1;
-		$reg_num = $4;
+		$dec = $4;
+		$reg_num = $3;
 		if((($opcode_name =~ /^ldw/i) || ($opcode_name =~ /^stw/i)) && ($mem_align))
 		{
 		    $dec = $dec >> 2;
@@ -1309,58 +1340,11 @@ sub return_layout()
 		}
 		$value .= $1 . ",";
 	    }
-	    elsif($layout[$lay] =~ /\($label\+$sim_imm\)\[$reg\]/)
+	    #elsif($layout[$lay] =~ /\($label\+$sim_imm\)\[$reg\]/)
+	    elsif($layout[$lay] =~ /$reg\[\($label\+$sim_imm\)\]/)
 	    {
-		$size = ($Data_Label{$1} + $2);
-		$reg_num = $5;
-		if((($opcode_name =~ /^ldw/i) || ($opcode_name =~ /^stw/i)) && ($mem_align))
-		{
-		    $size = $size >> 2;
-		}
-		elsif((($opcode_name =~ /^ldh/i) || ($opcode_name =~ /^sth/i)) && ($mem_align))
-		{
-		    $size = $size >> 1;
-		}
-		$value .= "$size^$reg_num,";
-		if(($size > 0x7FF) || ($size < -0xFFF))
-		{
-		    $type .= "A";
-		}
-		else
-		{
-		    $type .= "a";
-		}
-		undef($size);
-		undef($reg_num);
-	    }
-	    elsif($layout[$lay] =~ /\(\($label\+$sim_imm\)\+$sim_imm\)\[$reg\]/)
-	    {
-		$size = (($Data_Label{$1} + $2) + $3);
-		$reg_num = $6;
-		if((($opcode_name =~ /^ldw/i) || ($opcode_name =~ /^stw/i)) && ($mem_align))
-		{
-		    $size = $size >> 2;
-		}
-		elsif((($opcode_name =~ /^ldh/i) || ($opcode_name =~ /^sth/i)) && ($mem_align))
-		{
-		    $size = $size >> 1;
-		}
-		$value .= "$size^$reg_num,";
-		if(($size > 0x7FF) || ($size < -0xFFF))
-		{
-		    $type .= "A";
-		}
-		else
-		{
-		    $type .= "a";
-		}
-		undef($size);
-		undef($reg_num);
-	    }
-	    elsif($layout[$lay] =~ /\(\(\($label\+$sim_imm\)\+$sim_imm\)\+$sim_imm\)\[$reg\]/)
-	    {
-		$size = ((($Data_Label{$1} + $2) + $3) + $4);
-		$reg_num = $7;
+		$size = ($Data_Label{$4} + $5);
+		$reg_num = $3;
 		if((($opcode_name =~ /^ldw/i) || ($opcode_name =~ /^stw/i)) && ($mem_align))
 		{
 		    $size = $size >> 2;
