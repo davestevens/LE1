@@ -102,18 +102,12 @@ sub grab_data()
 		$i++;
 	    }
 	}
+	# just need to skip over this section now
 	elsif($in_file[$i] =~ /Instruction Labels$/)
 	{
 	    $i++;
 	    while($in_file[$i] !~ /^\n/)
 	    {
-		chomp($in_file[$i]);
-		($address, $label) = split(/ \- /, $in_file[$i]);
-		if(defined($address))
-		{
-		    $Inst_Label{$label} = (hex($address)/4);
-		    undef($address);
-		}
 		$i++;
 	    }
 	}
@@ -184,6 +178,20 @@ sub grab_data()
     print "Size of bss area : $total_bss\n";
     $end_of_memory = ($total_data + $total_bss) * 8;
     print "End of memory: $end_of_memory\n";
+
+    $counter = 0;
+    foreach $op (@Operations)
+    {
+	if($op =~ /^\w+\.\d+/)
+	{
+	    $counter++;
+	}
+	if($op =~ /^--\s+(.+)/)
+	{
+	    $Inst_Label{$1} = $counter;
+	}
+    }
+
 }
 sub second_pass()
 {
@@ -1505,6 +1513,10 @@ sub print_instructions()
 	{
 	    ($address,$syllable,$comment) = split(/\s+-\s+/, $output[$outting]);
 	    ($type, $operation) = split(/\|/, $comment);
+
+	    # need to remove this part.
+	    ($operation, $pthread_thing) = split(/\s+:STOP:\s+/, $operation);
+
 	    if($type eq "CALL")
 	    {
 		if($operation !~ /\.call/)
