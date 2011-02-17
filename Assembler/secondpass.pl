@@ -1507,7 +1507,6 @@ sub print_instructions()
 	    ($type, $operation) = split(/\|/, $comment);
 	    if($type eq "CALL")
 	    {
-		($operation, $pthread_thing) = split(/\s+:STOP:\s+/, $operation);
 		if($operation !~ /\.call/)
 		{
 		    $syllable |= &twoscomp((($Inst_Label{$operation} - $test_address) * 4),20);
@@ -1544,10 +1543,6 @@ sub print_instructions()
 			}
 			$operation = "call " . $operation;
 		    }
-		}
-		if($pthread_thing ne "")
-		{
-		    $operation .= " :PTHREAD: $pthread_thing";
 		}
 	    }
 	    elsif($type eq "GOTO")

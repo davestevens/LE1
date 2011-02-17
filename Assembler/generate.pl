@@ -233,10 +233,7 @@ EOH
     {
 	$keep_folder = $keep;
     }
-    foreach $file (@cfiles)
-    {
-	readpipe("$perl $pthread $file > pthread_$file\.txt");
-    }
+
     print<<EOH;
 --------------------------------------------------------------------------------
     Running Assembler
