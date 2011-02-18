@@ -12,6 +12,11 @@
    gcc -o Insizzle `xml2-config --cflags` main.c `xml2-config --libs` -m32 -Wall -Wextra -pedantic -std=c99
 */
 
+#ifdef VAJAZZLE
+#include "vajazzle.h"
+extern void *_vajazzle_main(void);
+#endif
+
 void returnOpcode(opT);
 void printOut(instruction, instructionPacket, hyperContextT *, unsigned long long);
 int setupGalaxy(void);
@@ -36,6 +41,24 @@ int main(int argc, char *argv[])
   /*unsigned curClustTemplate, curClustInstance;*/
   /*unsigned sGPROffset, sFPROffset, sVROffset, sPROffset;*/
   unsigned long long cycleCount = 0;
+
+#ifdef VAJAZZLE
+  printf("           /\\\n");
+  printf("          /  \\\n");
+  printf("         /    \\\n");
+  printf("________/      \\________\n");
+  printf("\\                      /\n");
+  printf(" \\                    /\n");
+  printf("  \\     Vajazzle     /\n");
+  printf("  /                  \\\n");
+  printf(" /                    \\\n");
+  printf("/-------\\      /-------\\\n");
+  printf("         \\    /\n");
+  printf("          \\  /\n");
+  printf("           \\/\n");
+#else
+  printf("Insizzle\n");
+#endif
 
   if(argc < 2)
     {
@@ -64,6 +87,10 @@ int main(int argc, char *argv[])
         for each context
 	  for each hypercontext
   */
+
+#ifdef VAJAZZLE
+  printf("Running Insizzle\n");
+#endif
 
 #ifdef RUNIT
   while(checkActive())
@@ -558,6 +585,39 @@ int main(int argc, char *argv[])
     }
 #endif
 
+#ifdef VAJAZZLE
+  printf("\tInsizzle run complete\n");
+
+  printf("Running GCC\n");
+  _vajazzle_main();
+  printf("\tGCC run complete\n");
+
+  printf("running setupArray()\n");
+  setupArray();
+
+  printf("comparing global data variables\n");
+  /* TODO: need to get a system pointer */
+  system = (systemT *)((unsigned)galaxyT);
+  {
+    /*    unsigned *dram = system->dram;*/
+    unsigned c, count;
+    unsigned char temp;
+
+    for(c=0;c<SIZE;c++)
+      {
+	printf("\tvariable name: %s (size: %d)\n", arrayOfMem[c].name, arrayOfMem[c].size);
+	printf("sizeof = %d\n", sizeof((void *)arrayOfMem[c].P));
+	for(count=0;count<arrayOfMem[c].size;count++)
+	  {
+	    _LDUB_iss(&temp, ((unsigned)system->dram + (arrayOfMem[c].addr + count)));
+	    printf("GCC: 0x%x - INS: 0x%x\n",
+		   *(unsigned char *)((unsigned)arrayOfMem[c].P + count), 
+		   temp);
+	  }
+      }
+  }
+
+#endif
   /* print out details */
   printf("galaxy: 0\n");
   /* loop through systems in the galaxy */
@@ -590,6 +650,7 @@ int main(int argc, char *argv[])
       if(memoryDump(((((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000) >> 2), i, system->dram) == -1)
 	return -1;
     }
+
 
   /* TODO: memory dump */
 

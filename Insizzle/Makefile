@@ -1,7 +1,7 @@
 # Makefile for InsizzleV3
 
 CC = gcc
-CFLAGS = -c -Wall -pedantic -std=c99 -Wextra -m32 -O4 `xml2-config --cflags`
+CFLAGS = -c -Wall -pedantic -std=c99 -Wextra -m32 -g `xml2-config --cflags`
 LDFLAGS = -lm -m32 `xml2-config --libs`
 
 INCDIR = inc
@@ -12,18 +12,25 @@ SRC = $(wildcard $(SRCDIR)/*.c)
 OBJ = $(SRC:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
 
 TARGET = INSIZZLE
+TARGETV = VAJAZZLE
+
+Vajazzle:	CFLAGS += -DVAJAZZLE
 
 all: $(SRC) $(TARGET)
 
+Vajazzle: $(SRC) $(TARGETV)
+
 $(TARGET): $(OBJ)
 	   $(CC) $(OBJ) $(LDFLAGS) -o $@
+
+$(TARGETV): $(OBJ)
+	ar cr $(TARGETV) $(OBJ)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
 	$(CC) $(CFLAGS) $< -o $@ -I$(INCDIR)/
 
 clean:
-		rm -rf $(OBJ) $(TARGET)
+		rm -rf $(OBJ) $(TARGET) $(TARGETV)
 
 distclean:
-		rm -f *~ \#* $(OBJDIR)/*.o $(SRCDIR)/*~ $(TARGET)
-
+		rm -f *~ \#* $(OBJDIR)/*.o $(SRCDIR)/*~ $(TARGET) $(TARGETV)

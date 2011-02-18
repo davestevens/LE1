@@ -23,7 +23,6 @@ $sim_mem_blocks = 1;
 $sim_width = 4;
 $mem_align = 0;
 $vex_sim = 0;
-$cust_sim = 0;
 foreach $arg (@ARGV)
 {
     if($arg eq "-d")
@@ -41,10 +40,6 @@ foreach $arg (@ARGV)
     elsif($arg eq "-vexsim")
     {
 	$vex_sim = 1;
-    }
-    elsif($arg eq "-customsim")
-    {
-	$cust_sim = 1;
     }
     elsif($arg =~ /-s=(0x\w+)?/)
     {
@@ -350,58 +345,22 @@ EOH
 	    rmtree($direct) or warn "Couldn't remove $direct\n";
 	}
     }
-if($cust_sim)
-{
-    print<<EOH;
---------------------------------------------------------------------------------
-    Generating Custom Simulator
---------------------------------------------------------------------------------
-EOH
-    print "Generating the simulator now!\n";
-    print "Running command:\n";
-    print "cp -f temp_* $le1_folder/Simulator\n";
-    @return = readpipe("cp -f temp_* $le1_folder/Simulator");
-    &check_return();
-    chdir("$le1_folder/Simulator");
-    print "Running command:\n";
-    # need to find all temp_simulator_*.c files
-    @simulator_files = <temp_simulator*.c>;
-    $object_files = "";
-    foreach $sim_file (@simulator_files)
-    {
-#	print $sim_file, "\n";
-	print "gcc -c $sim_file -Wall -O3\n";
-	@return = readpipe("gcc -c $sim_file -Wall -O3");
-	&check_return();
-	$object_file = $sim_file;
-	$object_file =~ s/\.c$/.o/;
-	$object_files .= $object_file . " ";
-    }
-    # all object files created
-    print "gcc -c simulator.c hashtbl.c forq.c -lm -DMAX_CONTEXT=$sim_threads -DNUM_MEM_BLOCKS=$sim_mem_blocks -DWIDTH=$sim_width -Wall -O3\n";
-    @return = readpipe("gcc -c simulator.c hashtbl.c forq.c -lm -DMAX_CONTEXT=$sim_threads -DNUM_MEM_BLOCKS=$sim_mem_blocks -DWIDTH=$sim_width -Wall -O3");
-    &check_return();
-    $object_files .= "simulator.o hashtbl.o forq.o";
 
-    print "gcc -o Sim $object_files -Wall -O3\n";
-    @return = readpipe("gcc -o Sim $object_files -Wall -O3");
-    &check_return();
+# need to then compile source code with gcc and run objcopy with it
+print "Running GCC\n";
 
-#    print "gcc -o Sim simulator.c temp_simulator.c hashtbl.c forq.c -lm -DMAX_CONTEXT=$sim_threads -DNUM_MEM_BLOCKS=$sim_mem_blocks -DWIDTH=$sim_width -w\n";
-#    system("gcc -o Sim simulator.c temp_simulator.c hashtbl.c forq.c -lm -DMAX_CONTEXT=$sim_threads -DNUM_MEM_BLOCKS=$sim_mem_blocks -DWIDTH=$sim_width -w");
-#    &check_return();
-    print "mv -f Sim $cur_dir\n";
-    @return = readpipe("mv -f Sim $cur_dir");
-    &check_return();
-    # need to remove all temp_simulator* files from SImulator dir
-    print "rm -f $le1_folder/Simulator/temp_*\n";
-    @return = readpipe("rm -f $le1_folder/Simulator/temp_*");
-    &check_return();
-    print "rm -f $le1_folder/Simulator/*.o\n";
-    @return = readpipe("rm -f $le1_folder/Simulator/*.o");
-    &check_return();
-    chdir("$cur_dir");
-}
+$vajazzle_out = $file3;#$output_file . "/vajazzle.o" ;
+$vajazzle_out =~ s/temp\.s(\.new\.s)?/vajazzle\.o/;
+
+print "gcc -o $vajazzle_out -c $cfiles\n";
+system("gcc -o $vajazzle_out -c $cfiles");
+
+print "Running OBJCOPY\n";
+$objcopy_file = $file3;
+$objcopy_file =~ s/temp\.s(\.new\.s)?$/OBJCOPY/;
+print "objcopy --redefine-syms $objcopy_file $vajazzle_out $vajazzle_out\n";
+system("objcopy --redefine-syms $objcopy_file $vajazzle_out $vajazzle_out");
+
 if($vex_sim)
 {
     print<<EOH;
