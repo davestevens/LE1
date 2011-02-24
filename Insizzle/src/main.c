@@ -592,9 +592,77 @@ int main(int argc, char *argv[])
   _vajazzle_main();
   printf("\tGCC run complete\n");
 
-  printf("running setupArray()\n");
-  setupArray();
+  printf("running setupMem()\n");
+  setupMem();
 
+  /* TODO: need to get a system pointer */
+  system = (systemT *)((unsigned)galaxyT);
+
+  printf("comparing global data variables\n");
+  {
+    struct mem *this;
+    unsigned c, temp;
+    this = _vajazzle_vars;
+    do {
+      /*    printf("le1Addr: 0x%x\n", this->addr);
+	    printf("size:    %d\n", this->size);
+	    printf("name:    %s\n", this->name);
+	    printf("point:   %p\n", this->P);*/
+      printf("checking: %s\n", this->name);
+
+      switch(this->type)
+	{
+	case charT:
+	  printf("\tcharT\n");
+	  for(c=0;c<this->size;c++)
+	    {
+	      _LDUB_iss(&temp, ((unsigned)system->dram + (this->addr + c)));
+	      printf("\t\t%d [0x%x] [0x%x]\n",
+		     c,
+		     *(unsigned char*)((unsigned)this->P + c),
+		     temp);
+	    }
+	  break;
+	case shortT:
+	  printf("\tshortT\n");
+	  for(c=0;c<this->size;c++)
+	    {
+	      _LDUH_iss(&temp, ((unsigned)system->dram + (this->addr + (c * 2))));
+	      printf("\t\t%d [0x%x] [0x%x]\n",
+		     c,
+		     *(unsigned short*)((unsigned)this->P + (c * 2)),
+		     temp);
+	    }
+	  break;
+	case intT:
+	  printf("\tintT\n");
+	  for(c=0;c<this->size;c++)
+	    {
+	      _LDW_iss(&temp, ((unsigned)system->dram + (this->addr + (c * 4))));
+	      printf("\t\t%d [0x%x] [0x%x]\n",
+		     c,
+		     *(unsigned int*)((unsigned)this->P + (c * 4)),
+		     temp);
+	    }
+	  break;
+	case longT:
+	  printf("\tlongT\n");
+	  break;
+	case longlongT:
+	  printf("\tlonglongT\n");
+	  break;
+	case unkT:
+	  printf("\t i can't check this right now, its a struct or somthing\n");
+	  break;
+	default:
+	  printf("\terror\n");
+	  break;
+	}
+    this = this->next;
+    } while((this != NULL) && (this->valid));
+  }
+
+#if 0
   printf("comparing global data variables\n");
   /* TODO: need to get a system pointer */
   system = (systemT *)((unsigned)galaxyT);
@@ -616,6 +684,7 @@ int main(int argc, char *argv[])
 	  }
       }
   }
+#endif
 
 #endif
   /* print out details */
@@ -1039,3 +1108,42 @@ void returnOpcode(opT op)
 
   return;
 }
+
+#ifdef VAJAZZLE
+void push(unsigned le1Addr, void *gccAddr, typeT type, char *name, unsigned size)
+{
+  struct mem *next;
+
+  if(_vajazzle_vars == NULL)
+    {
+      /* first time round */
+      _vajazzle_vars = calloc(sizeof(struct mem), 1);
+      _vajazzle_vars_next = calloc(sizeof(struct mem), 1);
+
+      _vajazzle_vars->addr = le1Addr;
+      _vajazzle_vars->size = size;
+      strcpy(_vajazzle_vars->name, name);
+      _vajazzle_vars->P = gccAddr;
+      _vajazzle_vars->type = type;
+      _vajazzle_vars->valid = 1;
+
+      _vajazzle_vars->next = _vajazzle_vars_next;
+    }
+  else
+    {
+      next = _vajazzle_vars_next;
+      _vajazzle_vars_next = calloc(sizeof(struct mem), 1);
+
+      next->addr = le1Addr;
+      next->size = size;
+      strcpy(next->name, name);
+      next->P = gccAddr;
+      next->type = type;
+      next->valid = 1;
+
+      next->next = _vajazzle_vars_next;
+    }
+
+  return;
+}
+#endif

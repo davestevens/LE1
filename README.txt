@@ -4,10 +4,9 @@ Vajazzle:
 
 Make Vajazzle
 will create a binary VAJAZZLE
-it requires a vajazzle.h in inc/ (created by Assembler)
 
-then compile with 
-gcc -o fullVajazzle VAJAZZLE ../../bench/simple/main/main.vajazzle.o ../../bench/simple/main/main.vajazzle.c -I../../bench/simple/main/ -lm  -m32 `xml2-config --libs`
+then compile with (eg)
+gcc -o fullVajazzle VAJAZZLE ../../bench/simple/main/main.vajazzle.o ../../bench/simple/main/main.vajazzle.c -Iinc -lm  -m32 `xml2-config --libs`
 where *.vajazzle.[co] are created by the Assembler
 
 ./fullVajazzle <MACHINE MODEL>

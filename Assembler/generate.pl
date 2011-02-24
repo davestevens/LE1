@@ -351,9 +351,14 @@ print "Running GCC\n";
 
 $vajazzle_out = $file3;#$output_file . "/vajazzle.o" ;
 $vajazzle_out =~ s/temp\.s(\.new\.s)?/vajazzle\.o/;
+$datalabels = $file3;
+$datalabels =~ s/temp\.s(\.new\.s)?/datalabels/;
 
 print "gcc -o $vajazzle_out -c $cfiles\n";
-system("gcc -o $vajazzle_out -c $cfiles");
+system("gcc -o $vajazzle_out -c $cfiles -g");
+
+print "$perl $vajazzle $vajazzle_out $datalabels\n";
+system("$perl $vajazzle $vajazzle_out $datalabels");
 
 print "Running OBJCOPY\n";
 $objcopy_file = $file3;
