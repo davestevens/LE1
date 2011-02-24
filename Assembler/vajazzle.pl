@@ -176,7 +176,7 @@ foreach $key (%le1)
     {
 	if($basic{$var{$key}} ne "")
 	{
-	    print VAJAZZLE "\tpush(", $le1{$key}, ", (void *)&_vajazzle_", $key ,", ", &printBasicType($basic{$var{$key}}), ", \"", $key , "\", ", ($syms{$key} / &getSize($basic{$var{$key}})), ");\n";
+	    print VAJAZZLE "\tpush(", $le1{$key}, ", (void *)&_vajazzle_", $key ,", ", &printBasicType($basic{$var{$key}}), ", \"", $key , "\", ", ($syms{$key} / &getSize($basic{$var{$key}})), ", 0);\n";
 	}
 	elsif($typedef{$var{$key}} ne "")
 	{
@@ -184,7 +184,7 @@ foreach $key (%le1)
 	}
 	elsif($basic{$special{$var{$key}}} ne "")
 	{
-	    print VAJAZZLE "\tpush(", $le1{$key}, ", (void *)&_vajazzle_", $key ,", ", &printBasicType($basic{$special{$var{$key}}}), ", \"", $key , "\", ", ($syms{$key} / &getSize($basic{$special{$var{$key}}})), ");\n";
+	    print VAJAZZLE "\tpush(", $le1{$key}, ", (void *)&_vajazzle_", $key ,", ", &printBasicType($basic{$special{$var{$key}}}), ", \"", $key , "\", ", ($syms{$key} / &getSize($basic{$special{$var{$key}}})), ", 0);\n";
 	}
 	elsif($typedef{$special{$var{$key}}} ne "")
 	{
@@ -193,7 +193,7 @@ foreach $key (%le1)
 
 	elsif($basic{$array{$var{$key}}} ne "")
 	{
-	    print VAJAZZLE "\tpush(", $le1{$key}, ", (void *)&_vajazzle_", $key ,", ", &printBasicType($basic{$array{$var{$key}}}), ", \"", $key , "\", ", ($syms{$key} / &getSize($basic{$array{$var{$key}}})), ");\n";
+	    print VAJAZZLE "\tpush(", $le1{$key}, ", (void *)&_vajazzle_", $key ,", ", &printBasicType($basic{$array{$var{$key}}}), ", \"", $key , "\", ", ($syms{$key} / &getSize($basic{$array{$var{$key}}})), ", 0);\n";
 	}
 	elsif($typedef{$array{$var{$key}}} ne "")
 	{
@@ -201,7 +201,7 @@ foreach $key (%le1)
 	}
 	elsif($basic{$array{$special{$var{$key}}}} ne "")
 	{
-	    print VAJAZZLE "\tpush(", $le1{$key}, ", (void *)&_vajazzle_", $key ,", ", &printBasicType($basic{$array{$special{$var{$key}}}}), ", \"", $key , "\", ", ($syms{$key} / &getSize($basic{$array{$special{$var{$key}}}})), ");\n";
+	    print VAJAZZLE "\tpush(", $le1{$key}, ", (void *)&_vajazzle_", $key ,", ", &printBasicType($basic{$array{$special{$var{$key}}}}), ", \"", $key , "\", ", ($syms{$key} / &getSize($basic{$array{$special{$var{$key}}}})), ", 0);\n";
 	}
 	elsif($typedef{$array{$special{$var{$key}}}} ne "")
 	{
@@ -210,7 +210,7 @@ foreach $key (%le1)
 
 	elsif($basic{$point{$var{$key}}} ne "")
 	{
-	    print VAJAZZLE "\tpush(", $le1{$key}, ", (void *)&_vajazzle_", $key ,", ", &printBasicType($basic{$point{$var{$key}}}), ", \"", $key , "\", ", ($syms{$key} / &getSize($basic{$point{$var{$key}}})), ");\n";
+	    print VAJAZZLE "\tpush(", $le1{$key}, ", (void *)&_vajazzle_", $key ,", ", &printBasicType($basic{$point{$var{$key}}}), ", \"", $key , "\", ", ($syms{$key} / 4), ", 1);\n";
 	}
 	elsif($typdef{$point{$var{$key}}} ne "")
 	{
@@ -218,7 +218,7 @@ foreach $key (%le1)
 	}
 	elsif($basic{$special{$point{$var{$key}}}} ne "")
 	{
-	    print VAJAZZLE "\tpush(", $le1{$key}, ", (void *)&_vajazzle_", $key ,", ", &printBasicType($basic{$special{$point{$var{$key}}}}), ", \"", $key , "\", ", ($syms{$key} / &getSize($basic{$special{$point{$var{$key}}}})), ");\n";
+	    print VAJAZZLE "\tpush(", $le1{$key}, ", (void *)&_vajazzle_", $key ,", ", &printBasicType($basic{$special{$point{$var{$key}}}}), ", \"", $key , "\", ", ($syms{$key} / 4), ");\n";
 	}
 	elsif($typdef{$special{$point{$var{$key}}}} ne "")
 	{
@@ -227,7 +227,7 @@ foreach $key (%le1)
 
 	elsif($basic{$point{$array{$var{$key}}}} ne "")
 	{
-	    print VAJAZZLE "\tpush(", $le1{$key}, ", (void *)&_vajazzle_", $key ,", ", &printBasicType($basic{$point{$array{$var{$key}}}}), ", \"", $key , "\", ", ($syms{$key} / &getSize($basic{$point{$array{$var{$key}}}})), ");\n";
+	    print VAJAZZLE "\tpush(", $le1{$key}, ", (void *)&_vajazzle_", $key ,", ", &printBasicType($basic{$point{$array{$var{$key}}}}), ", \"", $key , "\", ", ($syms{$key} / 4), ", 1);\n";
 	}
 	elsif($typdef{$point{$array{$var{$key}}}} ne "")
 	{
@@ -235,7 +235,7 @@ foreach $key (%le1)
 	}
 	elsif($basic{$special{$point{$array{$var{$key}}}}} ne "")
 	{
-	    print VAJAZZLE "\tpush(", $le1{$key}, ", (void *)&_vajazzle_", $key ,", ", &printBasicType($basic{$special{$point{$array{$var{$key}}}}}), ", \"", $key , "\", ", ($syms{$key} / &getSize($basic{$special{$point{$array{$var{$key}}}}})), ");\n";
+	    print VAJAZZLE "\tpush(", $le1{$key}, ", (void *)&_vajazzle_", $key ,", ", &printBasicType($basic{$special{$point{$array{$var{$key}}}}}), ", \"", $key , "\", ", ($syms{$key} / 4), ", 1);\n";
 	}
 	elsif($typdef{$special{$point{$array{$var{$key}}}}} ne "")
 	{

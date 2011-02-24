@@ -614,35 +614,90 @@ int main(int argc, char *argv[])
 	{
 	case charT:
 	  printf("\tcharT\n");
+	  unsigned char *charP;
+	  printf("SIZE: %d\n", this->size);
 	  for(c=0;c<this->size;c++)
 	    {
-	      _LDUB_iss(&temp, ((unsigned)system->dram + (this->addr + c)));
-	      printf("\t\t%d [0x%x] [0x%x]\n",
-		     c,
-		     *(unsigned char*)((unsigned)this->P + c),
-		     temp);
+	      if(this->pointer)
+		{
+		  _LDW_iss(&temp, ((unsigned)system->dram + (this->addr + c)));
+		  _LDUB_iss(&temp, ((unsigned)system->dram + temp));
+		  charP = (unsigned char*)(*(unsigned int*)((unsigned)this->P + c));
+		  printf("\t\t%d [0x%x] [0x%x]\n",
+			 c,
+			 *charP,
+			 temp);
+		  if(*charP != temp)
+		    printf("\t\tdifference: GCC 0x%02x INS: 0x%02x\n", *charP, temp);
+		}
+	      else
+		{
+		  _LDUB_iss(&temp, ((unsigned)system->dram + (this->addr + c)));
+		  printf("\t\t%d [0x%x] [0x%x]\n",
+			 c,
+			 *(unsigned char*)((unsigned)this->P + c),
+			 temp);
+		  if(*(unsigned char*)((unsigned)this->P + c) != temp)
+		    printf("\t\tdifference: GCC 0x%02x INS: 0x%02x\n", *(unsigned char*)((unsigned)this->P + c), temp);
+		}
 	    }
 	  break;
 	case shortT:
 	  printf("\tshortT\n");
+	  unsigned short *shortP;
 	  for(c=0;c<this->size;c++)
 	    {
-	      _LDUH_iss(&temp, ((unsigned)system->dram + (this->addr + (c * 2))));
-	      printf("\t\t%d [0x%x] [0x%x]\n",
-		     c,
-		     *(unsigned short*)((unsigned)this->P + (c * 2)),
-		     temp);
+	      if(this->pointer)
+		{
+		  _LDW_iss(&temp, ((unsigned)system->dram + (this->addr + (c * 2))));
+		  _LDUH_iss(&temp, ((unsigned)system->dram + temp));
+		  shortP = (unsigned short *)(*(unsigned int*)((unsigned)this->P + (c * 2)));
+		  printf("\t\t%d [0x%x] [0x%x]\n",
+			 c,
+			 *shortP,
+			 temp);
+		  if(*shortP != temp)
+		    printf("\t\tdifference: GCC 0x%04x INS: 0x%04x\n", *shortP, temp);
+		}
+	      else
+		{
+		  _LDUH_iss(&temp, ((unsigned)system->dram + (this->addr + (c * 2))));
+		  printf("\t\t%d [0x%x] [0x%x]\n",
+			 c,
+			 *(unsigned short*)((unsigned)this->P + (c * 2)),
+			 temp);
+		  if(*(unsigned short*)((unsigned)this->P + (c * 2)) != temp)
+		    printf("\t\tdifference: GCC 0x%04x INS: 0x%04x\n", *(unsigned short*)((unsigned)this->P + (c * 2)), temp);
+		}
 	    }
 	  break;
 	case intT:
 	  printf("\tintT\n");
+	  unsigned *intP;
 	  for(c=0;c<this->size;c++)
 	    {
-	      _LDW_iss(&temp, ((unsigned)system->dram + (this->addr + (c * 4))));
-	      printf("\t\t%d [0x%x] [0x%x]\n",
-		     c,
-		     *(unsigned int*)((unsigned)this->P + (c * 4)),
-		     temp);
+	      if(this->pointer)
+		{
+		  _LDW_iss(&temp, ((unsigned)system->dram + (this->addr + (c * 4))));
+		  _LDW_iss(&temp, ((unsigned)system->dram + temp));
+		  intP = (unsigned *)(*(unsigned int*)((unsigned)this->P + (c * 4)));
+		  printf("\t\t%d [0x%x] [0x%x]\n",
+			 c,
+			 *intP,
+			 temp);
+		  if(*intP != temp)
+		    printf("\t\tdifference: GCC 0x%08x INS 0x%08x\n", *intP, temp);
+		}
+	      else
+		{
+		  _LDW_iss(&temp, ((unsigned)system->dram + (this->addr + (c * 4))));
+		  printf("\t\t%d [0x%x] [0x%x]\n",
+			 c,
+			 *(unsigned int*)((unsigned)this->P + (c * 4)),
+			 temp);
+		  if(*(unsigned int*)((unsigned)this->P + (c * 4)) != temp)
+		    printf("\t\tdifference: GCC 0x%08x INS 0x%08x\n", *(unsigned int*)((unsigned)this->P + (c * 4)), temp);
+		}
 	    }
 	  break;
 	case longT:
@@ -1110,7 +1165,7 @@ void returnOpcode(opT op)
 }
 
 #ifdef VAJAZZLE
-void push(unsigned le1Addr, void *gccAddr, typeT type, char *name, unsigned size)
+void push(unsigned le1Addr, void *gccAddr, typeT type, char *name, unsigned size, char pointer)
 {
   struct mem *next;
 
@@ -1125,6 +1180,8 @@ void push(unsigned le1Addr, void *gccAddr, typeT type, char *name, unsigned size
       strcpy(_vajazzle_vars->name, name);
       _vajazzle_vars->P = gccAddr;
       _vajazzle_vars->type = type;
+      _vajazzle_vars->pointer = pointer;
+
       _vajazzle_vars->valid = 1;
 
       _vajazzle_vars->next = _vajazzle_vars_next;
@@ -1139,6 +1196,8 @@ void push(unsigned le1Addr, void *gccAddr, typeT type, char *name, unsigned size
       strcpy(next->name, name);
       next->P = gccAddr;
       next->type = type;
+      next->pointer = pointer;
+
       next->valid = 1;
 
       next->next = _vajazzle_vars_next;

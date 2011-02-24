@@ -12,6 +12,7 @@ struct mem {
   char name[256];
   void *P;
   typeT type;
+  char pointer;
   char valid;
   struct mem *next;
 };
@@ -20,5 +21,5 @@ struct mem {
 struct mem *_vajazzle_vars;
 struct mem *_vajazzle_vars_next;
 
-void push(unsigned, void *, typeT, char *, unsigned);
+void push(unsigned, void *, typeT, char *, unsigned, char);
 void setupMem(void);
