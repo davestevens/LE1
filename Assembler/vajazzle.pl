@@ -274,6 +274,14 @@ sub getSize()
     {
 	return 4;
     }
+    elsif($_[0] =~ /(unsigned)?\s*double/)
+    {
+	return 8;
+    }
+    elsif($_[0] =~ /(unsigned)?\s*float/)
+    {
+	return 4;
+    }
 }
 
 sub printBasicType()
@@ -297,5 +305,13 @@ sub printBasicType()
     elsif($_[0] =~ /(unsigned)?\s*long/)
     {
 	return "longT";
+    }
+    elsif($_[0] =~ /(unsigned)?\s*double/)
+    {
+	return "doubleT";
+    }
+    elsif($_[0] =~ /(unsigned)?\s*float/)
+    {
+	return "floatT";
     }
 }

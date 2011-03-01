@@ -1,6 +1,7 @@
 #include "string.h"
 
 /* requires:
+string.h
  */
 
 char *err = "strerror()";

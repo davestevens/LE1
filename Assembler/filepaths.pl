@@ -14,7 +14,8 @@ $firstpass_name   = "firstpass.pl";
 $midpass_name     = "midpass.pl";
 $secondpass_name  = "secondpass.pl";
 $transform_name   = "trans.pl";
-$deps_name        = "pullIn2.pl";
+$pullin_name      = "recursion.pl";
+$deps_name        = "deps.pl";
 $vajazzle_name    = "vajazzle.pl";
 
 $libraries        = "includes/libraries/";
@@ -31,8 +32,9 @@ $firstpass  = $le1_folder . "/" . $assembler_folder . "/" . $firstpass_name;
 $midpass    = $le1_folder . "/" . $assembler_folder . "/" . $midpass_name;
 $secondpass = $le1_folder . "/" . $assembler_folder . "/" . $secondpass_name;
 $transform  = $le1_folder . "/" . $assembler_folder . "/" . $transform_name;
-$libraries  = $le1_folder . "/" . $assembler_folder . "/" . $libraries;
+$pullin       = $le1_folder . "/" . $assembler_folder . "/" . $libraries . "scripts/" . $pullin_name;
 $deps       = $le1_folder . "/" . $assembler_folder . "/" . $libraries . "scripts/" . $deps_name;
+$libraries  = $le1_folder . "/" . $assembler_folder . "/" . $libraries;
 $vajazzle   = $le1_folder . "/" . $assembler_folder . "/" . $vajazzle_name;
 
 # these should be removed at some point soon

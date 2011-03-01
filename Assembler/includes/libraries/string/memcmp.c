@@ -1,7 +1,7 @@
-#include <stdio.h>
 #include "string.h"
 
 /* requires:
+string.h
  */
 
 #ifdef DEBUG

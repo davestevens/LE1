@@ -2,6 +2,7 @@
 
 /* requires:
 strcpy.c
+string.h
  */
 
 #ifdef DEBUG

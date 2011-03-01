@@ -187,34 +187,34 @@ EOH
 		{
 		    print "Including softfloat library\n";
 #		    @return = readpipe("cp $le1_folder/Assembler/includes/floatlib.c . 2>&1");
-		    @return = readpipe("cp $floatlib . 2>&1");
+#		    @return = readpipe("cp $floatlib . 2>&1");
 		    &check_return();
 		    $floatlib_args = $arguments;
 		    $floatlib_args =~ s/-c99inline//g;
 		    if($fmm eq "")
 		    {
-			print "Running Command: $vex_location -c floatlib.c $floatlib_args -ms -mas_g -fexpand-div -fno-xnop -w 2>&1\n";
+			print "Running Command: $vex_location -c $floatlib $floatlib_args -ms -mas_g -fexpand-div -fno-xnop -w 2>&1\n";
 		    }
 		    else
 		    {
-			print "Running Command: $vex_location -c floatlib.c $floatlib_args -ms -mas_g -fexpand-div -fno-xnop -w -fmm=$fmm 2>&1\n";
+			print "Running Command: $vex_location -c $floatlib $floatlib_args -ms -mas_g -fexpand-div -fno-xnop -w -fmm=$fmm 2>&1\n";
 		    }
 		    if($fmm eq "")
 		    {
-			@return = readpipe("$vex_location -c floatlib.c $floatlib_args -ms -mas_g -fexpand-div -fno-xnop -w 2>&1");
+			@return = readpipe("$vex_location -c $floatlib $floatlib_args -ms -mas_g -fexpand-div -fno-xnop -w 2>&1");
 		    }
 		    else
 		    {
-			@return = readpipe("$vex_location -c floatlib.c $floatlib_args -ms -mas_g -fexpand-div -fno-xnop -w -fmm=$fmm 2>&1");
+			@return = readpipe("$vex_location -c $floatlib $floatlib_args -ms -mas_g -fexpand-div -fno-xnop -w -fmm=$fmm 2>&1");
 		    }
 		    &check_return();
 		    push @cfiles, "floatlib.c";
-		    $soft_float = 1;
+		    $softfloat = 1;
 		    last;
 		}
 	    }
 	    close SFILE;
-	    if($soft_float == 1)
+	    if($softfloat == 1)
 	    {
 		last;
 	    }
@@ -263,6 +263,10 @@ EOH
 	push @files2, $filename;
     }
     print "Firstpass Completed\n";
+
+    $DONE = 0;
+REWIND:
+
     if($#files2 > 0)
     {
 	print<<EOH;
@@ -309,6 +313,123 @@ if($debug == 1)
     &check_return();
 
 $file3 = $file3 . ".new.s";
+
+if($DONE == 0)
+{
+    $DONE = 1;
+# TODO: at this point we should look for imports and pull in files as needed
+    printf("looking for imports\n");
+    open FILE, "< $file3" or die;
+    $imp = 0;
+#$required = '';
+    while(<FILE>)
+    {
+	if($imp)
+	{
+	    if(/^\n/)
+	    {
+		last;
+	    }
+	    else
+	    {
+		/FUNC_(\w+)/;
+#	   $required .= $1 . " "; 
+		push @required, $1;
+	    }
+	}
+	if(/##Import/)
+	{
+	    $imp = 1;
+	}
+    }
+    close FILE;
+    print @required, "\n";
+    
+    print "$perl $pullin $deps @required\n";
+    @toImport = readpipe("$perl $pullin $deps @required");
+
+    foreach $toImport (@toImport)
+    {
+	chomp($toImport);
+	print "\tImporting: $toImport\n";
+
+	if($fmm eq "")
+	{
+	    print "\t\tRunning Command: $vex_location -c $libraries$toImport $arguments -ms -mas_g -fexpand-div -fno-xnop -w 2>&1\n";
+	    @return = readpipe("$vex_location -c $libraries$toImport $arguments -ms -mas_g -fexpand-div -fno-xnop -w 2>&1");
+	    &check_return();
+	    # then run firstpass on this
+	    $toImport =~ /(\w+)\/(\w+)\.c/;
+	    $forFP = $2 . ".s";
+	    print "\t\tRunning Command: $perl $firstpass $forFP -s=$stack_size 2>&1\n";
+	    @return = readpipe("$perl $firstpass $forFP -s=$stack_size 2>&1");
+	    &check_return();
+
+	    ($filename, $rest) = split(/ contains /, $return[$#return]);
+	    push @files2, $filename;
+	}
+	else
+	{
+	    print "Running Command: $vex_location -c $libraries$toImport $arguments -ms -mas_g -fexpand-div -fno-xnop -w -fmm=$fmm 2>&1\n";
+#	    @return = readpipe("$vex_location -c $cfiles $arguments -ms -mas_g -fexpand-div -fno-xnop -w -fmm=$fmm 2>&1");
+	}
+    }
+
+    # need to check to see if softfloat needs adding
+    if($softfloat == 0)
+    {
+	@sfiles = <*.s>;
+	foreach $sfile (@sfiles)
+	{
+	    open SFILE, "< $sfile" or die "Could not open file ($sfile : $!)\n";
+	    while( <SFILE> )
+	    {
+		if(/_(r|d)_(r|d|add|sub|mul|div|eq|le|lt|ilfloat|ufloat)/)
+		{
+		    print "Including softfloat library\n";
+#		    @return = readpipe("cp $floatlib . 2>&1");
+#		    &check_return();
+		    $floatlib_args = $arguments;
+		    $floatlib_args =~ s/-c99inline//g;
+		    if($fmm eq "")
+		    {
+			print "Running Command: $vex_location -c $floatlib $floatlib_args -ms -mas_g -fexpand-div -fno-xnop -w 2>&1\n";
+			@return = readpipe("$vex_location -c $floatlib $floatlib_args -ms -mas_g -fexpand-div -fno-xnop -w 2>&1");
+		    }
+		    else
+		    {
+			print "Running Command: $vex_location -c $floatlib $floatlib_args -ms -mas_g -fexpand-div -fno-xnop -w -fmm=$fmm 2>&1\n";
+			@return = readpipe("$vex_location -c $floatlib $floatlib_args -ms -mas_g -fexpand-div -fno-xnop -w -fmm=$fmm 2>&1");
+		    }
+		    &check_return();
+		    push @cfiles, "floatlib.c";
+
+		    # then run first pass on it
+		    print "\t\tRunning Command: $perl $firstpass floatlib.s -s=$stack_size 2>&1\n";
+		    @return = readpipe("$perl $firstpass floatlib.s -s=$stack_size 2>&1");
+		    &check_return();
+
+		    ($filename, $rest) = split(/ contains /, $return[$#return]);
+		    push @files2, $filename;
+
+		    $softfloat = 1;
+		    last;
+		}
+
+	    }
+	    if($softfloat)
+	    {
+		last;
+	    }
+	}
+    }
+
+    printf("done looking for imports\n");
+    if(@toImport > 0)
+    {
+	goto REWIND;
+    }
+}
 
     print<<EOH;
 --------------------------------------------------------------------------------
