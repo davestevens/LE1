@@ -109,6 +109,41 @@ while( <> )
 		$items = $3;
 
 		$op =~ s/\./_/g;
+
+# catch ASM instructions here.
+		if($op =~ /asm,(\d+)/)
+		{
+#		    print $op, "\n";
+#		    print $1, "\n";
+		    $op = "asm";
+		    $asmNum = $1;
+
+		    @src = split(/,?\s+/, $items);
+		    $left = 0;
+		    $right = -1;
+		    for($i=0;$i<=$#src;$i++)
+		    {
+#	print $src[$i], "\n";
+			if($src[$i] eq "=")
+			{
+			    $right = 0;
+			}
+			else
+			{
+			    if($right >= 0)
+			    {
+				$right++;
+			    }
+			    else
+			    {
+				$left++;
+			    }
+			}
+		    }
+		    
+		    #   print "ASSIGNMENT: ", $left, "X", $right, "\n";
+		    $asmASS = $left . "X" . $right;
+		}
 		
 		# replace = with ,
 		$items =~ s/\s=/,/;
@@ -247,7 +282,7 @@ while( <> )
 			    $new = $9 . "[(" . $1 . "-" . $val .")]";
 			}
 		    }
-		    elsif($src[$i] =~ /^\(\((\w+([\?\.]?\w+)*)(\+)(\d+)\)(\+)(\d+)\)$/)
+		    elsif($src[$i] =~ /^\(\((\w+([\?\.]?\w+)*)(\+)(\d+)\)([+-])(\d+)\)$/)
 		    {
 			$val = 0;
 			if($3 eq "+")
@@ -267,16 +302,16 @@ while( <> )
 			{
 			    $val -= $6;
 			}
-			if($val >= 0)
-			{
-			    #$new = "(#" . $1 . "+" . $val .")";
+#			if($val >= 0)
+#			{
+#			    #$new = "(#" . $1 . "+" . $val .")";
 			    $new = "(" . $1 . "+" . $val .")";
-			}
-			else
-			{
-			    #$new = "(#" . $1 . "-" . $val .")";
-			    $new = "(" . $1 . "-" . $val .")";
-			}
+#			}
+#			else
+#			{
+#			    #$new = "(#" . $1 . "-" . $val .")";
+#			    $new = "(" . $1 . "-" . $val .")";
+#			}
 		    }
 		    elsif($src[$i] =~ /^\(\(\((\w+([\?\.]?\w+)*)(\+)(\d+)\)(\+)(\d+)\)(\+)(\d+)\)$/)
 		    {
@@ -319,6 +354,36 @@ while( <> )
 			    $new = "(" . $1 . "-" . $val .")";
 			}
 		    }
+		    elsif($src[$i] =~ /^\(\(((\w+([\?\.]?\w+)*)([+-])(\d+))\)([+-])\(([-~]?)0x(\w+)\)\)$/)
+		    {
+			$val = 0;
+
+			if($4 eq "+")
+			{
+			    $val += $5;
+			}
+			else
+			{
+			    $val -= $5;
+			}
+
+			$dec = hex($8);
+			if($7 eq "~")
+			{
+			    $dec = ($dec+1) * -1;
+			}
+
+			if($6 eq "+")
+			{
+			    $val += $dec;
+			}
+			else
+			{
+			    $val -= $dec;
+			}
+
+			$new = sprintf("(%s+%d)", $2, $val);
+		    }
 		    else
 		    {
 			$new = "UNDEF";
@@ -332,7 +397,14 @@ while( <> )
 		    }
 		}
 
-		print $op, ".", $clu, " ", $_items, "\n";
+		if($op eq "asm")
+		{
+		    printf("%s.%d 0x%x %s %s\n", $op, $clu, $asmNum, $asmASS, $_items);
+		}
+		else
+		{
+		    print $op, ".", $clu, " ", $_items, "\n";
+		}
 	    }
 	}
 	elsif(($section eq "impobj") || ($section eq "imp"))

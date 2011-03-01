@@ -596,21 +596,18 @@ sub operation()
 	$syllable |= 1 << 6;
     }
 
-    if($opcode_name =~ /^ASM,(\d+)/)
+    if($opcode_name eq "ASM")
     {
-	$custom_instid = $1;
-	$syllable |= $custom_instid << 9;
+	$ops[1] =~ /0x(\w+)/;
+	$custom_instid = hex($1);
+	$syllable |= ($custom_instid & 0x3f) << 9;
 	$syllable |= 1 << 7;
-	$syllable |= 1 << 26;
-	for($custom_count=2;$custom_count<=$#ops;$custom_count++)
-	{
-	    if($ops[$custom_count] eq "=")
-	    {
-		$left_side = $custom_count - 2;
-		$right_side = $#ops - ($custom_count);
-		last;
-	    }
-	}
+	$syllable |= 1 << 26; # format
+
+	$ops[2] =~ /(\d+)X(\d+)/;
+	$left_side = $1;
+	$right_side = $2;
+
 	if(($left_side + $right_side) == 7)
 	{
 	    $syllable |= 24 << 21;
@@ -627,64 +624,83 @@ sub operation()
 	{
 	    $syllable |= 27 << 21;
 	}
+
+	# SPECIAL CASE
 	elsif(($left_side + $right_side) == 3)
 	{
 	    $syllable &= 0xc0000000;
-	    $syllable |= 4 << 26;
-	    #$syllable |= $custom_instid << 21;
-	    $syllable |= 15 << 21;
-	    $syllable |= 0 << 25;
-	    #$syllable |= $custom_instid << 12;
+	    $syllable |= 4 << 26; # format 4
+	    $syllable |= 15 << 21; # opcode
+
+	    $ops[3] =~ /$reg2/;
+	    $syllable |= $3 << 15; # rd
+
 	    if($left_side == 1)
 	    {
-		$syllable |= 1 << 12;
+		$syllable |= 1 << 12; # casm2id
+		$ops[4] =~ /$reg2/;
+		$syllable |= $3;
+		$ops[5] =~ /$reg2/;
+		$syllable |= $3 << 6;
+	    }
+	    else
+	    {
+		$syllable |= 2 << 12; # casm2id
 		$ops[4] =~ /$reg2/;
 		$syllable |= $3 << 6;
 		$ops[5] =~ /$reg2/;
 		$syllable |= $3;
 	    }
-	    else
-	    {
-		$syllable |= 2 << 12;
-		$ops[5] =~ /$reg2/;
-		$syllable |= $3;
-		$ops[3] =~ /$reg2/;
-		$syllable |= $3 << 6;
-	    }
-	    $ops[2] =~ /$reg2/;
-	    $syllable |= $3 << 15;
 	}
+	
+	$reg2 = '([rbl])(\d+)\.(\d+)';
+
+
 	if(($left_side + $right_side) != 3)
 	{
+	    $syllable2 = 0;
 	    $syllable2 |= ($left_side - 1) << 30;
-	    $reg2 = '\$([rbl])(\d+)\.(\d+)';
-	    $ops[2] =~ /$reg2/;
+
+	    $ops[3] =~ /$reg2/; # rd1
 	    $syllable |= $3 << 15;
-	    for($custom_count2 = 3; $custom_count2 < $custom_count;$custom_count2++)
+
+	    for($custom_count2 = 4; $custom_count2 < $left_side + 3;$custom_count2++)
 	    {
-		if($custom_count2 == 3)
+		$ops[$custom_count2] =~ /$reg2/;
+		if($custom_count2 == 4)
 		{
-		    $ops[$custom_count2] =~ /$reg2/;
+		    # this needs to go in $syllable
 		    $syllable |= $3;
 		}
 		else
 		{
-		    $ops[$custom_count2] =~ /$reg2/;
-		    $syllable2 |= $3 << (32 - (($custom_count2 - 4) * 6) - 8);
+		    # $syllable2
+		    $syllable2 |= $3 << (32 - (($custom_count2 - 5) * 6) - 8);
 		}
 	    }
-	    for($custom_count2 = ($custom_count + 1);$custom_count2<=$#ops;$custom_count2++)
+
+	    $custom_count = $custom_count2;
+	    for(; $custom_count2 < $left_side + 3 + $right_side; $custom_count2++)
 	    {
-		if($custom_count2 == 9)
+		$ops[$custom_count2] =~ /$reg2/;
+		if($custom_count == 10)
 		{
-		    $ops[$custom_count2] =~ /$reg2/;
+		    # $syllable
 		    $syllable |= $3;
 		}
 		else
 		{
+		    # $syllable2
 		    $cust_c = $custom_count2 - $custom_count;
-		    $ops[$custom_count2] =~ /$reg2/;
-		    $syllable2 |= $3 << (($cust_c - 1) * 6);
+		    if($cust_c == 5)
+		    {
+			# only CASM7
+			$syllable |= $3;
+		    }
+		    else
+		    {
+			$syllable2 |= $3 << ($cust_c * 6);
+		    }
 		}
 	    }
 	}
