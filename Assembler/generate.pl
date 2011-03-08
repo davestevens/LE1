@@ -475,8 +475,8 @@ $vajazzle_out =~ s/temp\.s(\.new\.s)?/vajazzle\.o/;
 $datalabels = $file3;
 $datalabels =~ s/temp\.s(\.new\.s)?/datalabels/;
 
-print "gcc -o $vajazzle_out -c $cfiles\n";
-system("gcc -o $vajazzle_out -c $cfiles -g");
+print "gcc -o $vajazzle_out $cfiles -g\n";
+system("gcc -o $vajazzle_out $cfiles -g");
 
 print "$perl $vajazzle $vajazzle_out $datalabels\n";
 system("$perl $vajazzle $vajazzle_out $datalabels");
