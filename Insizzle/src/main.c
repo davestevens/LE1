@@ -43,19 +43,7 @@ int main(int argc, char *argv[])
   unsigned long long cycleCount = 0;
 
 #ifdef VAJAZZLE
-  printf("           /\\\n");
-  printf("          /  \\\n");
-  printf("         /    \\\n");
-  printf("________/      \\________\n");
-  printf("\\                      /\n");
-  printf(" \\                    /\n");
-  printf("  \\     Vajazzle     /\n");
-  printf("  /                  \\\n");
-  printf(" /                    \\\n");
-  printf("/-------\\      /-------\\\n");
-  printf("         \\    /\n");
-  printf("          \\  /\n");
-  printf("           \\/\n");
+  printf("Vajazzle\n");
 #else
   printf("Insizzle\n");
 #endif
@@ -91,6 +79,55 @@ int main(int argc, char *argv[])
 #ifdef VAJAZZLE
   printf("Running Insizzle\n");
 #endif
+
+  SYS = (systemConfig *)((unsigned)SYSTEM + (0 * sizeof(systemConfig)));
+  system = (systemT *)((unsigned)galaxyT + (0 * sizeof(systemT)));
+  context = (contextT *)((unsigned)system->context + (0 * sizeof(contextT)));
+
+#ifdef VTHREAD
+  /* need to set single hypercontext to active
+     c 0 hc 0
+  */
+  for(i=0;i<(GALAXY_CONFIG & 0xff);i++)
+    {
+      SYS = (systemConfig *)((unsigned)SYSTEM + (i * sizeof(systemConfig)));
+      system = (systemT *)((unsigned)galaxyT + (i * sizeof(systemT)));
+
+      /* loop through contexts */
+      for(j=0;j<(SYS->SYSTEM_CONFIG & 0xff);j++)
+	{
+	  context = (contextT *)((unsigned)system->context + (j * sizeof(contextT)));
+	  hypercontext = (hyperContextT *)((unsigned)context->hypercontext + (0 * sizeof(hyperContextT)));
+	  hypercontext->VT_CTRL |= RUNNING << 3;
+	}
+    }
+#endif
+
+      /* loop through systems in the galaxy */
+  for(i=0;i<(GALAXY_CONFIG & 0xff);i++)
+    {
+      SYS = (systemConfig *)((unsigned)SYSTEM + (i * sizeof(systemConfig)));
+      system = (systemT *)((unsigned)galaxyT + (i * sizeof(systemT)));
+
+      /* loop through contexts */
+      for(j=0;j<(SYS->SYSTEM_CONFIG & 0xff);j++)
+	{
+	  CNT = (contextConfig *)((unsigned)SYS->CONTEXT + (j * sizeof(contextConfig)));
+	  context = (contextT *)((unsigned)system->context + (j * sizeof(contextT)));
+
+	  /* loop through hypercontexts */
+	  for(k=0;k<((CNT->CONTEXT_CONFIG >> 4) & 0xf);k++)
+	    {
+	      HCNT = (hyperContextConfig *)((unsigned)CNT->HCONTEXT + (k * sizeof(hyperContextConfig)));
+	      hypercontext = (hyperContextT *)((unsigned)context->hypercontext + (k * sizeof(hyperContextT)));
+
+	      printf("hypercontext: %d\n", k);
+	      printf("\tr1: 0x%x\n", *(hypercontext->S_GPR + (unsigned)1));
+	      printf("\tr1: 0x%x\n", *(hypercontext->pS_GPR + (unsigned)1));
+	    }
+	  
+	}
+    }
 
 #ifdef RUNIT
   while(checkActive())
@@ -160,12 +197,15 @@ int main(int argc, char *argv[])
 		  printf("\tdebug:     %d\n", debug);
 #endif
 #ifdef DEBUG
-		  printf("\tkernel:    %d\n", kernel);
+		  /*printf("\tkernel:    %d\n", kernel);*/
 #endif
 
 		  if(debug)
 		    {
+
+#ifdef DEBUG
 		      printf("HC STATE: DEBUG\n");
+#endif
 		      /* nothing to do here */
 		    }
 		  else
@@ -200,7 +240,9 @@ int main(int argc, char *argv[])
 			{
 			  if(deepstate == READY)
 			    {
+#ifdef DEBUG
 			      printf("HC STATE: READY\n");
+#endif
 			      hypercontext->idleCount++;
 			    }
 			  else if(deepstate == RUNNING)
@@ -284,7 +326,7 @@ int main(int argc, char *argv[])
 				      printf("PC: 0x%x, this.imm: 0x%08x\n", (hypercontext->programCounter + 4), this.imm);
 #endif
 
-				    inst = instructionDecode(this.op, this.imm, /*system->dram,*/ hypercontext, system);
+				    inst = instructionDecode(this.op, this.imm, /*system->dram,*/ hypercontext, system, context, hypercontext->VT_CTRL);
 
 				    /*printf("%d : %d : ", *(hypercontext->S_GPR + 60), *(hypercontext->pS_GPR + 60));*/
 				    /*printOut(inst, this, hypercontext, cycleCount);*/
@@ -322,7 +364,43 @@ int main(int argc, char *argv[])
 			  else if(deepstate == BLOCKED_MUTEX_LOCK)
 			    printf("HC STATE: BLOCKED_MUTEX_LOCK\n");
 			  else if(deepstate == TERMINATED_ASYNC_HOST)
-			    printf("HC STATE: TERMINATED_ASYNC_HOST\n");
+			    {
+			      /* TODO: this is the vthread_join thing */
+#if 1
+#ifdef DEBUG
+			      printf("HC STATE: TERMINATED_ASYNC_HOST\n");
+			      printf("\twaiting for: 0x%x\n", hypercontext->joinWaiting);
+#endif
+			      {
+				unsigned cnt, hcnt;
+				contextT *cntP;
+				hyperContextT *hcntP;
+				unsigned debug, deepstate;
+				cnt = (hypercontext->joinWaiting >> 4) & 0xff;
+				hcnt = (hypercontext->joinWaiting) & 0xf;
+				/*printf("cnt[%d] hcnt[%d]\n", cnt, hcnt);*/
+				cntP = (contextT *)((unsigned)system->context + (cnt * sizeof(contextT)));
+				hcntP = (hyperContextT *)((unsigned)cntP->hypercontext + (hcnt * sizeof(hyperContextT)));
+
+				/*printf("VT_CTRL: 0x%x\n", hcntP->VT_CTRL);*/
+				debug = (hcntP->VT_CTRL >> 1) & 0x1;
+				deepstate = (hcntP->VT_CTRL >> 3) & 0xff;
+
+				if((deepstate != RUNNING) || (debug))
+				  {
+				    /*printf("this means the join has finished\n");*/
+				    hypercontext->joinWaiting = 0;
+				    hypercontext->VT_CTRL &= 0xfffff807;
+				    hypercontext->VT_CTRL |= RUNNING << 3;
+				  }
+				else
+				  {
+				    /*printf("need to wait for it to finish\n");*/
+				  }
+				hypercontext->stallCount++;
+			      }
+#endif
+			    }
 			  else if(deepstate == TERMINATED_ASYNC)
 			    printf("HC STATE: TERMINATED_ASYNC\n");
 			  else if(deepstate == TERMINATED_SYNC)
@@ -338,10 +416,22 @@ int main(int argc, char *argv[])
 	    }
 	  /* TODO: here need to service memory requests */
 	  /* print all memory requests */
+#if 0
 	  {
-#ifdef DEBUG
-	    printf("checking memory Requests\n");
+	    unsigned findBank, findBankT, i;
+	    findBank=0;
+	    findBankT = (unsigned)log2(((SYS->DRAM_SHARED_CONFIG >> 24) & 0xff));
+	    for(i=0;i<findBankT;i++)
+	      findBank |= 1 << i;
+
+	    serviceMemRequest(system, findBank, ((SYS->DRAM_SHARED_CONFIG >> 24) & 0xff), (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000));
+	  }
+#else
+	  serviceMemRequestPERFECT(system, (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000));
 #endif
+#if 0
+	  {
+	    /* print all memReqs */
 	    struct memReqT *temp;
 	    unsigned context, hypercontext, whichBank;
 	    unsigned findBank, findBankT, i;
@@ -350,173 +440,247 @@ int main(int argc, char *argv[])
 
 	    unsigned given = 0;
 
-	    findBank=0;
-	    findBankT = (unsigned)log2(((SYS->DRAM_SHARED_CONFIG >> 24) & 0xff));
-	    for(i=0;i<findBankT;i++)
-	      findBank |= 1 << i;
+	    temp = system->memReq;
 
-	    for(whichBank=0;whichBank<((SYS->DRAM_SHARED_CONFIG >> 24) & 0xff);whichBank++)
+	    if(temp == NULL)
 	      {
-#ifdef DEBUG
-		printf("whichBank: %d\n", whichBank);
+#ifdef DEBUGmem
+		printf("nothing in list\n");
 #endif
-		temp = system->memQueueHead;
-		while(temp->next != NULL)
+	      }
+	    else
+	      {
+		findBank=0;
+		findBankT = (unsigned)log2(((SYS->DRAM_SHARED_CONFIG >> 24) & 0xff));
+		for(i=0;i<findBankT;i++)
+		  findBank |= 1 << i;
+
+		for(whichBank=0;whichBank<((SYS->DRAM_SHARED_CONFIG >> 24) & 0xff);whichBank++)
 		  {
-		    if((temp->value & findBank) == whichBank)
-		      {
-			
-			context = (temp->ctrlReg >> 16) & 0xff;
-			hypercontext = (temp->ctrlReg >> 12) & 0xf;
-			cnt = (contextT *)((unsigned)system->context + (context * sizeof(contextT)));
-			hcnt = (hyperContextT *)((unsigned)cnt->hypercontext + (hypercontext * sizeof(hyperContextT)));
-			
-#ifdef DEBUG
-			printf("context: %d, hypercontext: %d\n", context, hypercontext);
+#ifdef DEBUGmem
+		    printf("whichBank: %d\n", whichBank);
 #endif
-			
-			if(given)
-			  {
-#ifdef DEBUG
-			    printf("need to stall this\n");
+		    do {
+
+		      if((temp->value & findBank) == whichBank)
+			{
+#ifdef DEBUGmem
+			  printf("\tthis req is on this bank\n");
 #endif
-			    hcnt->stalled++;
-			  }
-			else
-			  {
-#ifdef DEBUG
-			    printf("this one will get it!\n");
+			  context = (temp->ctrlReg >> 16) & 0xff;
+			  hypercontext = (temp->ctrlReg >> 12) & 0xf;
+			  cnt = (contextT *)((unsigned)system->context + (context * sizeof(contextT)));
+			  hcnt = (hyperContextT *)((unsigned)cnt->hypercontext + (hypercontext * sizeof(hyperContextT)));
+
+#ifdef DEBUGmem
+			  printf("context: %d, hypercontext: %d\n", context, hypercontext);
 #endif
-			    /* need to work out which bank it hits */
-			    switch(temp->memOp)
-			      {
-			      case mLDSB:
-				_LDSB_iss(temp->pointer, (temp->value + (unsigned)(system->dram)));
-				break;
-			      case mLDBs:
-				_LDBs_iss(temp->pointer, (temp->value + (unsigned)(system->dram)));
-				break;
-			      case mLDUB:
-#if 0
-				printf("LDUB\n");
-				printf("temp->value: %d\n", temp->value);
-				printf("0x%08x\n", *((unsigned *)system->dram + (temp->value)));
-				printf("0x%08x\n", *((unsigned *)system->dram + (temp->value >> 2)));
+
+			  if(given)
+			    {
+#ifdef DEBUGmem
+			      printf("need to stall this\n");
 #endif
-				_LDUB_iss(temp->pointer, (temp->value + (unsigned)(system->dram)));
-#if 0
-				printf("%p -> 0x%x\n", (void *)temp->pointer, *(temp->pointer));
+			      hcnt->stalled++;
+			    }
+			  else
+			    {
+#ifdef DEBUGmem
+			      printf("this one will get it\n");
 #endif
-				break;
-			      case mLDSH:
-				_LDSH_iss(temp->pointer, (temp->value + (unsigned)(system->dram)));
-				break;
-			      case mLDUH:
-				_LDUH_iss(temp->pointer, (temp->value + (unsigned)(system->dram)));
-				break;
-			      case mLDW:
-#ifdef DEBUG
-				printf("LDW!!!\n");
-#endif
-#ifdef DEBUG
-				printf("loading from: 0x%x\n", (temp->value + (unsigned)(system->dram)));
-#endif
-				_LDW_iss(temp->pointer, (temp->value + (unsigned)(system->dram)));
-#ifdef DEBUG
-				printf("value: 0x%x\n", *(unsigned *)(temp->pointer));
-#endif
-				break;
-			      case mSTB:
-#if 0
-				printf("STB!!!\n");
-				printf("storing: 0x%x\n", *temp->pointer);
-				printf("%p\n", (void *)temp->pointer);
-				printf("to: 0x%x\n", (temp->value));
-#endif
-				_STB_iss((temp->value + (unsigned)(system->dram)), temp->pointer);
-#if 0
-				printf("memory now: 0x%x\n", *(unsigned *)((unsigned)system->dram + temp->value));
-#endif
-				break;
-			      case mSTBs:
-#ifdef DEBUG
-				printf("STBs!!!\n");
-				printf("storing: 0x%x\n", *temp->pointer);
-				printf("to: 0x%x\n", (temp->value));
-#endif
-				_STB_iss((temp->value + (unsigned)(system->dram)), temp->pointer);
-#ifdef DEBUG
-				printf("memory now: 0x%x\n", *(unsigned *)((unsigned)system->dram + temp->value));
-#endif
-				break;
-			      case mSTH:
-#ifdef DEBUG
-				printf("STH!!!\n");
-				printf("storing: 0x%x\n", *temp->pointer);
-				printf("to: 0x%x\n", (temp->value));
-#endif
-				_STH_iss((temp->value + (unsigned)(system->dram)), temp->pointer);
-#ifdef DEBUG
-				printf("memory now: 0x%x\n", *(unsigned *)((unsigned)system->dram + temp->value));
-#endif
-				break;
-			      case mSTW:
+			      switch(temp->memOp)
 				{
-#ifdef DEBUG
-				  printf("STW!!!\n");
+				case mLDSB:
+				  if(temp->value >= (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000))
+				    {
+				      printf("ERROR: OOB\n");
+				      *(temp->pointer) = 0;
+				    }
+				  else
+				    _LDSB_iss(temp->pointer, (temp->value + (unsigned)(system->dram)));
+				  break;
+				case mLDBs:
+				  if(temp->value >= (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000))
+				    {
+				      printf("ERROR: OOB\n");
+				      *(temp->pointer) = 0;
+				    }
+				  else
+				    _LDBs_iss(temp->pointer, (temp->value + (unsigned)(system->dram)));
+				  break;
+				case mLDUB:
+#ifdef DEBUGmem
+				  printf("LDUB\n");
+				  printf("temp->value: %d\n", temp->value);
+				  printf("0x%08x\n", *((unsigned *)system->dram + (temp->value)));
+				  printf("0x%08x\n", *((unsigned *)system->dram + (temp->value >> 2)));
+#endif
+				  if(temp->value >= (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000))
+				    {
+				      printf("ERROR: OOB\n");
+				      *(temp->pointer) = 0;
+				    }
+				  else
+				    _LDUB_iss(temp->pointer, (temp->value + (unsigned)(system->dram)));
+#ifdef DEBUGmem
+				  printf("%p -> 0x%x\n", (void *)temp->pointer, *(temp->pointer));
+#endif
+				  break;
+				case mLDSH:
+				  if(temp->value >= (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000))
+				    {
+				      printf("ERROR: OOB\n");
+				      *(temp->pointer) = 0;
+				    }
+				  else
+				    _LDSH_iss(temp->pointer, (temp->value + (unsigned)(system->dram)));
+				  break;
+				case mLDUH:
+				  if(temp->value >= (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000))
+				    {
+				      printf("ERROR: OOB\n");
+				      *(temp->pointer) = 0;
+				    }
+				  else
+				    _LDUH_iss(temp->pointer, (temp->value + (unsigned)(system->dram)));
+				  break;
+				case mLDW:
+#ifdef DEBUGmem
+				  printf("LDW!!!\n");
+#endif
+#ifdef DEBUGmem
+				  printf("loading from: 0x%x\n", (temp->value + (unsigned)(system->dram)));
+#endif
+				  if(temp->value >= (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000))
+				    {
+				      printf("ERROR: OOB\n");
+				      *(temp->pointer) = 0;
+				    }
+				  else
+				    _LDW_iss(temp->pointer, (temp->value + (unsigned)(system->dram)));
+#ifdef DEBUGmem
+				  printf("value: 0x%x\n", *(unsigned *)(temp->pointer));
+#endif
+				  break;
+				case mSTB:
+#ifdef DEBUGmem
+				  printf("STB!!!\n");
+				  printf("storing: 0x%x\n", *temp->pointer);
+				  printf("%p\n", (void *)temp->pointer);
+				  printf("to: 0x%x\n", (temp->value));
+#endif
+				  if(temp->value >= (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000))
+				    {
+				      unsigned *fuckingZero;
+				      printf("ERROR: OOB\n");
+				      *fuckingZero = 0;
+				      _STB_iss((temp->value + (unsigned)(system->dram)), fuckingZero);
+				    }
+				  else
+				    _STB_iss((temp->value + (unsigned)(system->dram)), temp->pointer);
+#ifdef DEBUGmem
+				  printf("memory now: 0x%x\n", *(unsigned *)((unsigned)system->dram + temp->value));
+#endif
+				  break;
+				case mSTBs:
+#ifdef DEBUGmem
+				  printf("STBs!!!\n");
 				  printf("storing: 0x%x\n", *temp->pointer);
 				  printf("to: 0x%x\n", (temp->value));
 #endif
-				  _STW_iss((temp->value + (unsigned)(system->dram)), temp->pointer);
-#ifdef DEBUG
+				  if(temp->value >= (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000))
+				    {
+				      printf("ERROR: OOB\n");
+				      unsigned *fuckingZero;
+				      *fuckingZero = 0;
+				      _STB_iss((temp->value + (unsigned)(system->dram)), fuckingZero);
+				    }
+				  else
+				    _STB_iss((temp->value + (unsigned)(system->dram)), temp->pointer);
+#ifdef DEBUGmem
 				  printf("memory now: 0x%x\n", *(unsigned *)((unsigned)system->dram + temp->value));
 #endif
-				}
-				break;
+				  break;
+				case mSTH:
+#ifdef DEBUGmem
+				  printf("STH!!!\n");
+				  printf("storing: 0x%x\n", *temp->pointer);
+				  printf("to: 0x%x\n", (temp->value));
+#endif
+				  if(temp->value >= (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000))
+				    {
+				      printf("ERROR: OOB\n");
+				      unsigned *fuckingZero;
+				      *fuckingZero = 0;
+				      _STH_iss((temp->value + (unsigned)(system->dram)), fuckingZero);
+				    }
+				  else
+				    _STH_iss((temp->value + (unsigned)(system->dram)), temp->pointer);
+#ifdef DEBUGmem
+				  printf("memory now: 0x%x\n", *(unsigned *)((unsigned)system->dram + temp->value));
+#endif
+				  break;
+				case mSTW:
+				  {
+#ifdef DEBUGmem
+				    printf("STW!!!\n");
+				    printf("storing: 0x%x\n", *temp->pointer);
+				    printf("to: 0x%x\n", (temp->value));
+#endif
+				  if(temp->value >= (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000))
+				    {
+				      printf("ERROR: OOB\n");
+				      unsigned *fuckingZero;
+				      *fuckingZero = 0;
+				      _STW_iss((temp->value + (unsigned)(system->dram)), fuckingZero);
+				    }
+				  else
+				    _STW_iss((temp->value + (unsigned)(system->dram)), temp->pointer);
+#ifdef DEBUGmem
+				    printf("memory now: 0x%x\n", *(unsigned *)((unsigned)system->dram + temp->value));
+#endif
+				  }
+				  break;
 			      default:
 				printf("unknown memory op :(\n");
 				break;
-			      }
-			    
-			    /* perform the operation and remove from Queue */
-			    
-			    /* if its the Head then simply point Head to next */
-			    if(temp == system->memQueueHead)
-			      {
-#ifdef DEBUG
-				printf("this is the head\n");
-#endif
-				struct memReqT *tempP = system->memQueueHead->next;
-				free(system->memQueueHead);
-				system->memQueueHead = tempP;
-				temp = system->memQueueHead;
-				break;
-			      }
-			    /* otherwise need to copy next into current and remove next */
-			    else
-			      {
-				struct memReqT *toRemove;
-				toRemove = temp->next;
-				
-				temp->pointer = toRemove->pointer;
-				temp->value = toRemove->value;
-				temp->ctrlReg = toRemove->ctrlReg;
-				temp->memOp = toRemove->memOp;
-				temp->next = toRemove->next;
-				
-				free(toRemove);
-			      }
-			    
-			    given = 1;
-			  }
-		      }
-		    temp = temp->next;
+				}
+
+			      given = 1;
+
+			      /* then remove from list */
+			      if(temp == system->memReq)
+				{
+				  system->memReq = temp->next;
+				  free(temp);
+				}
+			      else
+				{
+				  /* TODO: TEST THIS!!!! */
+				  struct memReqT *remove = temp;
+				  temp = system->memReq;
+				  do {
+				    if(temp->next == remove)
+				      {
+					temp->next = remove->next;
+					free(remove);
+					break;
+				      }
+				    temp = temp->next;
+				  } while(temp != NULL);
+				}
+			    }
+			}
+
+		      temp = temp->next;
+
+		    } while(temp != NULL);
 		  }
 	      }
-#ifdef DEBUG
-	    printf("finished checking memory Requsts\n");
-#endif
 	  }
+#endif
+	  serviceThreadRequests(system);
+
 	  /* NEED TO SWAP REGISTERS HERE */
 	  
 	  /* SYSTEM LEVEL */
@@ -816,12 +980,15 @@ int setupGalaxy(void)
       system = (systemT *)((unsigned)galaxyT + (i * sizeof(systemT)));
 
       system->context = (contextT *)malloc(sizeof(contextT) * (SYS->SYSTEM_CONFIG & 0xff));
-      system->memQueue = (struct memReqT *)calloc(sizeof(struct memReqT), 1);
+      /*system->memQueue = (struct memReqT *)calloc(sizeof(struct memReqT), 1);
       system->memQueueHead = system->memQueue;
-      system->memQueueCurrent = system->memQueue;
+      system->memQueueCurrent = system->memQueue;*/
 
       if(system->context == NULL)
 	return -1;
+
+      system->memReq = NULL;
+      system->threadReq = NULL;
 
       printf("Please specify the location of the dram binary for system %d\n> ", i);
 #if 0
@@ -835,6 +1002,8 @@ int setupGalaxy(void)
 	return -1;
 
       printf("system->dram: %p\n", (void *)system->dram);
+
+      system->numContext = (SYS->SYSTEM_CONFIG & 0xff);
 
       for(j=0;j<(SYS->SYSTEM_CONFIG & 0xff);j++)
 	{
@@ -857,6 +1026,8 @@ int setupGalaxy(void)
 	  context->hypercontext = (hyperContextT *)calloc(sizeof(hyperContextT) * ((CNT->CONTEXT_CONFIG >> 4) & 0xf), 1);
 	  if(context->hypercontext == NULL)
 	    return -1;
+
+	  context->numHyperContext = ((CNT->CONTEXT_CONFIG >> 4) & 0xf);
 
 	  for(k=0;k<((CNT->CONTEXT_CONFIG >> 4) & 0xf);k++)
 	    {
@@ -969,7 +1140,11 @@ int setupGalaxy(void)
 	      hypercontext->VT_CTRL |= k << 12; /* hypercontext */
 
 	      /* deepstate */
+#ifdef VTHREAD
+	      hypercontext->VT_CTRL |= READY << 3;
+#else
 	      hypercontext->VT_CTRL |= RUNNING << 3;
+#endif
 	      /*hypercontext->VT_CTRL |= 1 << 1;*/
 	      /*hypercontext->VT_CTRL |= 1 << 2; *//* single step mode */
 
@@ -999,13 +1174,13 @@ int setupGalaxy(void)
 		  cluster = (clusterT *)((unsigned)hypercontext->registers + (l * sizeof(clusterT)));
 
 		  cluster->S_GPR = (unsigned *)((unsigned)hypercontext->S_GPR + sGPRCount);
-		  *(cluster->S_GPR + (unsigned)1) = ((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000;
+		  *(cluster->S_GPR + (unsigned)1) = (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000) - (k * 0x1f40);
 		  cluster->S_FPR = (unsigned *)((unsigned)hypercontext->S_FPR + sFPRCount);
 		  cluster->S_VR = (unsigned *)((unsigned)hypercontext->S_VR + sVRCount);
 		  cluster->S_PR = (unsigned char*)((unsigned)hypercontext->S_PR + sPRCount);
 
 		  cluster->pS_GPR = (unsigned *)((unsigned)hypercontext->pS_GPR + sGPRCount);
-		  *(cluster->pS_GPR + (unsigned)1) = ((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000;
+		  *(cluster->pS_GPR + (unsigned)1) = (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000) - (k * 0x1f40);
 		  cluster->pS_FPR = (unsigned *)((unsigned)hypercontext->pS_FPR + sFPRCount);
 		  cluster->pS_VR = (unsigned *)((unsigned)hypercontext->pS_VR + sVRCount);
 		  cluster->pS_PR = (unsigned char*)((unsigned)hypercontext->pS_PR + sPRCount);
@@ -1105,7 +1280,7 @@ void printOut(instruction inst, instructionPacket this, hyperContextT *hypercont
          /**(sim_l + (cnt * HCNT * CLU) + (hcnt * CLU) + (0)),*/
 	 hypercontext->linkReg,
          /**(sim_r + (cnt * HCNT * CLU * GP_R) + (hcnt * CLU * GP_R) + (0 * CLU * GP_R) + 1),*/
-	 *(hypercontext->S_GPR + (unsigned)1),
+	 *(hypercontext->pS_GPR + (unsigned)1),
          this.op,
          inst.packet.source1,
          inst.packet.source2,
@@ -1117,7 +1292,7 @@ void printOut(instruction inst, instructionPacket this, hyperContextT *hypercont
 
   if(this.immValid)
     {
-      printf("Q:%d - CC:%llu - T:%d - A:%d - D:%d - OP:%d - PC:%x - LR:%d - SP:%d - SYLL:%08x - S1:%d - S2:%d - S3:%d - T2:%d - A2:%d - D2:%d\n",
+      printf("Q:%d - CC:%llu - T:%d - A:%d - D:%d - OP:%d - PC:0x%x - LR:%d - SP:%d - SYLL:%08x - S1:%d - S2:%d - S3:%d - T2:%d - A2:%d - D2:%d\n",
              -1,
              cycleCount,
              -1,

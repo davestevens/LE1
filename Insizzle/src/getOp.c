@@ -2,7 +2,7 @@
 #include "functions.h"
 #include "macros.h"
 
-packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, /*unsigned *dataP,*/ hyperContextT *hypercontext, systemT *system)
+packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, /*unsigned *dataP,*/ hyperContextT *hypercontext, systemT *system, contextT *context, unsigned VT_CTRL)
 {
   unsigned clust;
   unsigned extra;
@@ -72,10 +72,10 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 	    case 0:
 	      ret.addr = _R_iss;
 	      ret.target = (inst >> 15) & 0x3f;
-	      
+
 	      ret.source1 = *(pS_GPR + ((inst) & 0x3f));
 	      ret.source2 = *(pS_GPR + ((inst >> 6) & 0x3f));
-	      
+
 	      switch(opc)
 		{
 		case 0:
@@ -272,7 +272,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		case 0:
 		  ret.addr = _R_iss;
 		  ret.target = (inst >> 15) & 0x3f;
-		  
+
 		  ret.source1 = *(pS_GPR + ((inst) & 0x3f));
 		  ret.source2 = immediate;
 		  switch(opc)
@@ -456,9 +456,9 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		case 1:
 		  ret.addr = _R_iss;
 		  ret.target = (inst >> 15) & 0x3f;
-		  
+
 		  ret.source1 = *(pS_GPR + ((inst) & 0x3f));
-		  
+
 		  switch(opc)
 		    {
 		    case 0:
@@ -509,10 +509,10 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		case 2:
 		  ret.addr = _R_iss;
 		  ret.target = (inst >> 15) & 0x3f;
-		  
+
 		  ret.source1 = *(pS_GPR + ((inst) & 0x3f));
 		  ret.source2 = immediate;
-		  
+
 		  switch(opc)
 		    {
 		    case 3:
@@ -608,45 +608,77 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 			  extra  = ((inst >> 9) & 0x3f);
 			  ret.target = ((inst >> 15) & 0x3f);
 			  ret.target2 = (inst & 0x3f);
-			  
+
 			  ret.source1 = (immediate & 0x3f);
 			  ret.source2 = ((immediate >> 6) & 0x3f);
 			  ret.source3 = ((immediate >> 12) & 0x3f);
-			  
+
 			  switch(extra)
 			    {
 			    case 0:
 			      /* vthread_create_local */
-#if 0
 			      printf("vthread_create_local\n");
-			      (newThread + (cnt * HCNT) + hcnt)->request = 1;
-			      
-			      if((newThr = findFreeThread()) == -1)
-				{
-				  printf("could not allocate new thread\n");
-				  /* this exit will need to be sorted to just wait for thread to become free */
-				  *(S_GPR + ret.target) = 1;
-				  (newThread + (cnt * HCNT) + hcnt)->status = 1;
-				  *(S_GPR + ret.target2) = 0;
-				  (newThread + (cnt * HCNT) + hcnt)->newT = 0;
-				}
-			      else
-				{
-				  /* need to pass the arguments and the function pointer to the new thread */
-				  /* need to return 0 to say the thread was created */
-				  *(S_GPR + ret.target) = 0;
-				  (newThread + (cnt * HCNT) + hcnt)->status = 0;
-				  /* need to return the new thread id */
-				  *(S_GPR + ret.target2) = newThr;
-				  (newThread + (cnt * HCNT) + hcnt)->newT = newThr;
-				}
-			      
-			      /* setup the function pointer, arguments and attributes */
-			      (newThread + (cnt * HCNT) + hcnt)->functionP = *(S_GPR + ret.source2);
-			      (newThread + (cnt * HCNT) + hcnt)->arguments = *(S_GPR + ret.source1);
-			      (newThread + (cnt * HCNT) + hcnt)->attributes = *(S_GPR + ret.source3);
-#endif
-			      
+			      printf("target1: %d\n", ret.target);
+			      printf("\t0x%x\n", *(pS_GPR + ret.target));
+			      printf("target2: %d\n", ret.target2);
+			      printf("\t0x%x\n", *(pS_GPR + ret.target2));
+
+			      printf("source1: %d\n", ret.source1);
+			      printf("\t0x%x\n", *(pS_GPR + ret.source1));
+			      printf("source2: %d\n", ret.source2);
+			      printf("\t0x%x\n", *(pS_GPR + ret.source2));
+			      printf("source3: %d\n", ret.source3);
+			      printf("\t0x%x\n", *(pS_GPR + ret.source3));
+			      /* TODO: find free thread here
+				 setup r7 (thread_id)
+				 put in list to start at end of current cycle
+			      */
+			      {
+				unsigned i, deepstate, debug;
+				hyperContextT *hcnt;
+				unsigned found = 0;
+				unsigned *GPR;
+				for(i=0;i<context->numHyperContext;i++)
+				  {
+				    printf("\thypercontext: %d\n", i);
+				    hcnt = (hyperContextT *)((unsigned)context->hypercontext + (i * sizeof(hyperContextT)));
+				    printf("\t0x%08x\n", hcnt->VT_CTRL);
+				    deepstate = (hcnt->VT_CTRL >> 3) & 0xff;
+				    debug = (hcnt->VT_CTRL >> 1) & 0x1;
+
+				    if((deepstate == READY) && (!debug))
+				      {
+					printf("need to set this thread up!\n");
+					found = 1;
+
+					hcnt->programCounter = *(pS_GPR + ret.source2);
+					GPR = hcnt->S_GPR;
+					*(GPR + 3) = *(pS_GPR + ret.source3);
+
+					printf("\t\tset PC: 0x%x\n", hcnt->programCounter);
+					printf("\t\tset args: 0x%x\n", *(GPR + 3));
+
+					/* then need to set r7 to id */
+					*(S_GPR + ret.target2) = hcnt->VT_CTRL >> 12;
+
+					newThreadRequest(hypercontext->VT_CTRL, hcnt->VT_CTRL, system);
+
+					break;
+				      }
+				    else
+				      {
+					printf("\tnot available\n");
+				      }
+				  }
+
+				if(!found)
+				  {
+				    /* TODO: error out, need to allow to carry on */
+				    printf("ERROR: There was a problem allocating a new thread (vthread_create_local)\n");
+				  }
+			      }
+			      /*newThreadRequest(VT_CTRL, *(pS_GPR + ret.source2), *(pS_GPR + ret.source3), system, context, 0);*/
+
 			      break;
 			    case 1:
 			      /* vthread_create_remote */
@@ -686,16 +718,16 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		  break;
 		case 3:
 		  ret.addr = _MEM_iss;
-		  
-		  
+
+
 		  ret.source1 = *(pS_GPR + ((inst) & 0x3f));
 #ifdef DEBUG
 		  printf("ret.source1: 0x%x\n", ret.source1);
 #endif
 		  ret.source2 = *(pS_GPR + ((inst >> 15) & 0x3f));
-		  
+
 		  /*ret.target = immediate + ret.source1;*/
-		  
+
 		  switch(opc)
 		    {
 		    case 0:
@@ -752,7 +784,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 	    case 2:
 	      ret.addr = _R_iss;
 	      ret.target = (inst >> 15) & 0x3f;
-	      
+
 	      ret.source1 = *(pS_GPR + ((inst) & 0x3f));
 	      ret.source2 = (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8); /* IMM9 */
 	      switch(opc)
@@ -905,11 +937,11 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		  MLSHS(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
 		  break;
-		  
+
 		case 29:
-		  
+
 		  extra = (inst >> 20) & 0x1;
-		  
+
 		  switch(extra)
 		    {
 		    case 0:
@@ -944,7 +976,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		    }
 		  break;
 		case 30:
-		  
+
 		  extra = (inst >> 20) & 0x1;
 		  switch(extra)
 		    {
@@ -956,7 +988,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		    case 1:
 		      /*printf("case1\n");*/
 		      extra = (inst >> 15) & 0x1f;
-		      
+
 		      switch(extra)
 			{
 			case 0:
@@ -975,22 +1007,22 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 			case 2:
 			  ret.opcode = RDCTRL;
 			  /* TODO: unimplemented */
-			  
+
 			  ret.addr = _R_iss;
 			  ret.target = (inst & 0x3f);
-			  
+
 			  ret.source1 = (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8);
 			  ret.data = 0;
 			  break;
 			case 3:
 			  ret.opcode = WRCTRL;
 			  /* TODO: unimplemented */
-			  
+
 			  ret.addr = _MEM_iss;
 			  ret.target = (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8);
-			  
+
 			  ret.source1 = *(pS_GPR + ((inst & 0x3f)));
-			  
+
 			  ret.data = 0;
 			  break;
 			default:
@@ -1000,7 +1032,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 			}
 		      break;
 		    }
-		  
+
 		  ret.data = 0;
 		  break;
 		case 31:
@@ -1018,14 +1050,14 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 	    case 3:
 	      ret.addr = _R_iss;
 	      ret.target = (inst >> 15) & 0x3f;
-	      
+
 	      ret.addr2 = _B_iss;
 	      ret.target2 = (inst >> 21) & 0x7;
-	      
+
 	      ret.source1 = *(pS_GPR + ((inst) & 0x3f));
 	      ret.source2 = *(pS_GPR + ((inst >> 6) & 0x3f));
 
-	      
+
 	      switch(opc)
 		{
 		case 0:
@@ -1043,9 +1075,9 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		  ret.data2 = *(S_PR + (ret.target2));
 		  break;
 		case 2:
-		  
+
 		  extra = (inst >> 21) & 0x7;
-		  
+
 		  switch(extra)
 		    {
 		    case 0:
@@ -1104,12 +1136,12 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		      ret.addr = _R_iss;
 		      break;
 		    }
-		  
+
 		  break;
 		case 3:
-		  
+
 		  extra = (inst >> 20) & 0x1;
-		  
+
 		  ret.addr = _B_iss;
 		  ret.target = (inst >> 21) & 0x7;
 		  ret.target2 = (inst >> 16) & 0xf;
@@ -1117,18 +1149,18 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		  /* this is an offset, so needs to be added to the current PC */
 		  /* need to sign extend it (16 bits) */
 		  ret.source1 = ((inst & 0xffff) ^ (1 << 15)) - (1 << 15);
-		  
+
 		  clusterT *clusterForBranch;
 		  clusterForBranch = (clusterT *)((unsigned)hypercontext->registers + (ret.target2 * sizeof(clusterT)));
 
 		  switch(extra)
-		    {		      
+		    {
 		    case 0:
 		      ret.opcode = BRANCH;
 		      /* TODO: check this is correct
 			 target2 is the cluster value */
-		      ret.data = *(clusterForBranch->S_PR + (ret.target));
-		      if(*(clusterForBranch->S_PR + (ret.target)))
+		      ret.data = *(clusterForBranch->pS_PR + (ret.target));
+		      if(*(clusterForBranch->pS_PR + (ret.target)))
 			{
 			  /* branch taken */
 			  hypercontext->branchTaken++;
@@ -1136,7 +1168,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 			  ret.newPC = hypercontext->programCounter + ret.source1;
 			  ret.newPCValid = 1;
 			  /* need to add stall cycles */
-			  hypercontext->stalled += PIPELINE_REFILL;
+			  /*hypercontext->stalled += PIPELINE_REFILL;*/
 			  hypercontext->controlFlowChange++;
 			}
 		      else
@@ -1147,8 +1179,8 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		      break;
 		    case 1:
 		      ret.opcode = BRANCHF;
-		      ret.data = *(clusterForBranch->S_PR + (ret.target));
-		      if(*(clusterForBranch->S_PR + (ret.target)))
+		      ret.data = *(clusterForBranch->pS_PR + (ret.target));
+		      if(*(clusterForBranch->pS_PR + (ret.target)))
 			{
 			  /* branch not taken */
 			  hypercontext->branchNotTaken++;
@@ -1161,7 +1193,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 			  ret.newPC = hypercontext->programCounter + ret.source1;
 			  ret.newPCValid = 1;
 			  /* need to add stall cycles */
-			  hypercontext->stalled += PIPELINE_REFILL;
+			  /*hypercontext->stalled += PIPELINE_REFILL;*/
 			  hypercontext->controlFlowChange++;
 			}
 		      break;
@@ -1283,6 +1315,9 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 			  /*printf("source: %d\n", *(pS_GPR + ret.source1));
 			    printf("ret.target: %d\n", *(pS_GPR + ret.target));
 			    printf("ret.target2: %d\n", *(pS_GPR + ret.target2));*/
+			  hypercontext->VT_CTRL &= 0xfffff807;
+			  hypercontext->VT_CTRL |= TERMINATED_ASYNC_HOST << 3;
+			  hypercontext->joinWaiting = *(pS_GPR + ret.source1);
 #if 0
 			  *(join + (cnt * HCNT) + hcnt) = *(pS_GPR + ret.source1);
 #endif
@@ -1386,12 +1421,12 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 	      break;
 	    case 5:
 	      extra = (inst >> 25) & 0x1;
-	      
+
 	      ret.target = (inst >> 15) & 0x3f;
-	      
+
 	      ret.source1 = *(pS_GPR + ((inst) & 0x3f));
 	      ret.source2 = immediate;
-	      
+
 	      switch(extra)
 		{
 		case 0:
@@ -1560,12 +1595,12 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 	      break;
 	    case 6:
 	      extra = (inst >> 25) & 0x1;
-	      
+
 	      ret.target = (inst >> 15) & 0x3f;
-	      
+
 	      ret.source1 = *(pS_GPR + ((inst) & 0x3f));
 	      ret.source2 = (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8); /* IMM9 */
-	      
+
 	      switch(extra)
 		{
 		case 0:
@@ -1734,13 +1769,13 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 	      break;
 	    case 7:
 	      ret.addr = _MEM_iss;
-	      
-	      
+
+
 	      ret.source1 = *(pS_GPR + ((inst) & 0x3f));
 	      ret.source2 = *(pS_GPR + ((inst >> 6) & 0x3f));
-	      
+
 	      /*ret.target = (((inst >> 12) & 0xfff) ^ (1 << 11)) - (1 << 11) + ret.source1;*/ /* IMM12 */
-	      
+
 	      switch(opc)
 		{
 		case 0:
@@ -1784,10 +1819,10 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 	    case 10:
 	      ret.addr = _R_iss;
 	      ret.target = (inst >> 6) & 0x3f;
-	      
+
 	      ret.source1 = *(pS_GPR + ((inst) & 0x3f));
 	      ret.source2 = (((inst >> 12) & 0xfff) ^ (1 << 11)) - (1 << 11); /* IMM12 */
-	      
+
 	      switch(opc)
 		{
 		case 0:
@@ -1812,13 +1847,13 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		}
 	      break;
 	    case 11:
-	      
+
 	      ret.addr = _R_iss;
 	      ret.target = (inst >> 6) & 0x3f;
-	      
+
 	      ret.source1 = *(pS_GPR + ((inst) & 0x3f));
 	      ret.source2 = (((inst >> 12) & 0xfff) ^ (1 << 11)) - (1 << 11); /* IMM12 */
-	      
+
 	      switch(opc)
 		{
 		case 0:
@@ -1845,10 +1880,10 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 	    case 12:
 	      ret.addr = _R_iss;
 	      ret.target = (inst >> 6) & 0x3f;
-	      
+
 	      ret.source1 = *(pS_GPR + ((inst) & 0x3f));
 	      ret.source2 = (((inst >> 12) & 0xfff) ^ (1 << 11)) - (1 << 11); /* IMM12 */
-	      
+
 	      switch(opc)
 		{
 		case 0:
@@ -1871,10 +1906,10 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 	    case 13:
 	      ret.addr = _R_iss;
 	      ret.target = (inst >> 6) & 0x3f;
-	      
+
 	      ret.source1 = *(pS_GPR + ((inst) & 0x3f));
 	      ret.source2 = (((inst >> 12) & 0xfff) ^ (1 << 11)) - (1 << 11); /* IMM12 */
-	      
+
 	      switch(opc)
 		{
 		case 0:
@@ -1897,10 +1932,10 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 	    case 14:
 	      ret.addr = _R_iss;
 	      ret.target = (inst >> 6) & 0x3f;
-	      
+
 	      ret.source1 = *(pS_GPR + ((inst) & 0x3f));
 	      ret.source2 = (((inst >> 12) & 0xfff) ^ (1 << 11)) - (1 << 11); /* IMM12 */
-	      
+
 	      switch(opc)
 		{
 		case 0:
@@ -1927,10 +1962,10 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 	    case 15:
 	      ret.addr = _R_iss;
 	      ret.target = (inst >> 6) & 0x3f;
-	      
+
 	      ret.source1 = *(pS_GPR + ((inst) & 0x3f));
 	      ret.source2 = (((inst >> 12) & 0xff) ^ (1 << 7)) - (1 << 7); /* IMM8 */
-	      
+
 	      switch(opc)
 		{
 		case 0:

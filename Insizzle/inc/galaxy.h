@@ -61,6 +61,7 @@ typedef struct {
 
   unsigned totalWidth;
   unsigned numClusters;
+  unsigned joinWaiting;
 
   clusterT *registers;
 
@@ -72,6 +73,8 @@ typedef struct {
   unsigned *iram;
   hyperContextT *hypercontext;
 
+  unsigned numHyperContext;
+
 } contextT;
 
 /* per system */
@@ -79,12 +82,21 @@ typedef struct {
 
   contextT *context;
   unsigned *dram;
-  struct memReqT *memQueueHead;
-  struct memReqT *memQueueCurrent;
-  struct memReqT *memQueue;
 
+  struct memReqT *memReq;
+
+  struct newThreadT *threadReq;
+
+  unsigned numContext;
 } systemT;
 
 systemT *galaxyT;
+
+typedef struct {
+  unsigned parent_cpu;
+  unsigned parent_thread;
+  unsigned running_cpu;
+  unsigned mutex_mask;
+} threadControlUnitT;
 
 #endif

@@ -80,15 +80,27 @@ struct memReqT {
   struct memReqT *next;
 };
 
+struct newThreadT {
+  unsigned from;
+  unsigned to;
+  struct newThreadT *next;
+};
+
 unsigned *loadBinary(char *, unsigned);
 int cycle(contextT *, hyperContextT *, unsigned);
 int printCounts(hyperContextT *);
 unsigned checkActive(void);
 instructionPacket fetchInstruction(contextT *, unsigned);
 unsigned checkBundle(hyperContextT *, unsigned, unsigned);
-instruction instructionDecode(unsigned, unsigned, /*unsigned *,*/ hyperContextT *, systemT *);
-packetT getOp(unsigned, unsigned, unsigned, unsigned, /*unsigned *,*/ hyperContextT *, systemT *);
+instruction instructionDecode(unsigned, unsigned, /*unsigned *,*/ hyperContextT *, systemT *, contextT *, unsigned);
+packetT getOp(unsigned, unsigned, unsigned, unsigned, /*unsigned *,*/ hyperContextT *, systemT *, contextT *, unsigned);
 void memRequest(systemT *, unsigned *, unsigned, unsigned, memOpT);
 int memoryDump(unsigned, unsigned, unsigned *);
+void newThreadRequest(unsigned, unsigned, systemT *);
+
+int serviceThreadRequests(systemT *);
+
+void serviceMemRequest(systemT *, unsigned, unsigned, unsigned);
+void serviceMemRequestPERFECT(systemT *, unsigned);
 
 #endif
