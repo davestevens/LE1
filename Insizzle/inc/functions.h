@@ -12,7 +12,15 @@
 #define TERMINATED_ASYNC      4
 #define TERMINATED_SYNC       5
 
-#define PIPELINE_REFILL 3
+#define PIPELINE_REFILL       3
+#define STACK_SIZE            8 /* KB */
+
+#define MAX_GALAXIES          1
+#define MAX_SYSTEMS           16 /* per galaxy */
+#define MAX_CONTEXTS          16 /* per system */
+#define MAX_HYPERCONTEXT      16 /* per context */
+#define MAX_CLUSTERS          16 /* per context */
+
 
 unsigned memAlign;
 

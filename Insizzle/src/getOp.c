@@ -683,6 +683,75 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 			    case 1:
 			      /* vthread_create_remote */
 			      printf("vthread_create_remote\n");
+			      printf("target1: %d\n", ret.target);
+			      printf("\t0x%x\n", *(pS_GPR + ret.target));
+			      printf("target2: %d\n", ret.target2);
+			      printf("\t0x%x\n", *(pS_GPR + ret.target2));
+
+			      printf("source1: %d\n", ret.source1);
+			      printf("\t0x%x\n", *(pS_GPR + ret.source1));
+			      printf("source2: %d\n", ret.source2);
+			      printf("\t0x%x\n", *(pS_GPR + ret.source2));
+			      printf("source3: %d\n", ret.source3);
+			      printf("\t0x%x\n", *(pS_GPR + ret.source3));
+			      /* TODO: find free thread here
+				 setup r7 (thread_id)
+				 put in list to start at end of current cycle
+				 REMOTE WILL CURRENTLY LOOK AT LOCAL HYPERCONTEXTS AS WELL
+			      */
+			      {
+				unsigned i, j, deepstate, debug;
+				contextT *cnt;
+				hyperContextT *hcnt;
+				unsigned found = 0;
+				unsigned *GPR;
+				for(i=0;i<system->numContext;i++)
+				  {
+				    printf("\tcontext: %d\n", i);
+				    cnt = (contextT *)((unsigned)system->context + (i * sizeof(contextT)));
+
+				    for(j=0;j<cnt->numHyperContext;j++)
+				      {
+					printf("\thypercontext: %d\n", j);
+					hcnt = (hyperContextT *)((unsigned)cnt->hypercontext + (j * sizeof(hyperContextT)));
+					printf("\t0x%08x\n", hcnt->VT_CTRL);
+					deepstate = (hcnt->VT_CTRL >> 3) & 0xff;
+					debug = (hcnt->VT_CTRL >> 1) & 0x1;
+
+					if((deepstate == READY) && (!debug))
+					  {
+					    printf("need to set this thread up!\n");
+					    found = 1;
+
+					    hcnt->programCounter = *(pS_GPR + ret.source2);
+					    GPR = hcnt->S_GPR;
+					    *(GPR + 3) = *(pS_GPR + ret.source3);
+
+					    printf("\t\tset PC: 0x%x\n", hcnt->programCounter);
+					    printf("\t\tset args: 0x%x\n", *(GPR + 3));
+
+					    /* then need to set r7 to id */
+					    *(S_GPR + ret.target2) = hcnt->VT_CTRL >> 12;
+
+					    newThreadRequest(hypercontext->VT_CTRL, hcnt->VT_CTRL, system);
+
+					    break;
+					  }
+					else
+					  {
+					    printf("\tnot available\n");
+					  }
+				      }
+				    if(found)
+				      break;
+				  }
+
+				if(!found)
+				  {
+				    /* TODO: error out, need to allow to carry on */
+				    printf("ERROR: There was a problem allocating a new thread (vthread_create_local)\n");
+				  }
+			      }
 			      break;
 			    default:
 			      /*ret.opcode = XXX;

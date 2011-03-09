@@ -94,12 +94,18 @@ int main(int argc, char *argv[])
       system = (systemT *)((unsigned)galaxyT + (i * sizeof(systemT)));
 
       /* loop through contexts */
+#if 0
       for(j=0;j<(SYS->SYSTEM_CONFIG & 0xff);j++)
 	{
 	  context = (contextT *)((unsigned)system->context + (j * sizeof(contextT)));
 	  hypercontext = (hyperContextT *)((unsigned)context->hypercontext + (0 * sizeof(hyperContextT)));
 	  hypercontext->VT_CTRL |= RUNNING << 3;
 	}
+#else
+      context = (contextT *)((unsigned)system->context + (0 * sizeof(contextT)));
+      hypercontext = (hyperContextT *)((unsigned)context->hypercontext + (0 * sizeof(hyperContextT)));
+      hypercontext->VT_CTRL |= RUNNING << 3;
+#endif
     }
 #endif
 
@@ -1174,13 +1180,16 @@ int setupGalaxy(void)
 		  cluster = (clusterT *)((unsigned)hypercontext->registers + (l * sizeof(clusterT)));
 
 		  cluster->S_GPR = (unsigned *)((unsigned)hypercontext->S_GPR + sGPRCount);
-		  *(cluster->S_GPR + (unsigned)1) = (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000) - (k * 0x1f40);
+		  *(cluster->S_GPR + (unsigned)1) = (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000) - 
+		    (MAX_CONTEXTS * (STACK_SIZE * 1000) * j) - ((STACK_SIZE * 1000) * k);
+		  printf("[%d][%d][%d] = 0x%x\n", i, j, k, *(cluster->S_GPR + (unsigned)1));
 		  cluster->S_FPR = (unsigned *)((unsigned)hypercontext->S_FPR + sFPRCount);
 		  cluster->S_VR = (unsigned *)((unsigned)hypercontext->S_VR + sVRCount);
 		  cluster->S_PR = (unsigned char*)((unsigned)hypercontext->S_PR + sPRCount);
 
 		  cluster->pS_GPR = (unsigned *)((unsigned)hypercontext->pS_GPR + sGPRCount);
-		  *(cluster->pS_GPR + (unsigned)1) = (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000) - (k * 0x1f40);
+		  *(cluster->pS_GPR + (unsigned)1) = (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000) - 
+		    (MAX_CONTEXTS * (STACK_SIZE * 1000) * j) - ((STACK_SIZE * 1000) * k);
 		  cluster->pS_FPR = (unsigned *)((unsigned)hypercontext->pS_FPR + sFPRCount);
 		  cluster->pS_VR = (unsigned *)((unsigned)hypercontext->pS_VR + sVRCount);
 		  cluster->pS_PR = (unsigned char*)((unsigned)hypercontext->pS_PR + sPRCount);
