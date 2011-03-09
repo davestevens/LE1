@@ -131,7 +131,7 @@ int main(int argc, char *argv[])
 	      printf("\tr1: 0x%x\n", *(hypercontext->S_GPR + (unsigned)1));
 	      printf("\tr1: 0x%x\n", *(hypercontext->pS_GPR + (unsigned)1));
 	    }
-	  
+
 	}
     }
 
@@ -139,7 +139,7 @@ int main(int argc, char *argv[])
   while(checkActive())
     {
 #endif
-#ifdef DEBUF
+#ifdef PRINTOUT
       printf("------------------------------------------------------------ end of cycle %lld\n", cycleCount);
 #endif
 
@@ -294,7 +294,7 @@ int main(int argc, char *argv[])
 					  }
 					endPC  = this.nextPC;
 				      } while(!(this.op >> 31) & 0x1);
-				      
+
 #ifdef DEBUG
 				      printf("startPC: 0x%x\n", startPC);
 #endif
@@ -335,7 +335,9 @@ int main(int argc, char *argv[])
 				    inst = instructionDecode(this.op, this.imm, /*system->dram,*/ hypercontext, system, context, hypercontext->VT_CTRL);
 
 				    /*printf("%d : %d : ", *(hypercontext->S_GPR + 60), *(hypercontext->pS_GPR + 60));*/
-				    /*printOut(inst, this, hypercontext, cycleCount);*/
+#ifdef PRINTOUT
+				    printOut(inst, this, hypercontext, cycleCount);
+#endif
 
 				    if(inst.packet.newPCValid)
 				      {
@@ -688,7 +690,7 @@ int main(int argc, char *argv[])
 	  serviceThreadRequests(system);
 
 	  /* NEED TO SWAP REGISTERS HERE */
-	  
+
 	  /* SYSTEM LEVEL */
 	  for(j=0;j<(SYS->SYSTEM_CONFIG & 0xff);j++)
 	    {
@@ -904,7 +906,7 @@ int main(int argc, char *argv[])
 	  {
 	    _LDUB_iss(&temp, ((unsigned)system->dram + (arrayOfMem[c].addr + count)));
 	    printf("GCC: 0x%x - INS: 0x%x\n",
-		   *(unsigned char *)((unsigned)arrayOfMem[c].P + count), 
+		   *(unsigned char *)((unsigned)arrayOfMem[c].P + count),
 		   temp);
 	  }
       }
@@ -1180,7 +1182,7 @@ int setupGalaxy(void)
 		  cluster = (clusterT *)((unsigned)hypercontext->registers + (l * sizeof(clusterT)));
 
 		  cluster->S_GPR = (unsigned *)((unsigned)hypercontext->S_GPR + sGPRCount);
-		  *(cluster->S_GPR + (unsigned)1) = (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000) - 
+		  *(cluster->S_GPR + (unsigned)1) = (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000) -
 		    (MAX_CONTEXTS * (STACK_SIZE * 1000) * j) - ((STACK_SIZE * 1000) * k);
 		  printf("[%d][%d][%d] = 0x%x\n", i, j, k, *(cluster->S_GPR + (unsigned)1));
 		  cluster->S_FPR = (unsigned *)((unsigned)hypercontext->S_FPR + sFPRCount);
@@ -1188,7 +1190,7 @@ int setupGalaxy(void)
 		  cluster->S_PR = (unsigned char*)((unsigned)hypercontext->S_PR + sPRCount);
 
 		  cluster->pS_GPR = (unsigned *)((unsigned)hypercontext->pS_GPR + sGPRCount);
-		  *(cluster->pS_GPR + (unsigned)1) = (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000) - 
+		  *(cluster->pS_GPR + (unsigned)1) = (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000) -
 		    (MAX_CONTEXTS * (STACK_SIZE * 1000) * j) - ((STACK_SIZE * 1000) * k);
 		  cluster->pS_FPR = (unsigned *)((unsigned)hypercontext->pS_FPR + sFPRCount);
 		  cluster->pS_VR = (unsigned *)((unsigned)hypercontext->pS_VR + sVRCount);

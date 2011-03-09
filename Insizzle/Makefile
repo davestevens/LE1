@@ -3,7 +3,7 @@
 # use -DVTHREADS in CFLAGS for running code with vthreads
 
 CC = gcc
-CFLAGS = -c -Wall -pedantic -std=c99 -Wextra -m32 -g `xml2-config --cflags` -DVTHREAD
+CFLAGS = -c -Wall -pedantic -std=c99 -Wextra -m32 -g `xml2-config --cflags`
 LDFLAGS = -lm -m32 `xml2-config --libs`
 
 INCDIR = inc
