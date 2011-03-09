@@ -5,6 +5,10 @@
 #define size_t unsigned
 #endif
 
+#ifdef __vex
+#define size_t unsigned
+#endif
+
 #ifdef DEBUG
 void *my_memcpy(void *, void *, size_t);
 int my_memcmp(void *, void *, size_t);

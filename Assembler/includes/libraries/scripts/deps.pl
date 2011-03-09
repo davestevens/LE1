@@ -71,6 +71,28 @@
 
 # STRING
 
+
+@memchr = ("string/memchr.c");
+@memcmp = ("string/memcmp.c");
+@memcpy = ("string/memcpy.c");
+@memmove = ("string/memmove.c", "string/strcpy.c");
+@memset = ("string/memset.c");
+
+@strcat = ("string/strcat.c");
+@strchr = ("string/strchr.c");
+@strcmp = ("string/strcmp.c");
+@strcoll = ("string/strcoll.c");
+@strcpy = ("string/strcpy.c");
+@strcspn = ("string/strcspn.c");
+@strerror = ("string/strerror.c"); # THIS IS LIMITED TO A SINGLE STRING ERROR
+@strlen = ("string/strlen.c");
+@strncat = ("string/strncat.c");
+@strncmp = ("string/strncmp.c");
+@strncpy = ("string/strncpy.c");
+@strrchr = ("string/strrchr.c");
+@strspn = ("string/strspn.c");
+
+
 # STDLIB
 
 # SOFTFLOAT

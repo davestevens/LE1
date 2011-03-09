@@ -36,7 +36,7 @@ while( <> )
 	print;
 	$section = "dlabs";
 	next;
-	
+
     }
     elsif(/^##\s*Data Section/)
     {
@@ -140,11 +140,11 @@ while( <> )
 			    }
 			}
 		    }
-		    
+
 		    #   print "ASSIGNMENT: ", $left, "X", $right, "\n";
 		    $asmASS = $left . "X" . $right;
 		}
-		
+
 		# replace = with ,
 		$items =~ s/\s=/,/;
 		# remove $ in registers
@@ -176,6 +176,10 @@ while( <> )
 			    $new = $3 . "[" . $1 . "]";
 			    $new = sprintf("%s[%s0x%x]", $4, $2, $1);
 			}
+		    }
+		    elsif($src[$i] =~ /^\(([~-]?0x\w+)\)\[\$([rbl]\d+\.\d+)\]$/)
+		    {
+			$new = $2 . "[" . $1 . "]";
 		    }
 		    elsif($src[$i] =~ /^(\w+(\??\w+)?)$/)
 		    {
@@ -342,7 +346,7 @@ while( <> )
 			{
 			    $val -= $8;
 			}
-			
+
 			if($val >= 0)
 			{
 			    #$new = "(#" . $1 . "+" . $val .")";
