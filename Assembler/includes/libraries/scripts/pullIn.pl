@@ -1,24 +1,14 @@
 #!/usr/bin/perl
 
-do("deps.pl");
+do($ARGV[0]);
 
-foreach $arg (@ARGV) {
-    getMore(@$arg);
+for(my $i=0;$i<@ARGV;$i++) {
+    my $temp = $ARGV[$i];
+    foreach $file (@$temp) {
+	$deps{$file} = 1;
+    }
 }
 
 while (($key, $value) = each(%deps)) {
     print $key, "\n";
-}
-
-sub getMore()
-{
-    #push @UNdeps, $_[0];
-    $deps{$_[0]} = 1;
-    for($i=1;$i<@_;$i++) {
-	$deps{$_[$i]} = 1;
-	$_[$i] =~ /(\w+)/;
-	if(@$1 > 1) {
-	    getMore(@$1);
-	}
-    }
 }

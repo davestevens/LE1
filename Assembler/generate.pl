@@ -321,7 +321,6 @@ if($DONE == 0)
     printf("looking for imports\n");
     open FILE, "< $file3" or die;
     $imp = 0;
-#$required = '';
     while(<FILE>)
     {
 	if($imp)
@@ -333,7 +332,6 @@ if($DONE == 0)
 	    else
 	    {
 		/FUNC_(\w+)/;
-#	   $required .= $1 . " "; 
 		push @required, $1;
 	    }
 	}
@@ -343,10 +341,14 @@ if($DONE == 0)
 	}
     }
     close FILE;
-    print @required, "\n";
-    
+
     print "$perl $pullin $deps @required\n";
     @toImport = readpipe("$perl $pullin $deps @required");
+
+    if(($#toImport + $#cfiles) >= 1)
+    {
+	$keep_folder = $keep;
+    }
 
     foreach $toImport (@toImport)
     {

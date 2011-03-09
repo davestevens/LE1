@@ -1,69 +1,78 @@
-@acos = ("lm/acos.c", "lm/sqrt.c");
-@acosh = ("lm/acosh.c", "lm/log.c", "lm/log1p.c", "lm/sqrt.c");
-@asin = ("lm/asin.c", "lm/sqrt.c", "lm/fabs.c");
-@asinh = ("lm/asinh.c", "lm/log.c", "lm/fabs.c", "lm/sqrt.c", "lm/log1p.c");
-@atan = ("lm/atan.c", "lm/fabs.c");
-@atan2 = ("lm/atan2.c", "lm/atan.c", "lm/fabs.c");
-@atanh = ("lm/atanh.c", "lm/log1p.c");
-@cbrt = ("lm/cbrt.c");
-@ceil = ("lm/ceil.c");
-@copysign = ("lm/copysign.c");
-@cos = ("lm/cos.c", "lm/kcos.c", "lm/ksin.c", "lm/remPIo2.c");
-@cosh = ("lm/cosh.c", "lm/expm1.c", "lm/fabs.c", "lm/exp.c", "lm/log.c");
-@erf = ("lm/erf.c", "lm/fabs.c", "lm/exp.c");
-@exp = ("lm/exp.c");
-@expm1 = ("lm/expm1.c");
-@fabs = ("lm/fabs.c");
-@finite = ("lm/finite.c");
-@floor = ("lm/floor.c");
-@fmod = ("lm/fmod.c");
-@frexp = ("lm/frexp.c");
-@gamma = ("lm/gamma.c", "lm/signgam.c", "lm/gamma_r.c");
-@gamma_r = ("lm/gamma_r.c", "lm/lgamma_r.c");
-@hypot = ("lm/hypot.c", "lm/sqrt.c");
-@ilogb = ("lm/ilogb.c");
-@isnan = ("lm/isnan.c");
-@kcos = ("lm/kcos.c");
-@kremPIo2 = ("lm/kremPIo2.c", "lm/floor.c", "lm/scalbn.c");
-@ksin = ("lm/ksin.c");
-@ktan = ("lm/ktan.c", "lm/fabs.c");
-@ldexp = ("lm/ldexp.c", "lm/finite.c", "lm/scalbn.c");
-@lgamma = ("lm/lgamma.c", "lm/lgamma_r.c", "lm/signgam.c");
-@lgamma_r = ("lm/lgamma_r.c", "lm/log.c", "lm/fabs.c");
-@log = ("lm/log.c");
-@log10 = ("lm/log10.c", "lm/log.c");
-@log1p = ("lm/log1p.c");
-@logb = ("lm/logb.c", "lm/fabs.c");
-@modf = ("lm/modf.c");
-@nextafter = ("lm/nextafter.c");
-@pow = ("lm/pow.c", "lm/sqrt.c", "lm/fabs.c", "lm/scalbn.c");
-@remainder = ("lm/remainder.c", "lm/fabs.c", "lm/fmod.c");
-@remPIo2 = ("lm/remPIo2.c", "lm/fabs.c", "lm/kremPIo2.c");
-@rint = ("lm/rint.c");
-@scalb = ("lm/scalb.c", "lm/scalbn.c");
-@scalbn = ("lm/scalbn.c", "lm/copysign.c");
-@signgam = ("lm/signgam.c");
-@significand = ("lm/significand.c");
-@sin = ("lm/sin.c", "lm/ksin.c", "lm/kcos.c", "lm/remPIo2.c");
-@sinh = ("lm/sinh.c", "lm/expm1.c", "lm/exp.c", "lm/fabs.c");
-@sqrt = ("lm/sqrt.c");
-@tan = ("lm/tan.c", "lm/ktan.c", "lm/remPIo2.c");
-@tanh = ("lm/tanh.c", "lm/fabs.c", "lm/expm1.c");
-@memchr = ("string/memchr.c", "string/string.h");
-@memcmp = ("string/memcmp.c", "string/string.h");
-@memcpy = ("string/memcpy.c", "string/string.h");
-@memmove = ("string/memmove.c", "string/strcpy.c", "string/string.h");
-@memset = ("string/memset.c", "string/string.h");
-@strcat = ("string/strcat.c", "string/string.h");
-@strchr = ("string/strchr.c", "string/string.h");
-@strcmp = ("string/strcmp.c", "string/string.h");
-@strcoll = ("string/strcoll.c", "string/string.h");
-@strcpy = ("string/strcpy.c", "string/string.h");
-@strcspn = ("string/strcspn.c", "string/string.h");
-@strerror = ("string/strerror.c", "string/string.h");
-@strlen = ("string/strlen.c", "string/string.h");
-@strncat = ("string/strncat.c", "string/string.h");
-@strncmp = ("string/strncmp.c", "string/string.h");
-@strncpy = ("string/strncpy.c", "string/string.h");
-@strrchr = ("string/strrchr.c", "string/string.h");
-@strspn = ("string/strspn.c", "string/string.h");
+# MATH LIB
+# pre-c99
+@acos = ("lm/s_lib_version.c", "lm/k_standard.c", "lm/s_rint.c", "lm/s_matherr.c", "lm/e_acos.c", "lm/w_acos.c", "lm/w_sqrt.c", "lm/e_sqrt.c", "lm/s_fabs.c", "lm/s_isnan.c"); # DONE
+@asin = ("lm/s_lib_version.c", "lm/k_standard.c", "lm/s_rint.c", "lm/s_matherr.c", "lm/e_asin.c", "lm/w_asin.c", "lm/w_sqrt.c", "lm/e_sqrt.c", "lm/s_fabs.c", "lm/s_isnan.c"); # DONE
+@atan = ("lm/s_atan.c", "lm/s_fabs.c"); # DONE
+@atan2 = ("lm/s_lib_version.c", "lm/k_standard.c", "lm/s_rint.c", "lm/s_matherr.c", "lm/e_atan2.c", "lm/w_atan2.c", "lm/s_atan.c", "lm/s_fabs.c", "lm/s_isnan.c"); # DONE
+@ceil = ("lm/s_ceil.c"); # DONE
+@cos = ("lm/s_lib_version.c", "lm/k_standard.c", "lm/s_rint.c", "lm/s_matherr.c", "lm/k_cos.c", "lm/s_cos.c", "lm/e_rem_pio2.c", "lm/k_rem_pio2.c", "lm/s_fabs.c", "lm/s_scalbn.c", "lm/s_copysign.c", "lm/s_floor.c", "lm/k_sin.c"); # DONE
+@cosh = ("lm/s_lib_version.c", "lm/k_standard.c", "lm/s_rint.c", "lm/s_matherr.c", "lm/e_cosh.c", "lm/w_cosh.c", "lm/fabs.c", "lm/isnan.c", "lm/e_exp.c", "lm/w_exp.c", "lm/s_expm1.c"); # DONE
+@exp = ("lm/s_lib_version.c", "lm/k_standard.c", "lm/s_rint.c", "lm/s_matherr.c", "lm/e_exp.c", "lm/w_exp.c"); # DONE
+@fabs = ("lm/s_fabs.c"); # DONE
+@floor = ("lm/s_floor.c"); # DONE
+@fmod = ("lm/s_lib_version.c", "lm/k_standard.c", "lm/s_rint.c", "lm/s_matherr.c", "lm/e_fmod.c", "lm/w_fmod.c", "lm/s_isnan.c"); # DONE
+@frexp = ("lm/s_frexp.c"); # DONE
+@ldexp = ("lm/s_ldexp.c", "lm/s_finite.c", "lm/s_scalbn.c", "lm/s_copysign.c"); # DONE
+@log = ("lm/s_lib_version.c", "lm/k_standard.c", "lm/s_rint.c", "lm/s_matherr.c", "lm/e_log.c", "lm/w_log.c", "lm/s_isnan.c"); # DONE
+@log10 = ("lm/s_lib_version.c", "lm/k_standard.c", "lm/s_rint.c", "lm/s_matherr.c", "lm/e_log10.c", "lm/w_log10.c", "lm/s_isnan.c", "lm/e_log.c", "lm/w_log.c"); # DONE
+@modf = ("lm/s_modf.c"); # DONE
+@pow = ("lm/s_lib_version.c", "lm/k_standard.c", "lm/s_rint.c", "lm/s_matherr.c", "lm/e_pow.c", "lm/w_pow.c", "lm/s_fabs.c", "lm/s_finite.c", "lm/s_isnan.c", "lm/s_scabln.c", "lm/s_copysign.c", "lm/e_sqrt.c", "lm/w_sqrt.c"); # DONE
+@sin = ("lm/s_lib_version.c", "lm/k_standard.c", "lm/s_rint.c", "lm/s_matherr.c", "lm/k_sin.c", "lm/s_sin.c", "lm/e_rem_pio2.c", "lm/k_rem_pio2.c", "lm/s_fabs.c", "lm/s_scalbn.c", "lm/s_copysign.c", "lm/s_floor.c", "lm/k_cos.c"); # DONE
+@sinh = ("lm/s_lib_version.c", "lm/k_standard.c", "lm/s_rint.c", "lm/s_matherr.c", "lm/e_sinh.c", "lm/w_sinh.c", "lm/s_fabs.c", "lm/e_exp.c", "lm/w_exp.c", "lm/s_expm1.c", "lm/s_finite.c"); # DONE
+@sqrt = ("lm/s_lib_version.c", "lm/k_standard.c", "lm/s_rint.c", "lm/s_matherr.c", "lm/w_sqrt.c", "lm/e_sqrt.c"); # DONE
+@tan = ("lm/s_lib_version.c", "lm/k_standard.c", "lm/s_rint.c", "lm/s_matherr.c", "lm/k_tan.c", "lm/s_tan.c", "lm/s_fabs.c", "lm/e_rem_pio2.c", "lm/k_rem_pio2.c", "lm/s_fabs.c", "lm/s_scalbn.c", "lm/s_copysign.c", "lm/s_floor.c"); # DONE
+@tanh = ("lm/s_tanh.c", "lm/s_fabs.c", "lm/s_expm1.c"); # DONE
+
+# c99
+@acosh = ("lm/s_lib_version.c", "lm/k_standard.c", "lm/s_rint.c", "lm/s_matherr.c", "lm/e_acosh.c", "lm/w_acosh.c", "lm/e_log.c", "lm/s_log1p.c", "lm/s_isnan.c", "lm/w_sqrt.c", "lm/e_sqrt.c"); # DONE
+@asinh = ("lm/s_lib_version.c", "lm/k_standard.c", "lm/s_rint.c", "lm/s_matherr.c", "lm/s_asinh.c", "lm/e_log.c", "lm/s_log1p.c", "lm/s_fabs.c", "lm/w_sqrt.c", "lm/e_sqrt.c"); # DONE
+@atanh = ("lm/s_lib_version.c", "lm/k_standard.c", "lm/s_rint.c", "lm/s_matherr.c", "lm/e_atanh.c", "lm/w_atanh.c", "lm/s_log1p.c", "lm/s_isnan.c", "lm/s_fabs.c"); # DONE
+@cbrt = ("lm/s_cbrt.c"); # DONE
+@copysign = ("lm/s_copysign.c"); # DONE
+@erf = ("lm/s_erf.c", "lm/s_fabs.c", "lm/e_exp.c"); # DONE
+@erfc = ("UNKNONW"); # DONE
+@exp2 = ("UNKNOWN"); # DONE
+@expm1 = ("lm/s_expm1.c"); # DONE
+@fdim = ("UNKNOWN"); # DONE
+@fma = ("UNKNOWN"); # DONE
+@fmax = ("UNKNOWN"); # DONE
+@fmin = ("UNKNOWN"); # DONE
+@hypot = ("lm/s_lib_version.c", "lm/k_standard.c", "lm/s_rint.c", "lm/s_matherr.c", "lm/e_hypot.c", "lm/w_hypot.c", "lm/s_finite.c", "lm/w_sqrt.c", "lm/e_sqrt.c"); # DONE
+@ilogb = ("lm/s_ilogb.c"); # DONE
+@lgamma = ("lm/s_lib_version.c", "lm/k_standard.c", "lm/s_rint.c", "lm/s_matherr.c", "lm/e_lgamma.c", "lm/w_lgamma.c", "lm/s_signgam.c", "lm/s_finite.c", "lm/s_floor.c", "lm/s_fabs.c", "lm/e_log.c", "lm/e_lgamma_r.c", "lm/k_cos.c", "lm/k_sin.c"); # DONE
+@llrint = ("UNKNOWN"); # DONE
+@lrint = ("UNKNOWN"); # DONE
+@llround = ("UNKNOWN"); # DONE
+@lround = ("UNKNOWN"); # DONE
+@log1p = ("lm/s_log1p.c"); # DONE
+@log2 = ("UNKNOWN"); # DONE
+@logb = ("lm/s_logb.c", "lm/s_fabs.c"); # DONE
+@nan = ("UNKNOWN"); # DONE
+@nearbyint = ("UNKNOWN"); # DONE
+@nextafter = ("lm/s_nextafter.c"); # DONE
+@nextforward = ("UNKNOWN"); # DONE
+@remainder = ("lm/s_lib_version.c", "lm/k_standard.c", "lm/s_rint.c", "lm/s_matherr.c", "lm/e_remainder.c", "lm/w_remainder.c" ,"lm/s_isnan.c", "lm/s_fabs.c", "lm/e_fmod.c"); # DONE
+@remquo = ("UNKNOWN"); # DONE
+@rint = ("lm/s_rint.c"); # DONE
+@round = ("UNKNOWN"); # DONE
+@scalbln = ("UNKNOWN"); # DONE
+@scalbn = ("lm/s_scalbn.c", "lm/s_copysign.c"); # DONE
+@tgamma = ("UNKNOWN"); # DONE
+@trunc = ("UNKNOWN"); # DONE
+
+# XSI
+@j0 = ("lm/s_lib_version.c", "lm/k_standard.c", "lm/s_rint.c", "lm/s_matherr.c", "lm/e_j0.c", "lm/w_j0.c", "lm/s_fabs.c", "lm/s_isnan.c", "lm/w_sqrt.c", "lm/e_sqrt.c", "lm/e_log.c", "lm/s_sin.c", "lm/k_cos.c", "lm/s_cos.c", "lm/e_rem_pio2.c", "lm/k_rem_pio2.c", "lm/s_scalbn.c", "lm/s_copysign.c", "lm/s_floor.c", "lm/k_sin.c"); # DONE
+@j1 = ("lm/s_lib_version.c", "lm/k_standard.c", "lm/s_rint.c", "lm/s_matherr.c", "lm/e_j1.c", "lm/w_j1.c", "lm/s_fabs.c", "lm/s_isnan.c", "lm/w_sqrt.c", "lm/e_sqrt.c", "lm/e_log.c", "lm/s_sin.c", "lm/k_cos.c", "lm/s_cos.c", "lm/e_rem_pio2.c", "lm/k_rem_pio2.c", "lm/s_scalbn.c", "lm/s_copysign.c", "lm/s_floor.c", "lm/k_sin.c"); # DONE
+@jn = ("lm/s_lib_version.c", "lm/k_standard.c", "lm/s_rint.c", "lm/s_matherr.c", "lm/e_jn.c", "lm/w_jn.c", "lm/s_fabs.c", "lm/s_isnan.c", "lm/w_sqrt.c", "lm/e_sqrt.c", "lm/e_log.c", "lm/s_sin.c", "lm/k_cos.c", "lm/s_cos.c", "lm/e_rem_pio2.c", "lm/k_rem_pio2.c", "lm/s_scalbn.c", "lm/s_copysign.c", "lm/s_floor.c", "lm/k_sin.c"); # DONE);
+@scalb = ("lm/s_lib_version.c", "lm/k_standard.c", "lm/s_rint.c", "lm/s_matherr.c", "lm/e_scalb.c", "lm/w_scalb.c", "lm/s_finite.c", "lm/s_isnan.c", "lm/s_scalbn.c", "lm/s_copysign.c"); # DONE
+@y0 = ("lm/s_lib_version.c", "lm/k_standard.c", "lm/s_rint.c", "lm/s_matherr.c", "lm/e_j0.c", "lm/w_j0.c", "lm/s_fabs.c", "lm/s_isnan.c", "lm/w_sqrt.c", "lm/e_sqrt.c", "lm/e_log.c", "lm/s_sin.c", "lm/k_cos.c", "lm/s_cos.c", "lm/e_rem_pio2.c", "lm/k_rem_pio2.c", "lm/s_scalbn.c", "lm/s_copysign.c", "lm/s_floor.c", "lm/k_sin.c"); # DONE
+@y1 = ("lm/s_lib_version.c", "lm/k_standard.c", "lm/s_rint.c", "lm/s_matherr.c", "lm/e_j1.c", "lm/w_j1.c", "lm/s_fabs.c", "lm/s_isnan.c", "lm/w_sqrt.c", "lm/e_sqrt.c", "lm/e_log.c", "lm/s_sin.c", "lm/k_cos.c", "lm/s_cos.c", "lm/e_rem_pio2.c", "lm/k_rem_pio2.c", "lm/s_scalbn.c", "lm/s_copysign.c", "lm/s_floor.c", "lm/k_sin.c"); # DONE
+@yn = ("lm/s_lib_version.c", "lm/k_standard.c", "lm/s_rint.c", "lm/s_matherr.c", "lm/e_jn.c", "lm/w_jn.c", "lm/s_fabs.c", "lm/s_isnan.c", "lm/w_sqrt.c", "lm/e_sqrt.c", "lm/e_log.c", "lm/s_sin.c", "lm/k_cos.c", "lm/s_cos.c", "lm/e_rem_pio2.c", "lm/k_rem_pio2.c", "lm/s_scalbn.c", "lm/s_copysign.c", "lm/s_floor.c", "lm/k_sin.c"); # DONE);
+
+# STRING
+
+# STDLIB
+
+# SOFTFLOAT
+
+
