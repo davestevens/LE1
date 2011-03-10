@@ -424,7 +424,7 @@ int main(int argc, char *argv[])
 	    }
 	  /* TODO: here need to service memory requests */
 	  /* print all memory requests */
-#if 0
+#if 1
 	  {
 	    unsigned findBank, findBankT, i;
 	    findBank=0;
