@@ -15,12 +15,16 @@ OBJ = $(SRC:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
 
 TARGET = INSIZZLE
 TARGETV = VAJAZZLE
+TARGETAPI = INSIZZLEAPI
 
 Vajazzle:	CFLAGS += -DVAJAZZLE
+API:		CFLAGS += -DAPI
 
 all: $(SRC) $(TARGET)
 
 Vajazzle: $(SRC) $(TARGETV)
+
+API:	$(SRC) $(TARGETAPI)
 
 $(TARGET): $(OBJ)
 	   $(CC) $(OBJ) $(LDFLAGS) -o $@
@@ -28,11 +32,14 @@ $(TARGET): $(OBJ)
 $(TARGETV): $(OBJ)
 	ar cr $(TARGETV) $(OBJ)
 
+$(TARGETAPI): $(OBJ)
+	ar cr $(TARGETAPI) $(OBJ)
+
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
 	$(CC) $(CFLAGS) $< -o $@ -I$(INCDIR)/
 
 clean:
-		rm -rf $(OBJ) $(TARGET) $(TARGETV)
+		rm -f $(OBJ) $(TARGET) $(TARGETV) $(TARGETAPI)
 
 distclean:
-		rm -f *~ \#* $(OBJDIR)/*.o $(SRCDIR)/*~ $(TARGET) $(TARGETV)
+		rm -f *~ \#* $(OBJDIR)/*.o $(SRCDIR)/*~ $(TARGET) $(TARGETV) $(TARGETAPI)

@@ -4,6 +4,10 @@
 #include "galaxy.h"
 #include "galaxyConfig.h"
 
+#ifdef API
+#include "galaxyConfig_STATIC.h"
+#endif
+
 /* deepstate defines */
 #define READY                 0
 #define RUNNING               1
@@ -110,5 +114,54 @@ int serviceThreadRequests(systemT *);
 
 void serviceMemRequest(systemT *, unsigned, unsigned, unsigned);
 void serviceMemRequestPERFECT(systemT *, unsigned);
+
+#ifdef API
+/* function to step through a single cycle (all systems, context, hypercontexts */
+int clock(void);
+
+/* read/write registers */
+int insizzleWrOneSGpr(unsigned, unsigned);
+int insizzleRdOneSGpr(unsigned, unsigned *);
+
+int insizzleRdOneLr(galaxyConfigT *, unsigned *);
+int insizzleWrOneLr(unsigned);
+
+
+void writeBR(unsigned, unsigned);
+unsigned readBR(unsigned);
+
+/* read/write CTRL registers */
+void readCTRL(void);
+void writeCTRL(void);
+
+/* read/write memory */
+int insizzleWrOneIramLocation (galaxyConfigT *, unsigned, unsigned);
+int insizzleRdOneIramLocation (galaxyConfigT *, unsigned, unsigned *);
+
+int insizzleWrOneDramLocation (galaxyConfigT *, unsigned, unsigned);
+int insizzleRdOneDramLocation (galaxyConfigT *, unsigned, unsigned *);
+
+/* load iram/dram */
+void loadIRAM(char *, int);
+void loadDRAM(char *, int);
+
+/* setup global pointers to current CPU */
+/*int currentCPU(unsigned, unsigned, unsigned, unsigned);*/
+int insizzleSetCurrent(unsigned, unsigned, unsigned, unsigned);
+
+/* initialise system */
+/*int initSystem(char *);*/
+int insizzleStubInitVtApi(galaxyConfigT *);
+
+systemT *globalS;
+contextT *globalC;
+hyperContextT *globalHC;
+clusterT *globalCL;
+
+unsigned globalSid, globalCid, globalHCid, globalCLid;
+
+void driver(void);
+
+#endif
 
 #endif

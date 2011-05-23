@@ -6,8 +6,6 @@
 #include "functions.h"
 #include "macros.h"
 
-#define RUNIT
-
 /* compile with
    gcc -o Insizzle `xml2-config --cflags` main.c `xml2-config --libs` -m32 -Wall -Wextra -pedantic -std=c99
 */
@@ -17,29 +15,18 @@
 extern void *_vajazzle_main(void);
 #endif
 
-void returnOpcode(opT);
-void printOut(instruction, instructionPacket, hyperContextT *, unsigned long long);
-int setupGalaxy(void);
-int freeMem(void);
+#ifndef API
 int main(int argc, char *argv[])
 {
 
   unsigned i, j, k;
-  systemConfig *SYS;
-  contextConfig *CNT;
-  hyperContextConfig *HCNT;
-  /*clusterTemplateConfig *CLUT;*/
 
   systemT *system;
   contextT *context;
   hyperContextT *hypercontext;
-  /*clusterT *cluster;*/
-  /*unsigned *tempP, clust;*/
   unsigned bundleCount;
   unsigned long long *bundleCountP;
 
-  /*unsigned curClustTemplate, curClustInstance;*/
-  /*unsigned sGPROffset, sFPROffset, sVROffset, sPROffset;*/
   unsigned long long cycleCount = 0;
 
 #ifdef VAJAZZLE
@@ -48,6 +35,7 @@ int main(int argc, char *argv[])
   printf("Insizzle\n");
 #endif
 
+#ifndef API
   if(argc < 2)
     {
       printf("you need to specify an xml machine model file\n");
@@ -80,7 +68,6 @@ int main(int argc, char *argv[])
   printf("Running Insizzle\n");
 #endif
 
-  SYS = (systemConfig *)((unsigned)SYSTEM + (0 * sizeof(systemConfig)));
   system = (systemT *)((unsigned)galaxyT + (0 * sizeof(systemT)));
   context = (contextT *)((unsigned)system->context + (0 * sizeof(contextT)));
 
@@ -110,21 +97,18 @@ int main(int argc, char *argv[])
 #endif
 
       /* loop through systems in the galaxy */
-  for(i=0;i<(GALAXY_CONFIG & 0xff);i++)
+  for(i=0;i<(galaxyConfig.ctrlState.GALAXY_CONFIG & 0xff);i++)
     {
-      SYS = (systemConfig *)((unsigned)SYSTEM + (i * sizeof(systemConfig)));
       system = (systemT *)((unsigned)galaxyT + (i * sizeof(systemT)));
 
       /* loop through contexts */
-      for(j=0;j<(SYS->SYSTEM_CONFIG & 0xff);j++)
+      for(j=0;j<(galaxyConfig.ctrlState.SYSTEM_CONFIG[i] & 0xff);j++)
 	{
-	  CNT = (contextConfig *)((unsigned)SYS->CONTEXT + (j * sizeof(contextConfig)));
 	  context = (contextT *)((unsigned)system->context + (j * sizeof(contextT)));
 
 	  /* loop through hypercontexts */
-	  for(k=0;k<((CNT->CONTEXT_CONFIG >> 4) & 0xf);k++)
+	  for(k=0;k<((galaxyConfig.ctrlState.CONTEXT_CONFIG[i][j] >> 4) & 0xf);k++)
 	    {
-	      HCNT = (hyperContextConfig *)((unsigned)CNT->HCONTEXT + (k * sizeof(hyperContextConfig)));
 	      hypercontext = (hyperContextT *)((unsigned)context->hypercontext + (k * sizeof(hyperContextT)));
 
 	      printf("hypercontext: %d\n", k);
@@ -135,43 +119,54 @@ int main(int argc, char *argv[])
 	}
     }
 
-#ifdef RUNIT
+#endif
+#endif
+#ifdef API
+  int clock(void)
+{
+    unsigned i, j, k;
+
+    systemT *system;
+    contextT *context;
+    hyperContextT *hypercontext;
+    unsigned bundleCount;
+    unsigned long long *bundleCountP;
+#else
   while(checkActive())
     {
 #endif
 #ifdef PRINTOUT
+#ifndef API
       printf("------------------------------------------------------------ end of cycle %lld\n", cycleCount);
+#endif
 #endif
 
 #ifdef DEBUG
       printf("galaxy: 0\n");
 #endif
       /* loop through systems in the galaxy */
-      for(i=0;i<(GALAXY_CONFIG & 0xff);i++)
+      for(i=0;i<(galaxyConfig.ctrlState.GALAXY_CONFIG & 0xff);i++)
 	{
 #ifdef DEBUG
 	  printf("\tsystem: %d\n", i);
 #endif
-	  SYS = (systemConfig *)((unsigned)SYSTEM + (i * sizeof(systemConfig)));
 	  system = (systemT *)((unsigned)galaxyT + (i * sizeof(systemT)));
 
 	  /* loop through contexts */
-	  for(j=0;j<(SYS->SYSTEM_CONFIG & 0xff);j++)
+	  for(j=0;j<(galaxyConfig.ctrlState.SYSTEM_CONFIG[i] & 0xff);j++)
 	    {
 #ifdef DEBUG
 	      printf("\t\tcontext: %d\n", j);
 #endif
-	      CNT = (contextConfig *)((unsigned)SYS->CONTEXT + (j * sizeof(contextConfig)));
 	      context = (contextT *)((unsigned)system->context + (j * sizeof(contextT)));
 
 	      /* loop through hypercontexts */
-	      for(k=0;k<((CNT->CONTEXT_CONFIG >> 4) & 0xf);k++)
+	      for(k=0;k<((galaxyConfig.ctrlState.CONTEXT_CONFIG[i][j] >> 4) & 0xf);k++)
 		{
 #ifdef DEBUG
 		  printf("\t\t\thypercontext: %d\n", k);
 #endif
 
-		  HCNT = (hyperContextConfig *)((unsigned)CNT->HCONTEXT + (k * sizeof(hyperContextConfig)));
 		  hypercontext = (hyperContextT *)((unsigned)context->hypercontext + (k * sizeof(hyperContextT)));
 
 #ifdef DEBUG
@@ -336,7 +331,9 @@ int main(int argc, char *argv[])
 
 				    /*printf("%d : %d : ", *(hypercontext->S_GPR + 60), *(hypercontext->pS_GPR + 60));*/
 #ifdef PRINTOUT
+#ifndef API
 				    printOut(inst, this, hypercontext, cycleCount);
+#endif
 #endif
 
 				    if(inst.packet.newPCValid)
@@ -426,16 +423,16 @@ int main(int argc, char *argv[])
 	  /* print all memory requests */
 #if 1
 	  {
-	    unsigned findBank, findBankT, i;
+	    unsigned findBank, findBankT, i2;
 	    findBank=0;
-	    findBankT = (unsigned)log2(((SYS->DRAM_SHARED_CONFIG >> 24) & 0xff));
-	    for(i=0;i<findBankT;i++)
-	      findBank |= 1 << i;
+	    findBankT = (unsigned)log2(((galaxyConfig.ctrlState.DRAM_SHARED_CONFIG0[i] >> 24) & 0xff));
+	    for(i=0;i<findBankT;i2++)
+	      findBank |= 1 << i2;
 
-	    serviceMemRequest(system, findBank, ((SYS->DRAM_SHARED_CONFIG >> 24) & 0xff), (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000));
+	    serviceMemRequest(system, findBank, ((galaxyConfig.ctrlState.DRAM_SHARED_CONFIG0[i] >> 24) & 0xff), (((galaxyConfig.ctrlState.DRAM_SHARED_CONFIG0[i] >> 8) & 0xffff) * 1000));
 	  }
 #else
-	  serviceMemRequestPERFECT(system, (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000));
+	  serviceMemRequestPERFECT(system, (((galaxyConfig.ctrlState.DRAM_SHARED_CONFIG0[i] >> 8) & 0xffff) * 1000));
 #endif
 #if 0
 	  {
@@ -692,22 +689,20 @@ int main(int argc, char *argv[])
 	  /* NEED TO SWAP REGISTERS HERE */
 
 	  /* SYSTEM LEVEL */
-	  for(j=0;j<(SYS->SYSTEM_CONFIG & 0xff);j++)
+	  for(j=0;j<(galaxyConfig.ctrlState.SYSTEM_CONFIG[i] & 0xff);j++)
 	    {
 #ifdef DEBUG
 	      printf("\t\tcontext: %d\n", j);
 #endif
-	      CNT = (contextConfig *)((unsigned)SYS->CONTEXT + (j * sizeof(contextConfig)));
 	      context = (contextT *)((unsigned)system->context + (j * sizeof(contextT)));
 
 	      /* loop through hypercontexts */
-	      for(k=0;k<((CNT->CONTEXT_CONFIG >> 4) & 0xf);k++)
+	      for(k=0;k<((galaxyConfig.ctrlState.CONTEXT_CONFIG[i][j] >> 4) & 0xf);k++)
 		{
 #ifdef DEBUG
 		  printf("\t\t\thypercontext: %d\n", k);
 #endif
 
-		  HCNT = (hyperContextConfig *)((unsigned)CNT->HCONTEXT + (k * sizeof(hyperContextConfig)));
 		  hypercontext = (hyperContextT *)((unsigned)context->hypercontext + (k * sizeof(hyperContextT)));
 
 #ifdef DEBUG
@@ -720,31 +715,10 @@ int main(int argc, char *argv[])
 		  /* at this point flip registers ready for next cycle
 		     only need to do it when hypercontext has been active
 		  */
-		  /* TODO: SWITCHING POINTERS DIDN'T WORK, NEED TO COPY ALL */
-		  /*for(clust=0;clust<hypercontext->sGPRCount;clust++)
-		    {
-		      *(hypercontext->pS_GPR + clust) = *(hypercontext->S_GPR + clust);
-		      }*/
 		  memcpy(hypercontext->pS_GPR, hypercontext->S_GPR, (hypercontext->sGPRCount * sizeof(unsigned)));
-		  /*for(clust=0;clust<hypercontext->sFPRCount;clust++)
-		    {
-		      *(hypercontext->pS_FPR + clust) = *(hypercontext->S_FPR + clust);
-		      }*/
 		  memcpy(hypercontext->pS_FPR, hypercontext->S_FPR, (hypercontext->sFPRCount * sizeof(unsigned)));
-		  /*for(clust=0;clust<hypercontext->sVRCount;clust++)
-		    {
-		      *(hypercontext->pS_VR + clust) = *(hypercontext->S_VR + clust);
-		      }*/
 		  memcpy(hypercontext->pS_VR, hypercontext->S_VR, (hypercontext->sVRCount * sizeof(unsigned)));
-		  /*for(clust=0;clust<hypercontext->sPRCount;clust++)
-		    {
-		      *(hypercontext->pS_PR + clust) = *(hypercontext->S_PR + clust);
-		      }*/
 		  memcpy(hypercontext->pS_PR, hypercontext->S_PR, (hypercontext->sPRCount * sizeof(unsigned char)));
-		  /*memcpy(hypercontext->pS_GPR, hypercontext->S_GPR, hypercontext->sGPRCount);*/
-		  /*memcpy(hypercontext->pS_FPR, hypercontext->S_FPR, hypercontext->sFPRCount);*/
-		  /*memcpy(hypercontext->pS_VR, hypercontext->S_VR, hypercontext->sVRCount);*/
-		  /*memcpy(hypercontext->pS_PR, hypercontext->S_PR, hypercontext->sPRCount);*/
 		  hypercontext->plinkReg = hypercontext->linkReg;
 		}
 	    }
@@ -752,11 +726,14 @@ int main(int argc, char *argv[])
 
 	}
 
+#ifdef API
+      return 0;
+#else
       cycleCount++;
-#ifdef RUNIT
-    }
 #endif
+    }
 
+#ifndef API
 #ifdef VAJAZZLE
   printf("\tInsizzle run complete\n");
 
@@ -917,24 +894,21 @@ int main(int argc, char *argv[])
   /* print out details */
   printf("galaxy: 0\n");
   /* loop through systems in the galaxy */
-  for(i=0;i<(GALAXY_CONFIG & 0xff);i++)
+  for(i=0;i<(galaxyConfig.ctrlState.GALAXY_CONFIG & 0xff);i++)
     {
       printf("\tsystem: %d\n", i);
-      SYS = (systemConfig *)((unsigned)SYSTEM + (i * sizeof(systemConfig)));
       system = (systemT *)((unsigned)galaxyT + (i * sizeof(systemT)));
 
       /* loop through contexts */
-      for(j=0;j<(SYS->SYSTEM_CONFIG & 0xff);j++)
+      for(j=0;j<(galaxyConfig.ctrlState.SYSTEM_CONFIG[i] & 0xff);j++)
 	{
 	  printf("\t\tcontext: %d\n", j);
-	  CNT = (contextConfig *)((unsigned)SYS->CONTEXT + (j * sizeof(contextConfig)));
 	  context = (contextT *)((unsigned)system->context + (j * sizeof(contextT)));
 
 	  /* loop through hypercontexts */
-	  for(k=0;k<((CNT->CONTEXT_CONFIG >> 4) & 0xf);k++)
+	  for(k=0;k<((galaxyConfig.ctrlState.CONTEXT_CONFIG[i][j] >> 4) & 0xf);k++)
 	    {
 	      printf("\t\t\thypercontext: %d\n", k);
-	      HCNT = (hyperContextConfig *)((unsigned)CNT->HCONTEXT + (k * sizeof(hyperContextConfig)));
 	      hypercontext = (hyperContextT *)((unsigned)context->hypercontext + (k * sizeof(hyperContextT)));
 
 	      if(printCounts(hypercontext) == -1)
@@ -943,7 +917,7 @@ int main(int argc, char *argv[])
 	}
 
       /* print each dram to file */
-      if(memoryDump(((((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000) >> 2), i, system->dram) == -1)
+      if(memoryDump(((((galaxyConfig.ctrlState.DRAM_SHARED_CONFIG0[i] >> 8) & 0xffff) * 1000) >> 2), i, system->dram) == -1)
 	return -1;
     }
 
@@ -955,15 +929,12 @@ int main(int argc, char *argv[])
 
   return 0;
 }
+#endif
 
 /* read galaxyConfig and setup registers and memory */
 int setupGalaxy(void)
 {
   unsigned i, j, k, l;
-  systemConfig *SYS;
-  contextConfig *CNT;
-  hyperContextConfig *HCNT;
-  clusterTemplateConfig *CLUT;
 
   systemT *system;
   contextT *context;
@@ -974,23 +945,21 @@ int setupGalaxy(void)
   unsigned sGPRCount, sFPRCount, sVRCount, sPRCount;
   unsigned totalWidth;
 
+#ifndef API
   char binary[256];
+#endif
 
   /* malloc enough space for all the system */
-  galaxyT = (systemT *)malloc(sizeof(systemT) * (GALAXY_CONFIG & 0xff));
+  galaxyT = (systemT *)malloc(sizeof(systemT) * (galaxyConfig.ctrlState.GALAXY_CONFIG & 0xff));
   if(galaxyT == NULL)
     return -1;
 
   /* for each system need to allocate memory for the context and iram */
-  for(i=0;i<(GALAXY_CONFIG & 0xff);i++)
+  for(i=0;i<(galaxyConfig.ctrlState.GALAXY_CONFIG & 0xff);i++)
     {
-      SYS = (systemConfig *)((unsigned)SYSTEM + (i * sizeof(systemConfig)));
       system = (systemT *)((unsigned)galaxyT + (i * sizeof(systemT)));
 
-      system->context = (contextT *)malloc(sizeof(contextT) * (SYS->SYSTEM_CONFIG & 0xff));
-      /*system->memQueue = (struct memReqT *)calloc(sizeof(struct memReqT), 1);
-      system->memQueueHead = system->memQueue;
-      system->memQueueCurrent = system->memQueue;*/
+      system->context = (contextT *)malloc(sizeof(contextT) * (galaxyConfig.ctrlState.SYSTEM_CONFIG[i] & 0xff));
 
       if(system->context == NULL)
 	return -1;
@@ -998,6 +967,7 @@ int setupGalaxy(void)
       system->memReq = NULL;
       system->threadReq = NULL;
 
+#ifndef API
       printf("Please specify the location of the dram binary for system %d\n> ", i);
 #if 0
       scanf("%s", binary);
@@ -1005,19 +975,20 @@ int setupGalaxy(void)
       strcpy(binary, "binaries/dram.bin");
 #endif
       printf("file: %s\n", binary);
-      system->dram = loadBinary(binary, ((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff));
+      system->dram = loadBinary(binary, ((galaxyConfig.ctrlState.DRAM_SHARED_CONFIG0[i] >> 8) & 0xffff));
       if(system->dram == NULL)
 	return -1;
 
       printf("system->dram: %p\n", (void *)system->dram);
+#endif
 
-      system->numContext = (SYS->SYSTEM_CONFIG & 0xff);
+      system->numContext = (galaxyConfig.ctrlState.SYSTEM_CONFIG[i] & 0xff);
 
-      for(j=0;j<(SYS->SYSTEM_CONFIG & 0xff);j++)
+      for(j=0;j<(galaxyConfig.ctrlState.SYSTEM_CONFIG[i] & 0xff);j++)
 	{
-	  CNT = (contextConfig *)((unsigned)SYS->CONTEXT + (j * sizeof(contextConfig)));
 	  context = (contextT *)((unsigned)system->context + (j * sizeof(contextT)));
 
+#ifndef API
 	  printf("Please specify the location of the iram binary for system %d, context %d\n> ", i, j);
 #if 0
       scanf("%s", binary);
@@ -1030,20 +1001,20 @@ int setupGalaxy(void)
 	  /*(unsigned *)malloc(sizeof(unsigned) * ((CNT->IFE_SIMPLE_IRAM_PRIV_CONFIG >> 8) & 0xffff));*/
 	  if(context->iram == NULL)
 	    return -1;
+#endif
 
-	  context->hypercontext = (hyperContextT *)calloc(sizeof(hyperContextT) * ((CNT->CONTEXT_CONFIG >> 4) & 0xf), 1);
+	  context->hypercontext = (hyperContextT *)calloc(sizeof(hyperContextT) * ((galaxyConfig.ctrlState.CONTEXT_CONFIG[i][j] >> 4) & 0xf), 1);
 	  if(context->hypercontext == NULL)
 	    return -1;
 
-	  context->numHyperContext = ((CNT->CONTEXT_CONFIG >> 4) & 0xf);
+	  context->numHyperContext = ((galaxyConfig.ctrlState.CONTEXT_CONFIG[i][j] >> 4) & 0xf);
 
-	  for(k=0;k<((CNT->CONTEXT_CONFIG >> 4) & 0xf);k++)
+	  for(k=0;k<((galaxyConfig.ctrlState.CONTEXT_CONFIG[i][j] >> 4) & 0xf);k++)
 	    {
-	      HCNT = (hyperContextConfig *)((unsigned)CNT->HCONTEXT + (k * sizeof(hyperContextConfig)));
 	      hypercontext = (hyperContextT *)((unsigned)context->hypercontext + (k * sizeof(hyperContextT)));
 
-	      hypercontext->registers = (clusterT *)malloc(sizeof(clusterT) * (HCNT->HCONTEXT_CONFIG & 0xf));
-	      hypercontext->numClusters = (HCNT->HCONTEXT_CONFIG & 0xf);
+	      hypercontext->registers = (clusterT *)malloc(sizeof(clusterT) * (galaxyConfig.ctrlState.HCONTEXT_CONFIG[i][j][k] & 0xf));
+	      hypercontext->numClusters = (galaxyConfig.ctrlState.HCONTEXT_CONFIG[i][j][k] & 0xf);
 
 	      /*printf("system: %d, context: %d, hypercontext: %d\n", i, j, k);*/
 	      sGPRCount = 0;
@@ -1052,7 +1023,7 @@ int setupGalaxy(void)
 	      sPRCount = 0;
 	      totalWidth = 0;
 	      /* from here need to get the cluster details and work things out */
-	      for(l=0;l<(HCNT->HCONTEXT_CONFIG & 0xf);l++)
+	      for(l=0;l<(galaxyConfig.ctrlState.HCONTEXT_CONFIG[i][j][k] & 0xf);l++)
 		{
 		  /*printf("\tcluster: %d\n", l);*/
 		  /* need to then get the details of them */
@@ -1063,35 +1034,33 @@ int setupGalaxy(void)
 
 		  if(l < 8)
 		    {
-		      curClustTemplate = ((HCNT->HCONTEXT_CLUST_TEMPL0_1.lo >> (l * 4)) & 0xf);
-		      curClustInstance = ((HCNT->HCONTEXT_CLUST_TEMPL_INST0_1.lo >> (l * 4)) & 0xf);
+		      curClustTemplate = ((galaxyConfig.ctrlState.HCONTEXT_CLUST_TEMPL0[i][j][k] >> (l * 4)) & 0xf);
+		      curClustInstance = ((galaxyConfig.ctrlState.HCONTEXT_CLUST_TEMPL_INST0[i][j][k] >> (l * 4)) & 0xf);
 		    }
 		  else
 		    {
-		      curClustTemplate = ((HCNT->HCONTEXT_CLUST_TEMPL0_1.hi >> (l * 4)) & 0xf);
-		      curClustInstance = ((HCNT->HCONTEXT_CLUST_TEMPL_INST0_1.hi >> (l * 4)) & 0xf);
+		      curClustTemplate = ((galaxyConfig.ctrlState.HCONTEXT_CLUST_TEMPL1[i][j][k] >> (l * 4)) & 0xf);
+		      curClustInstance = ((galaxyConfig.ctrlState.HCONTEXT_CLUST_TEMPL_INST1[i][j][k] >> (l * 4)) & 0xf);
 		    }
 
 		  /*printf("\t\tcurrent cluster Template: %d\n", curClustTemplate);
 		    printf("\t\tcurrent cluster Instance: %d\n", curClustInstance);*/
 
-		  CLUT = (clusterTemplateConfig *)((unsigned)CNT->CLUSTER_TEMPL + (sizeof(clusterTemplateConfig) * curClustTemplate));
-
-		  if(!((CLUT->CLUST_TEMPL_CONFIG >> 16) & 0x1))
+		  if(!((galaxyConfig.ctrlState.CLUST_TEMPL_CONFIG[i][j][l] >> 16) & 0x1))
 		    {
 		      printf("you have specified a cluster template which isn't instantiated\n");
 		      return -1;
 		    }
-		  if(curClustInstance >= ((CLUT->CLUST_TEMPL_CONFIG >> 17) & 0xf))
+		  if(curClustInstance >= ((galaxyConfig.ctrlState.CLUST_TEMPL_CONFIG[i][j][l] >> 17) & 0xf))
 		    {
 		      printf("you have specified a cluster template instance which isn't available\n");
 		      return -1;
 		    }
-		  sGPRCount += CLUT->CLUST_TEMPL_STATIC_REGFILE_CONFIG & 0xff;
-		  sFPRCount += (CLUT->CLUST_TEMPL_STATIC_REGFILE_CONFIG >> 8) & 0xff;
-		  sVRCount += (CLUT->CLUST_TEMPL_STATIC_REGFILE_CONFIG >> 16) & 0xff;
-		  sPRCount += (CLUT->CLUST_TEMPL_STATIC_REGFILE_CONFIG >> 24) & 0xf;
-		  totalWidth += (CLUT->CLUST_TEMPL_CONFIG >> 8) & 0xff;
+		  sGPRCount += galaxyConfig.ctrlState.CLUST_TEMPL_STATIC_REGFILE_CONFIG[i][j][l] & 0xff;
+		  sFPRCount += (galaxyConfig.ctrlState.CLUST_TEMPL_STATIC_REGFILE_CONFIG[i][j][l] >> 8) & 0xff;
+		  sVRCount += (galaxyConfig.ctrlState.CLUST_TEMPL_STATIC_REGFILE_CONFIG[i][j][l] >> 16) & 0xff;
+		  sPRCount += (galaxyConfig.ctrlState.CLUST_TEMPL_STATIC_REGFILE_CONFIG[i][j][l] >> 24) & 0xf;
+		  totalWidth += (galaxyConfig.ctrlState.CLUST_TEMPL_CONFIG[i][j][l] >> 8) & 0xff;
 		}
 
 	      /* at this point we know how many registers are needed */
@@ -1150,6 +1119,8 @@ int setupGalaxy(void)
 	      /* deepstate */
 #ifdef VTHREAD
 	      hypercontext->VT_CTRL |= READY << 3;
+#elif API
+	      hypercontext->VT_CTRL |= RUNNING << 3;
 #else
 	      hypercontext->VT_CTRL |= RUNNING << 3;
 #endif
@@ -1177,12 +1148,12 @@ int setupGalaxy(void)
 	      sPRCount = 0;
 
 	      /*printf("hypercontext->S_GPR: 0x%x\n", (unsigned)hypercontext->S_GPR);*/
-	      for(l=0;l<(HCNT->HCONTEXT_CONFIG & 0xf);l++)
+	      for(l=0;l<(galaxyConfig.ctrlState.HCONTEXT_CONFIG[i][j][k] & 0xf);l++)
 		{
 		  cluster = (clusterT *)((unsigned)hypercontext->registers + (l * sizeof(clusterT)));
 
 		  cluster->S_GPR = (unsigned *)((unsigned)hypercontext->S_GPR + sGPRCount);
-		  *(cluster->S_GPR + (unsigned)1) = (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000) -
+		  *(cluster->S_GPR + (unsigned)1) = (((galaxyConfig.ctrlState.DRAM_SHARED_CONFIG0[i] >> 8) & 0xffff) * 1000) -
 		    (MAX_CONTEXTS * (STACK_SIZE * 1000) * j) - ((STACK_SIZE * 1000) * k);
 		  printf("[%d][%d][%d] = 0x%x\n", i, j, k, *(cluster->S_GPR + (unsigned)1));
 		  cluster->S_FPR = (unsigned *)((unsigned)hypercontext->S_FPR + sFPRCount);
@@ -1190,7 +1161,7 @@ int setupGalaxy(void)
 		  cluster->S_PR = (unsigned char*)((unsigned)hypercontext->S_PR + sPRCount);
 
 		  cluster->pS_GPR = (unsigned *)((unsigned)hypercontext->pS_GPR + sGPRCount);
-		  *(cluster->pS_GPR + (unsigned)1) = (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000) -
+		  *(cluster->pS_GPR + (unsigned)1) = (((galaxyConfig.ctrlState.DRAM_SHARED_CONFIG0[i] >> 8) & 0xffff) * 1000) -
 		    (MAX_CONTEXTS * (STACK_SIZE * 1000) * j) - ((STACK_SIZE * 1000) * k);
 		  cluster->pS_FPR = (unsigned *)((unsigned)hypercontext->pS_FPR + sFPRCount);
 		  cluster->pS_VR = (unsigned *)((unsigned)hypercontext->pS_VR + sVRCount);
@@ -1199,16 +1170,14 @@ int setupGalaxy(void)
 		  printf("cluster: %d, sGPR 0x%x\n", l, (unsigned)cluster->S_GPR);
 
 		  if(l < 8)
-		    curClustTemplate = ((HCNT->HCONTEXT_CLUST_TEMPL0_1.lo >> (l * 4)) & 0xf);
+		    curClustTemplate = ((galaxyConfig.ctrlState.HCONTEXT_CLUST_TEMPL0[i][j][k] >> (l * 4)) & 0xf);
 		  else
-		    curClustTemplate = ((HCNT->HCONTEXT_CLUST_TEMPL0_1.hi >> (l * 4)) & 0xf);
+		    curClustTemplate = ((galaxyConfig.ctrlState.HCONTEXT_CLUST_TEMPL1[i][j][k] >> (l * 4)) & 0xf);
 
-		  CLUT = (clusterTemplateConfig *)((unsigned)CNT->CLUSTER_TEMPL + (sizeof(clusterTemplateConfig) * curClustTemplate));
-
-		  sGPRCount += CLUT->CLUST_TEMPL_STATIC_REGFILE_CONFIG & 0xff;
-		  sFPRCount += (CLUT->CLUST_TEMPL_STATIC_REGFILE_CONFIG >> 8) & 0xff;
-		  sVRCount += (CLUT->CLUST_TEMPL_STATIC_REGFILE_CONFIG >> 16) & 0xff;
-		  sPRCount += (CLUT->CLUST_TEMPL_STATIC_REGFILE_CONFIG >> 24) & 0xf;
+		  sGPRCount += galaxyConfig.ctrlState.CLUST_TEMPL_STATIC_REGFILE_CONFIG[i][j][l] & 0xff;
+		  sFPRCount += (galaxyConfig.ctrlState.CLUST_TEMPL_STATIC_REGFILE_CONFIG[i][j][l] >> 8) & 0xff;
+		  sVRCount += (galaxyConfig.ctrlState.CLUST_TEMPL_STATIC_REGFILE_CONFIG[i][j][l] >> 16) & 0xff;
+		  sPRCount += (galaxyConfig.ctrlState.CLUST_TEMPL_STATIC_REGFILE_CONFIG[i][j][l] >> 24) & 0xf;
 		}
 	    }
 
@@ -1220,34 +1189,26 @@ int setupGalaxy(void)
 
 int freeMem(void)
 {
-  systemConfig *SYS;
-  contextConfig *CNT;
-  hyperContextConfig *HCNT;
-  /*clusterTemplateConfig *CLUT;*/
-
   systemT *system;
   contextT *context;
   hyperContextT *hypercontext;
 
   unsigned i,j,k;
 
-  for(i=0;i<(GALAXY_CONFIG & 0xff);i++)
+  for(i=0;i<(galaxyConfig.ctrlState.GALAXY_CONFIG & 0xff);i++)
     {
-      SYS = (systemConfig *)((unsigned)SYSTEM + (i * sizeof(systemConfig)));
       system = (systemT *)((unsigned)galaxyT + (i * sizeof(systemT)));
 
       free((unsigned *)system->dram);
 
-      for(j=0;j<(SYS->SYSTEM_CONFIG & 0xff);j++)
+      for(j=0;j<(galaxyConfig.ctrlState.SYSTEM_CONFIG[i] & 0xff);j++)
 	{
-	  CNT = (contextConfig *)((unsigned)SYS->CONTEXT + (j * sizeof(contextConfig)));
 	  context = (contextT *)((unsigned)system->context + (j * sizeof(contextT)));
 
 	  free((unsigned *)context->iram);
 
-	  for(k=0;k<((CNT->CONTEXT_CONFIG >> 4) & 0xf);k++)
+	  for(k=0;k<((galaxyConfig.ctrlState.CONTEXT_CONFIG[i][j] >> 4) & 0xf);k++)
 	    {
-	      HCNT = (hyperContextConfig *)((unsigned)CNT->HCONTEXT + (k * sizeof(hyperContextConfig)));
 	      hypercontext = (hyperContextT *)((unsigned)context->hypercontext + (k * sizeof(hyperContextT)));
 
 	      free((unsigned *)hypercontext->S_GPR);
@@ -1261,16 +1222,11 @@ int freeMem(void)
 	      free((unsigned char*)hypercontext->pS_PR);
 	    }
 	  free((hyperContextT *)context->hypercontext);
-	  free((hyperContextConfig *)CNT->HCONTEXT);
-	  free((clusterTemplateConfig *)CNT->CLUSTER_TEMPL);
-
 	}
       free((contextT *)system->context);
-      free((contextConfig *)SYS->CONTEXT);
-
     }
   free((systemT *)galaxyT);
-  free((systemConfig *)SYSTEM);
+
   return 0;
 }
 
