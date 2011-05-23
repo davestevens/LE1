@@ -978,12 +978,13 @@ void loadDRAM(char *dram, int size) {
 int insizzleSetCurrent(unsigned system, unsigned context, unsigned hypercontext, unsigned cluster) {
   printf("insizzleSetCurrent(%d, %d, %d)\n", system, context, hypercontext);
   /* TODO: should put a check here to see its not above the MAX */
-  /*globalS = (systemT *)((unsigned)galaxyT + (system * sizeof(systemT)));
+  globalS = (systemT *)((unsigned)galaxyT + (system * sizeof(systemT)));
   globalC = (contextT *)((unsigned)globalS->context + (context * sizeof(contextT)));
   globalHC = (hyperContextT *)((unsigned)globalC->hypercontext + (hypercontext * sizeof(hyperContextT)));
   globalSid = system;
   globalCid = context;
-  globalHCid = hypercontext;*/
+  globalHCid = hypercontext;
+  printf("%d, %d, %d\n", globalSid, globalCid, globalHCid);
   printf("done\n");
   return 0;
 }

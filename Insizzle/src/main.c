@@ -1009,11 +1009,13 @@ int setupGalaxy(void)
 #endif
       printf("file: %s\n", binary);
       system->dram = loadBinary(binary, ((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff));
+#else
+      system->dram = (unsigned *)calloc((((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000), 1);
+#endif
       if(system->dram == NULL)
 	return -1;
 
       printf("system->dram: %p\n", (void *)system->dram);
-#endif
 
       system->numContext = (SYS->SYSTEM_CONFIG & 0xff);
 
@@ -1033,9 +1035,13 @@ int setupGalaxy(void)
 
 	  context->iram = loadBinary(binary, 0);
 	  /*(unsigned *)malloc(sizeof(unsigned) * ((CNT->IFE_SIMPLE_IRAM_PRIV_CONFIG >> 8) & 0xffff));*/
+#else
+	  context->iram = (unsigned *)calloc((((CNT->IFE_SIMPLE_IRAM_PRIV_CONFIG >> 8) & 0xffff) * 1000), 1);
+#endif
 	  if(context->iram == NULL)
 	    return -1;
-#endif
+
+	  printf("context->iram: %p\n", (void *)context->iram);
 
 	  context->hypercontext = (hyperContextT *)calloc(sizeof(hyperContextT) * ((CNT->CONTEXT_CONFIG >> 4) & 0xf), 1);
 	  if(context->hypercontext == NULL)
