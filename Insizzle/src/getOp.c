@@ -4,7 +4,7 @@
 
 packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, /*unsigned *dataP,*/ hyperContextT *hypercontext, systemT *system, contextT *context, unsigned VT_CTRL)
 {
-  unsigned clust;
+  unsigned clust = VT_CTRL; /* TODO: Remove this */
   unsigned extra;
   packetT ret;
   /*int newThread;*/
