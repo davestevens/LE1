@@ -42,4 +42,4 @@ clean:
 		rm -f $(OBJ) $(TARGET) $(TARGETV) $(TARGETAPI)
 
 distclean:
-		rm -f *~ \#* $(OBJDIR)/*.o $(SRCDIR)/*~ $(TARGET) $(TARGETV) $(TARGETAPI)
+		rm -f *~ \#* $(OBJDIR)/*.o $(SRCDIR)/*~ $(INCDIR)/*~ $(TARGET) $(TARGETV) $(TARGETAPI)

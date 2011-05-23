@@ -115,6 +115,11 @@ int serviceThreadRequests(systemT *);
 void serviceMemRequest(systemT *, unsigned, unsigned, unsigned);
 void serviceMemRequestPERFECT(systemT *, unsigned);
 
+void returnOpcode(opT);
+void printOut(instruction, instructionPacket, hyperContextT *, unsigned long long);
+int setupGalaxy(void);
+int freeMem(void);
+
 #ifdef API
 /* function to step through a single cycle (all systems, context, hypercontexts */
 int clock(void);
