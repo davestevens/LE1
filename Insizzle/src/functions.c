@@ -927,7 +927,7 @@ void serviceMemRequestPERFECT(systemT *system, unsigned dramSize)
 }
 
 #ifdef API
-void loadIRAM(char *iram, int size) {
+void insizzleAPILdIRAM(char *iram, int size) {
   int i;
   char *point;
 
@@ -950,7 +950,7 @@ void loadIRAM(char *iram, int size) {
   globalC->iram = (unsigned *)point;
 }
 
-void loadDRAM(char *dram, int size) {
+void insizzleAPILdDRAM(char *dram, int size) {
   int i;
   char *point;
 
@@ -973,11 +973,32 @@ void loadDRAM(char *dram, int size) {
   globalS->dram = (unsigned *)point;
 }
 
+int insizzleAPIClock(galaxyConfigT *galaxyConfig, gTracePacketT *gTracePacket) {
+  printf("insizzleAPIClock\n");
+  return 0;
+}
+
 /* setup global System, Context and Hypercontext pointers
  */
-int insizzleSetCurrent(unsigned system, unsigned context, unsigned hypercontext, unsigned cluster) {
-  printf("insizzleSetCurrent(%d, %d, %d)\n", system, context, hypercontext);
+int insizzleAPISetCurrent(unsigned system, unsigned context, unsigned hypercontext, unsigned cluster) {
+  printf("insizzleAPISetCurrent(%d, %d, %d, %d)\n", system, context, hypercontext, cluster);
   /* TODO: should put a check here to see its not above the MAX */
+  if(system >= MASTERCFG_SYSTEMS_MAX) {
+    printf("\tsystem %d >= MASTERCFG_SYSTEMS_MAX: %d\n", system, MASTERCFG_SYSTEMS_MAX);
+    return -1;
+  }
+  if(context >= MASTERCFG_CONTEXTS_MAX) {
+    printf("\tcontext %d >= MASTERCFG_CONTEXTS_MAX: %d\n", context, MASTERCFG_CONTEXTS_MAX);
+    return -1;
+  }
+  if(hypercontext >= MASTERCFG_HYPERCONTEXTS_MAX) {
+    printf("\thypercontext %d >= MASTERCFG_HYPERCONTEXTS_MAX: %d\n", hypercontext, MASTERCFG_HYPERCONTEXTS_MAX);
+    return -1;
+  }
+  if(cluster >= MASTERCFG_CLUSTERS) {
+    printf("\tcluster %d >= MASTERCFG_CLUSTERS: %d\n", cluster, MASTERCFG_CLUSTERS);
+    return -1;
+  }
   globalS = (systemT *)((unsigned)galaxyT + (system * sizeof(systemT)));
   globalC = (contextT *)((unsigned)globalS->context + (context * sizeof(contextT)));
   globalHC = (hyperContextT *)((unsigned)globalC->hypercontext + (hypercontext * sizeof(hyperContextT)));
@@ -989,86 +1010,109 @@ int insizzleSetCurrent(unsigned system, unsigned context, unsigned hypercontext,
 
 /* read one word from memory (iram)
  */
-int insizzleRdOneIramLocation(galaxyConfigT *galaxyConfig, unsigned iaddr, unsigned *data) {
+int insizzleAPIRdOneIramLocation(galaxyConfigT *galaxyConfig, unsigned iaddr, unsigned *data) {
   *data = (unsigned)*(globalC->iram + (iaddr >> 2));
-  printf("insizzleRdOneIramLocation: 0x%08x = 0x%08x\n", iaddr, *data);
+  printf("insizzleAPIRdOneIramLocation: 0x%08x = 0x%08x\n", iaddr, *data);
   return 0;
 }
 
 /* write one word to memory (iram)
  */
-int insizzleWrOneIramLocation(galaxyConfigT *galaxyConfig, unsigned iaddr, unsigned data) {
+int insizzleAPIWrOneIramLocation(galaxyConfigT *galaxyConfig, unsigned iaddr, unsigned data) {
   *(globalC->iram + (iaddr >> 2)) = data;
-  printf("insizzleWrOneIramLocation: 0x%08x = 0x%08x\n", iaddr, data);
+  printf("insizzleAPIWrOneIramLocation: 0x%08x = 0x%08x\n", iaddr, data);
   return 0;
 }
 
 /* read one word from memory (dram)
  */
-int insizzleRdOneDramLocation (galaxyConfigT *galaxyConfig, unsigned daddr, unsigned *data) {
+int insizzleAPIRdOneDramLocation (galaxyConfigT *galaxyConfig, unsigned daddr, unsigned *data) {
   *data = (unsigned)*(globalS->dram + (daddr >> 2));
-  printf("insizzleRdOneDramLocation: 0x%08x = 0x%08x\n", daddr, *data);
+  printf("insizzleAPIRdOneDramLocation: 0x%08x = 0x%08x\n", daddr, *data);
   return 0;
 }
 
 /* write one word to memory (dram)
  */
-int insizzleWrOneDramLocation (galaxyConfigT *galaxyConfig, unsigned daddr, unsigned data) {
+int insizzleAPIWrOneDramLocation (galaxyConfigT *galaxyConfig, unsigned daddr, unsigned data) {
   *(globalS->dram + (daddr >> 2)) = data;
-  printf("insizzleWrOneDramLocation: 0x%08x = 0x%08x\n", daddr, data);
+  printf("insizzleAPIWrOneDramLocation: 0x%08x = 0x%08x\n", daddr, data);
   return 0;
 }
 
 /* read a single register
  */
-int insizzleRdOneSGpr(unsigned sgpr, unsigned *rdata) {
+int insizzleAPIRdOneSGpr(unsigned sgpr, unsigned *rdata) {
   *rdata = (unsigned)*(globalHC->S_GPR + sgpr);
-  printf("insizzleRdOneSGpr: 0x%08x\n", *rdata);
+  printf("insizzleAPIRdOneSGpr: 0x%08x\n", *rdata);
   return 0;
 }
 
 /* write a single register
  */
-int insizzleWrOneSGpr(unsigned sgpr, unsigned wdata) {
+int insizzleAPIWrOneSGpr(unsigned sgpr, unsigned wdata) {
   *(globalHC->S_GPR + sgpr) = wdata;
-  /**(globalHC->pS_GPR + sgpr) = wdata;*/ /* not sure which one */
-  printf("insizzleWrOneSGpr: 0x%08x\n", wdata);
+  *(globalHC->pS_GPR + sgpr) = wdata;
+  printf("insizzleAPIWrOneSGpr: 0x%08x\n", wdata);
   return 0;
-}
-
-/* read a single branch register
- */
-unsigned readBR(unsigned reg) {
-  return (unsigned)*(globalHC->S_PR + reg);
-}
-
-/* write a single branch register
- */
-void writeBR(unsigned reg, unsigned data) {
-  /**(globalHC->S_PR + reg) = (data & 0x1);*/
-  /**(globalHC->pS_GPR + reg) = (data & 0x1);*/ /* not sure which one */
 }
 
 /* read link register
  */
-int insizzleRdOneLr(galaxyConfigT *galaxyConfig, unsigned *rdata) {
-  /**rdata = globalHC->linkReg;*/
-  printf("insizzzleRdOneLr: 0x%08x\n", *rdata);
+int insizzleAPIRdOneLr(galaxyConfigT *galaxyConfig, unsigned *rdata) {
+  *rdata = globalHC->linkReg;
+  printf("insizzzleAPIRdOneLr: 0x%08x\n", *rdata);
   return 0;
 }
 
 /* write link register
  */
-int insizzleWrOneLr(unsigned wdata) {
-  /*globalHC->linkReg = wdata;*/
-  /*globalHC->plinkReg = wdata;*/ /* not sure which one */
-  printf("insizzleWrOneLr: 0x%08x\n", wdata);
+int insizzleAPIWrOneLr(galaxyConfigT *galaxyConfig, unsigned wdata) {
+  globalHC->linkReg = wdata;
+  globalHC->plinkReg = wdata;
+  printf("insizzleAPIWrOneLr: 0x%08x\n", wdata);
+  return 0;
+}
+
+/* read a single branch register
+ */
+int insizzleAPIRdOneBr(unsigned br, unsigned *rdata) {
+  *rdata = (unsigned)*(globalHC->S_PR + br);
+  printf("insizzleAPIWrOneBr: 0x%x\n", *rdata);
+  return 0;
+}
+
+/* write a single branch register
+ */
+int insizzleAPIWrOneBr(unsigned br, unsigned wdata) {
+  *(globalHC->S_PR + br) = (wdata & 0x1);
+  *(globalHC->pS_PR + br) = (wdata & 0x1);
+  printf("insizzleAPIWrOneBr: 0x%x\n", wdata);
+  return 0;
+}
+
+/* read control register
+ */
+int insizzleAPIRdCtrl(galaxyConfigT *galaxyConfig, unsigned *val) {
+  *val = (globalHC->VT_CTRL >> 3) & 0xff;
+  printf("insizzleAPIRdCtrl: 0x%08x\n", *val);
+  return 0;
+}
+
+/* write control register
+ */
+int insizzleAPIWrCtrl(galaxyConfigT *galaxyConfig, unsigned val) {
+  globalHC->VT_CTRL &= 0xfffff807;
+  globalHC->VT_CTRL |= (val & 0xff) << 3;
+  printf("insizzleAPIWrCtrl: 0x%08x\n", globalHC->VT_CTRL);
   return 0;
 }
 
 /* read in XML machine model, copy values into static arrays and then populate the galaxy
  */
-/*int initSystem(char *filename) {
+int insizzleAPIStubInitVtApi(galaxyConfigT *galaxyConfig) {
+  char *filename = "LE1/Insizzle/MM/vexdefault3Context.xml";
+  printf("insizzleAPIStubInitVtApi (FROM INSIZZLE)\n");
   printf("need to open and read in: %s\n", filename);
   if(readConf(filename) == -1) {
     printf("error reading config file: %s\n", filename);
@@ -1080,20 +1124,19 @@ int insizzleWrOneLr(unsigned wdata) {
     return -1;
   }
   return 0;
-  }*/
-int insizzleStubInitVtApi(galaxyConfigT *galaxyConfig) {
-  char *filename = "LE1/Insizzle/MM/vexdefault.xml";
-  printf("insizzleStubInitVtApi (FROM INSIZZLE)\n");
-  printf("need to open and read in: %s\n", filename);
-  if(readConf(filename) == -1) {
-    printf("error reading config file: %s\n", filename);
-    return -1;
-  }
-  printf("then setupGalaxy()\n");
-  if(setupGalaxy() == -1) {
-    printf("error setting up galaxy\n");
-    return -1;
-  }
+}
+
+/* write program counter
+ */
+int insizzleAPIWrPC(galaxyConfigT *galaxyConfig, unsigned val) {
+  globalHC->programCounter = val;
+  printf("insizzleAPIWrPC: 0x%08x\n", val);
+  return 0;
+}
+
+int insizzleAPIRdPC(galaxyConfigT *galaxyConfig, unsigned *val) {
+  *val = globalHC->programCounter;
+  printf("insizzleAPIRdPC: 0x%08x\n", *val);
   return 0;
 }
 #endif

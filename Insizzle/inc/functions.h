@@ -5,7 +5,8 @@
 #include "galaxyConfig.h"
 
 #ifdef API
-#include "galaxyConfig_STATIC.h"
+/*#include "galaxyConfig_STATIC.h"*/
+#include "vtapi.h"
 #endif
 
 /* deepstate defines */
@@ -122,41 +123,43 @@ int freeMem(void);
 
 #ifdef API
 /* function to step through a single cycle (all systems, context, hypercontexts */
-int clock(void);
+/*typedef int gTracePacketT;*/
+int insizzleAPIClock(galaxyConfigT *, gTracePacketT *);
 
 /* read/write registers */
-int insizzleWrOneSGpr(unsigned, unsigned);
-int insizzleRdOneSGpr(unsigned, unsigned *);
+int insizzleAPIWrOneSGpr(unsigned, unsigned);
+int insizzleAPIRdOneSGpr(unsigned, unsigned *);
 
-int insizzleRdOneLr(galaxyConfigT *, unsigned *);
-int insizzleWrOneLr(unsigned);
+int insizzleAPIRdOneLr(galaxyConfigT *, unsigned *);
+int insizzleAPIWrOneLr(galaxyConfigT *, unsigned);
 
-
-void writeBR(unsigned, unsigned);
-unsigned readBR(unsigned);
+int insizzleAPIRdOneBr(unsigned, unsigned *);
+int insizzleAPIWrOneBr(unsigned, unsigned);
 
 /* read/write CTRL registers */
-void readCTRL(void);
-void writeCTRL(void);
+int insizzleAPIRdCtrl(galaxyConfigT *, unsigned *);
+int insizzleAPIWrCtrl(galaxyConfigT *, unsigned);
 
 /* read/write memory */
-int insizzleWrOneIramLocation (galaxyConfigT *, unsigned, unsigned);
-int insizzleRdOneIramLocation (galaxyConfigT *, unsigned, unsigned *);
+int insizzleAPIWrOneIramLocation (galaxyConfigT *, unsigned, unsigned);
+int insizzleAPIRdOneIramLocation (galaxyConfigT *, unsigned, unsigned *);
 
-int insizzleWrOneDramLocation (galaxyConfigT *, unsigned, unsigned);
-int insizzleRdOneDramLocation (galaxyConfigT *, unsigned, unsigned *);
+int insizzleAPIWrOneDramLocation (galaxyConfigT *, unsigned, unsigned);
+int insizzleAPIRdOneDramLocation (galaxyConfigT *, unsigned, unsigned *);
 
 /* load iram/dram */
-void loadIRAM(char *, int);
-void loadDRAM(char *, int);
+void insizzleAPILdIRAM(char *, int);
+void insizzleAPILdDRAM(char *, int);
 
 /* setup global pointers to current CPU */
-/*int currentCPU(unsigned, unsigned, unsigned, unsigned);*/
-int insizzleSetCurrent(unsigned, unsigned, unsigned, unsigned);
+int insizzleAPISetCurrent(unsigned, unsigned, unsigned, unsigned);
 
 /* initialise system */
-/*int initSystem(char *);*/
-int insizzleStubInitVtApi(galaxyConfigT *);
+int insizzleAPIStubInitVtApi(galaxyConfigT *);
+
+/* write program counter */
+int insizzleAPIWrPC(galaxyConfigT *, unsigned);
+int insizzleAPIRdPC(galaxyConfigT *, unsigned *);
 
 systemT *globalS;
 contextT *globalC;

@@ -36,7 +36,7 @@ $(TARGETAPI): $(OBJ)
 	ar cr $(TARGETAPI) $(OBJ)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
-	$(CC) $(CFLAGS) $< -o $@ -I$(INCDIR)/
+	$(CC) $(CFLAGS) $< -o $@ -I$(INCDIR)/ -I$(VTAPI)
 
 clean:
 		rm -f $(OBJ) $(TARGET) $(TARGETV) $(TARGETAPI)
