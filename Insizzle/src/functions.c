@@ -984,15 +984,13 @@ int insizzleSetCurrent(unsigned system, unsigned context, unsigned hypercontext,
   globalSid = system;
   globalCid = context;
   globalHCid = hypercontext;
-  printf("%d, %d, %d\n", globalSid, globalCid, globalHCid);
-  printf("done\n");
   return 0;
 }
 
 /* read one word from memory (iram)
  */
 int insizzleRdOneIramLocation(galaxyConfigT *galaxyConfig, unsigned iaddr, unsigned *data) {
-  /**data = (unsigned)*(globalC->iram + (iaddr >> 2));*/
+  *data = (unsigned)*(globalC->iram + (iaddr >> 2));
   printf("insizzleRdOneIramLocation: 0x%08x = 0x%08x\n", iaddr, *data);
   return 0;
 }
@@ -1000,7 +998,7 @@ int insizzleRdOneIramLocation(galaxyConfigT *galaxyConfig, unsigned iaddr, unsig
 /* write one word to memory (iram)
  */
 int insizzleWrOneIramLocation(galaxyConfigT *galaxyConfig, unsigned iaddr, unsigned data) {
-  /**(globalC->iram + (iaddr >> 2)) = data;*/
+  *(globalC->iram + (iaddr >> 2)) = data;
   printf("insizzleWrOneIramLocation: 0x%08x = 0x%08x\n", iaddr, data);
   return 0;
 }
@@ -1008,7 +1006,7 @@ int insizzleWrOneIramLocation(galaxyConfigT *galaxyConfig, unsigned iaddr, unsig
 /* read one word from memory (dram)
  */
 int insizzleRdOneDramLocation (galaxyConfigT *galaxyConfig, unsigned daddr, unsigned *data) {
-  /**data = (unsigned)*(globalS->dram + (daddr >> 2));*/
+  *data = (unsigned)*(globalS->dram + (daddr >> 2));
   printf("insizzleRdOneDramLocation: 0x%08x = 0x%08x\n", daddr, *data);
   return 0;
 }
@@ -1016,7 +1014,7 @@ int insizzleRdOneDramLocation (galaxyConfigT *galaxyConfig, unsigned daddr, unsi
 /* write one word to memory (dram)
  */
 int insizzleWrOneDramLocation (galaxyConfigT *galaxyConfig, unsigned daddr, unsigned data) {
-  /**(globalS->dram + (daddr >> 2)) = data;*/
+  *(globalS->dram + (daddr >> 2)) = data;
   printf("insizzleWrOneDramLocation: 0x%08x = 0x%08x\n", daddr, data);
   return 0;
 }
@@ -1024,7 +1022,7 @@ int insizzleWrOneDramLocation (galaxyConfigT *galaxyConfig, unsigned daddr, unsi
 /* read a single register
  */
 int insizzleRdOneSGpr(unsigned sgpr, unsigned *rdata) {
-  /*(*rdata = (unsigned)*(globalHC->S_GPR + sgpr);*/
+  *rdata = (unsigned)*(globalHC->S_GPR + sgpr);
   printf("insizzleRdOneSGpr: 0x%08x\n", *rdata);
   return 0;
 }
@@ -1032,7 +1030,7 @@ int insizzleRdOneSGpr(unsigned sgpr, unsigned *rdata) {
 /* write a single register
  */
 int insizzleWrOneSGpr(unsigned sgpr, unsigned wdata) {
-  /**(globalHC->S_GPR + sgpr) = wdata;*/
+  *(globalHC->S_GPR + sgpr) = wdata;
   /**(globalHC->pS_GPR + sgpr) = wdata;*/ /* not sure which one */
   printf("insizzleWrOneSGpr: 0x%08x\n", wdata);
   return 0;
