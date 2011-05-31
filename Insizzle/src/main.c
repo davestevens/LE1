@@ -134,7 +134,7 @@ int main(int argc, char *argv[])
 #endif
 #endif
 #ifdef API
-  int clock(void)
+  int insizzleAPIClock(galaxyConfigT *galaxyConfig, hcTracePacketT gTracePacket[][MASTERCFG_CONTEXTS_MAX][MASTERCFG_HYPERCONTEXTS_MAX])
   {
     unsigned i, j, k;
 
@@ -148,6 +148,7 @@ int main(int argc, char *argv[])
     hyperContextT *hypercontext;
     unsigned bundleCount;
     unsigned long long *bundleCountP;
+    unsigned bundlePos;
 #else
   while(checkActive())
     {
@@ -189,6 +190,7 @@ int main(int argc, char *argv[])
 		  HCNT = (hyperContextConfig *)((unsigned)CNT->HCONTEXT + (k * sizeof(hyperContextConfig)));
 		  hypercontext = (hyperContextT *)((unsigned)context->hypercontext + (k * sizeof(hyperContextT)));
 
+		  bundlePos = 0;
 #ifdef DEBUG
 		  printf("\t\t\t\thypercontext totalWidth: %d\n", hypercontext->totalWidth);
 #endif
@@ -220,6 +222,11 @@ int main(int argc, char *argv[])
 #ifdef DEBUG
 		  /*printf("\tkernel:    %d\n", kernel);*/
 #endif
+
+		  /* full 32 bit register */
+		  /*gTracePacket[i][j][k].vt_ctrl = hypercontext->VT_CTRL;*/
+		  /* just the deepstate */
+		  gTracePacket[i][j][k].vt_ctrl = (hypercontext->VT_CTRL >> 3) & 0xff;
 
 		  if(debug)
 		    {
@@ -355,6 +362,72 @@ int main(int argc, char *argv[])
 				    printOut(inst, this, hypercontext, cycleCount);
 #endif
 #endif
+
+				    /* populate the gTracePacketT here */
+				    gTracePacket[i][j][k].bundle[bundlePos].executed = 0;
+				    gTracePacket[i][j][k].bundle[bundlePos].syll = 0;
+				    gTracePacket[i][j][k].bundle[bundlePos].pc = 0;
+				    gTracePacket[i][j][k].bundle[bundlePos].imm = 0;
+				    gTracePacket[i][j][k].bundle[bundlePos].maddr = 0;
+				    gTracePacket[i][j][k].bundle[bundlePos].maddrValid = 0;
+
+				    /* source register 1 */
+				    gTracePacket[i][j][k].bundle[bundlePos].rs1.reg = 0;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs1.valid = 0;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs1.val = 0;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs1.cluster = 0;
+
+				    /* source register 2 */
+				    gTracePacket[i][j][k].bundle[bundlePos].rs2.reg = 0;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs2.valid = 0;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs2.val = 0;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs2.cluster = 0;
+
+				    /* source register 3 */
+				    gTracePacket[i][j][k].bundle[bundlePos].rs3.reg = 0;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs3.valid = 0;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs3.val = 0;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs3.cluster = 0;
+
+				    /* source register 4 */
+				    gTracePacket[i][j][k].bundle[bundlePos].rs4.reg = 0;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs4.valid = 0;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs4.val = 0;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs4.cluster = 0;
+
+				    /* source register 5 */
+				    gTracePacket[i][j][k].bundle[bundlePos].rs5.reg = 0;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs5.valid = 0;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs5.val = 0;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs5.cluster = 0;
+
+				    /* source register 6 */
+				    gTracePacket[i][j][k].bundle[bundlePos].rs6.reg = 0;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs6.valid = 0;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs6.val = 0;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs6.cluster = 0;
+
+				    /* source register 7 */
+				    gTracePacket[i][j][k].bundle[bundlePos].rs7.reg = 0;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs7.valid = 0;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs7.val = 0;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs7.cluster = 0;
+
+				    /* destination register 1 */
+				    gTracePacket[i][j][k].bundle[bundlePos].rd1.chk = 0;
+				    gTracePacket[i][j][k].bundle[bundlePos].rd1.reg = 0;
+				    gTracePacket[i][j][k].bundle[bundlePos].rd1.valid = 0;
+				    gTracePacket[i][j][k].bundle[bundlePos].rd1.cluster = 0;
+				    gTracePacket[i][j][k].bundle[bundlePos].rd1.res = 0;
+
+				    /* destination register 2 */
+				    gTracePacket[i][j][k].bundle[bundlePos].rd2.chk = 0;
+				    gTracePacket[i][j][k].bundle[bundlePos].rd2.reg = 0;
+				    gTracePacket[i][j][k].bundle[bundlePos].rd2.valid = 0;
+				    gTracePacket[i][j][k].bundle[bundlePos].rd2.cluster = 0;
+				    gTracePacket[i][j][k].bundle[bundlePos].rd2.res = 0;
+
+				    bundlePos++;
 
 				    if(inst.packet.newPCValid)
 				      {

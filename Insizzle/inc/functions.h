@@ -124,7 +124,7 @@ int freeMem(void);
 #ifdef API
 /* function to step through a single cycle (all systems, context, hypercontexts */
 /*typedef int gTracePacketT;*/
-int insizzleAPIClock(galaxyConfigT *, gTracePacketT *);
+int insizzleAPIClock(galaxyConfigT *, hcTracePacketT gTracePacket[][MASTERCFG_CONTEXTS_MAX][MASTERCFG_HYPERCONTEXTS_MAX]);
 
 /* read/write registers */
 int insizzleAPIWrOneSGpr(unsigned, unsigned);

@@ -973,10 +973,12 @@ void insizzleAPILdDRAM(char *dram, int size) {
   globalS->dram = (unsigned *)point;
 }
 
-int insizzleAPIClock(galaxyConfigT *galaxyConfig, gTracePacketT *gTracePacket) {
+/*int insizzleAPIClock(galaxyConfigT *galaxyConfig, hcTracePacketT gTracePacket[][MASTERCFG_CONTEXTS_MAX][MASTERCFG_HYPERCONTEXTS_MAX]) {
   printf("insizzleAPIClock\n");
+  gTracePacket[0][0][0].vt_ctrl = 0xdeadbeef;
+  gTracePacket[0][0][0].bundle[0].pc = 0xcafef00d;
   return 0;
-}
+  }*/
 
 /* setup global System, Context and Hypercontext pointers
  */
