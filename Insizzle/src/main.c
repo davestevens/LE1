@@ -189,8 +189,9 @@ int main(int argc, char *argv[])
 
 		  HCNT = (hyperContextConfig *)((unsigned)CNT->HCONTEXT + (k * sizeof(hyperContextConfig)));
 		  hypercontext = (hyperContextT *)((unsigned)context->hypercontext + (k * sizeof(hyperContextT)));
-
+#ifdef API
 		  bundlePos = 0;
+#endif
 #ifdef DEBUG
 		  printf("\t\t\t\thypercontext totalWidth: %d\n", hypercontext->totalWidth);
 #endif
@@ -223,11 +224,12 @@ int main(int argc, char *argv[])
 		  /*printf("\tkernel:    %d\n", kernel);*/
 #endif
 
+#ifdef API
 		  /* full 32 bit register */
 		  /*gTracePacket[i][j][k].vt_ctrl = hypercontext->VT_CTRL;*/
 		  /* just the deepstate */
 		  gTracePacket[i][j][k].vt_ctrl = (hypercontext->VT_CTRL >> 3) & 0xff;
-
+#endif
 		  if(debug)
 		    {
 
@@ -344,6 +346,7 @@ int main(int argc, char *argv[])
 				    }*/
 				  instructionPacket this;
 				  instruction inst;
+				  /* TODO: possibly zero these out */
 				  do {
 				    bundleCount++;
 				    this = fetchInstruction(context, hypercontext->programCounter);
@@ -360,75 +363,96 @@ int main(int argc, char *argv[])
 #ifdef PRINTOUT
 #ifndef API
 				    printOut(inst, this, hypercontext, cycleCount);
+#else
+				    printOut(inst, this, hypercontext, 0);
 #endif
 #endif
 
+#ifdef API
 				    /* populate the gTracePacketT here */
-				    gTracePacket[i][j][k].bundle[bundlePos].executed = 0;
-				    gTracePacket[i][j][k].bundle[bundlePos].syll = 0;
-				    gTracePacket[i][j][k].bundle[bundlePos].pc = 0;
-				    gTracePacket[i][j][k].bundle[bundlePos].imm = 0;
-				    gTracePacket[i][j][k].bundle[bundlePos].maddr = 0;
-				    gTracePacket[i][j][k].bundle[bundlePos].maddrValid = 0;
+				    gTracePacket[i][j][k].bundle[bundlePos].executed = inst.packet.executed;
+				    gTracePacket[i][j][k].bundle[bundlePos].syll = this.op;
+				    gTracePacket[i][j][k].bundle[bundlePos].pc = hypercontext->programCounter;
+
+				    if(this.immValid) {
+				      gTracePacket[i][j][k].bundle[bundlePos].imm = this.imm;
+				      gTracePacket[i][j][k].bundle[bundlePos].imm = this.immValid;
+				    }
+				    else {
+				      gTracePacket[i][j][k].bundle[bundlePos].imm = 0;
+				      gTracePacket[i][j][k].bundle[bundlePos].imm = this.immValid;
+				    }
+
+				    gTracePacket[i][j][k].bundle[bundlePos].maddr = inst.packet.maddr;
+				    gTracePacket[i][j][k].bundle[bundlePos].maddrValid = inst.packet.maddrValid;
 
 				    /* source register 1 */
-				    gTracePacket[i][j][k].bundle[bundlePos].rs1.reg = 0;
-				    gTracePacket[i][j][k].bundle[bundlePos].rs1.valid = 0;
-				    gTracePacket[i][j][k].bundle[bundlePos].rs1.val = 0;
-				    gTracePacket[i][j][k].bundle[bundlePos].rs1.cluster = 0;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs1.regType = inst.packet.source[0].target;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs1.reg = inst.packet.source[0].reg;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs1.valid = inst.packet.source[0].valid;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs1.val = inst.packet.source[0].value;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs1.cluster = inst.packet.source[0].cluster;
 
 				    /* source register 2 */
-				    gTracePacket[i][j][k].bundle[bundlePos].rs2.reg = 0;
-				    gTracePacket[i][j][k].bundle[bundlePos].rs2.valid = 0;
-				    gTracePacket[i][j][k].bundle[bundlePos].rs2.val = 0;
-				    gTracePacket[i][j][k].bundle[bundlePos].rs2.cluster = 0;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs2.regType = inst.packet.source[1].target;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs2.reg = inst.packet.source[1].reg;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs2.valid = inst.packet.source[1].valid;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs2.val = inst.packet.source[1].value;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs2.cluster = inst.packet.source[1].cluster;
 
 				    /* source register 3 */
-				    gTracePacket[i][j][k].bundle[bundlePos].rs3.reg = 0;
-				    gTracePacket[i][j][k].bundle[bundlePos].rs3.valid = 0;
-				    gTracePacket[i][j][k].bundle[bundlePos].rs3.val = 0;
-				    gTracePacket[i][j][k].bundle[bundlePos].rs3.cluster = 0;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs3.regType = inst.packet.source[2].target;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs3.reg = inst.packet.source[2].reg;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs3.valid = inst.packet.source[2].valid;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs3.val = inst.packet.source[2].value;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs3.cluster = inst.packet.source[2].cluster;
 
 				    /* source register 4 */
-				    gTracePacket[i][j][k].bundle[bundlePos].rs4.reg = 0;
-				    gTracePacket[i][j][k].bundle[bundlePos].rs4.valid = 0;
-				    gTracePacket[i][j][k].bundle[bundlePos].rs4.val = 0;
-				    gTracePacket[i][j][k].bundle[bundlePos].rs4.cluster = 0;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs4.regType = inst.packet.source[3].target;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs4.reg = inst.packet.source[3].reg;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs4.valid = inst.packet.source[3].valid;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs4.val = inst.packet.source[3].value;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs4.cluster = inst.packet.source[3].cluster;
 
 				    /* source register 5 */
-				    gTracePacket[i][j][k].bundle[bundlePos].rs5.reg = 0;
-				    gTracePacket[i][j][k].bundle[bundlePos].rs5.valid = 0;
-				    gTracePacket[i][j][k].bundle[bundlePos].rs5.val = 0;
-				    gTracePacket[i][j][k].bundle[bundlePos].rs5.cluster = 0;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs5.regType = inst.packet.source[4].target;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs5.reg = inst.packet.source[4].reg;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs5.valid = inst.packet.source[4].valid;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs5.val = inst.packet.source[4].value;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs5.cluster = inst.packet.source[4].cluster;
 
 				    /* source register 6 */
-				    gTracePacket[i][j][k].bundle[bundlePos].rs6.reg = 0;
-				    gTracePacket[i][j][k].bundle[bundlePos].rs6.valid = 0;
-				    gTracePacket[i][j][k].bundle[bundlePos].rs6.val = 0;
-				    gTracePacket[i][j][k].bundle[bundlePos].rs6.cluster = 0;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs6.regType = inst.packet.source[5].target;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs6.reg = inst.packet.source[5].reg;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs6.valid = inst.packet.source[5].valid;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs6.val = inst.packet.source[5].value;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs6.cluster = inst.packet.source[5].cluster;
 
 				    /* source register 7 */
-				    gTracePacket[i][j][k].bundle[bundlePos].rs7.reg = 0;
-				    gTracePacket[i][j][k].bundle[bundlePos].rs7.valid = 0;
-				    gTracePacket[i][j][k].bundle[bundlePos].rs7.val = 0;
-				    gTracePacket[i][j][k].bundle[bundlePos].rs7.cluster = 0;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs7.regType = inst.packet.source[6].target;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs7.reg = inst.packet.source[6].reg;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs7.valid = inst.packet.source[6].valid;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs7.val = inst.packet.source[6].value;
+				    gTracePacket[i][j][k].bundle[bundlePos].rs7.cluster = inst.packet.source[6].cluster;
 
 				    /* destination register 1 */
-				    gTracePacket[i][j][k].bundle[bundlePos].rd1.chk = 0;
-				    gTracePacket[i][j][k].bundle[bundlePos].rd1.reg = 0;
-				    gTracePacket[i][j][k].bundle[bundlePos].rd1.valid = 0;
-				    gTracePacket[i][j][k].bundle[bundlePos].rd1.cluster = 0;
-				    gTracePacket[i][j][k].bundle[bundlePos].rd1.res = 0;
+				    gTracePacket[i][j][k].bundle[bundlePos].rd1.regType = inst.packet.dest[0].target;
+				    gTracePacket[i][j][k].bundle[bundlePos].rd1.chk = inst.packet.dest[0].chk;
+				    gTracePacket[i][j][k].bundle[bundlePos].rd1.reg = inst.packet.dest[0].reg;
+				    gTracePacket[i][j][k].bundle[bundlePos].rd1.valid = inst.packet.dest[0].valid;
+				    gTracePacket[i][j][k].bundle[bundlePos].rd1.cluster = inst.packet.dest[0].cluster;
+				    gTracePacket[i][j][k].bundle[bundlePos].rd1.res = inst.packet.dest[0].res;
 
 				    /* destination register 2 */
-				    gTracePacket[i][j][k].bundle[bundlePos].rd2.chk = 0;
-				    gTracePacket[i][j][k].bundle[bundlePos].rd2.reg = 0;
-				    gTracePacket[i][j][k].bundle[bundlePos].rd2.valid = 0;
-				    gTracePacket[i][j][k].bundle[bundlePos].rd2.cluster = 0;
-				    gTracePacket[i][j][k].bundle[bundlePos].rd2.res = 0;
+				    gTracePacket[i][j][k].bundle[bundlePos].rd2.regType = inst.packet.dest[1].target;
+				    gTracePacket[i][j][k].bundle[bundlePos].rd2.chk = inst.packet.dest[1].chk;
+				    gTracePacket[i][j][k].bundle[bundlePos].rd2.reg = inst.packet.dest[1].reg;
+				    gTracePacket[i][j][k].bundle[bundlePos].rd2.valid = inst.packet.dest[1].valid;
+				    gTracePacket[i][j][k].bundle[bundlePos].rd2.cluster = inst.packet.dest[1].cluster;
+				    gTracePacket[i][j][k].bundle[bundlePos].rd2.res = inst.packet.dest[1].res;
 
 				    bundlePos++;
-
+#endif
 				    if(inst.packet.newPCValid)
 				      {
 					hypercontext->programCounter = inst.packet.newPC;
@@ -514,7 +538,7 @@ int main(int argc, char *argv[])
 	    }
 	  /* TODO: here need to service memory requests */
 	  /* print all memory requests */
-#if 1
+#ifndef API
 	  {
 	    unsigned findBank, findBankT, i;
 	    findBank=0;

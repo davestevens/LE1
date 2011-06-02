@@ -61,6 +61,29 @@ typedef enum {
   mLDSB, mLDBs, mLDUB, mLDSH, mLDUH, mLDW, mSTB, mSTBs, mSTH, mSTW
 } memOpT;
 
+#ifndef API
+typedef enum {
+  S_PRED, GPR, FPR, VR, CR, IMM32, LINK, CURR_PC, PKT_PC, NXTPKT_OFFS, PLUS1SYLL, MEM, IMM9, IMM12, IMM8
+} regT;
+#endif
+
+typedef struct {
+  regT target;
+  unsigned short reg;
+  unsigned char valid;
+  unsigned value;
+  unsigned char cluster;
+} sourceReg;
+
+typedef struct {
+  regT target;
+  unsigned char chk;
+  unsigned short reg;
+  unsigned char valid;
+  unsigned char cluster;
+  unsigned res;
+} destReg;
+
 typedef struct {
   unsigned target;
   targetT addr;
@@ -73,6 +96,17 @@ typedef struct {
 
   unsigned newPC;
   unsigned char newPCValid;
+
+  /* new packet data */
+  unsigned char executed;
+  /*unsigned syllable;
+  unsigned PC;
+  unsigned immediate;
+  unsigned char immediateValid;*/
+  unsigned maddr;
+  unsigned char maddrValid;
+  sourceReg source[7];
+  destReg dest[5];
 } packetT;
 
 typedef struct {

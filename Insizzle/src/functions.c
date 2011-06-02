@@ -244,7 +244,7 @@ unsigned checkBundle(hyperContextT *hypercontext, unsigned startPC, unsigned end
 
 instruction instructionDecode(unsigned inst, unsigned immediate, /*unsigned *dram,*/ hyperContextT *hypercontext, systemT *system, contextT *context, unsigned VT_CTRL)
 {
-  instruction this;
+  instruction this; /* TODO: possibly zero this out */
 
   this.is = (inst >> 31) & 0x1;
   this.cs = (inst >> 30) & 0x1;
@@ -1113,7 +1113,7 @@ int insizzleAPIWrCtrl(galaxyConfigT *galaxyConfig, unsigned val) {
 /* read in XML machine model, copy values into static arrays and then populate the galaxy
  */
 int insizzleAPIStubInitVtApi(galaxyConfigT *galaxyConfig) {
-  char *filename = "LE1/Insizzle/MM/vexdefault3Context.xml";
+  char *filename = "LE1/Insizzle/MM/vexdefault.xml";
   printf("insizzleAPIStubInitVtApi (FROM INSIZZLE)\n");
   printf("need to open and read in: %s\n", filename);
   if(readConf(filename) == -1) {

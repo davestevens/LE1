@@ -2,13 +2,15 @@
 #include "functions.h"
 #include "macros.h"
 
+void insertSource(sourceReg *, regT, unsigned short, unsigned char, unsigned, unsigned char);
+void insertDest(destReg *, regT, unsigned char, unsigned short, unsigned char, unsigned char, unsigned);
+
 packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, /*unsigned *dataP,*/ hyperContextT *hypercontext, systemT *system, contextT *context, unsigned VT_CTRL)
 {
   unsigned clust = VT_CTRL; /* TODO: Remove this */
   unsigned extra;
   packetT ret;
-  /*int newThread;*/
-  /*char *data = (char *)dataP;*/
+  unsigned i;
 
   unsigned *S_GPR, *pS_GPR;
   unsigned *S_FPR, *pS_FPR;
@@ -19,6 +21,8 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 
   unsigned *S_L = &(hypercontext->linkReg);
   unsigned *pS_L = &(hypercontext->plinkReg);
+
+  unsigned ldwVal, lduhVal, ldshVal, ldubVal, ldsbVal, ldlVal;
 
   ret.target = 0;
   ret.addr = 0;
@@ -39,6 +43,25 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
   ret.data2 = 0;
   ret.newPC = 0;
   ret.newPCValid = 0;
+
+  ret.executed = 0;
+  ret.maddr = 0;
+  ret.maddrValid = 0;
+  for(i=0;i<7;i++) {
+    ret.source[i].target = 0;
+    ret.source[i].reg = 0;
+    ret.source[i].valid = 0;
+    ret.source[i].value = 0;
+    ret.source[i].cluster = 0;
+  }
+  for(i=0;i<5;i++) {
+    ret.dest[i].target = 0;
+    ret.dest[i].chk = 0;
+    ret.dest[i].reg = 0;
+    ret.dest[i].valid = 0;
+    ret.dest[i].cluster = 0;
+    ret.dest[i].res = 0;
+  }
 
   /* TODO: this is max 2 at the moment */
   for(clust=0;clust<hypercontext->numClusters;clust++)
@@ -90,172 +113,262 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		  else
 		    {
 		      ret.opcode = ADD;
-#ifdef DEBUG
-		      printf("ADD\n");
-#endif
 		      ADD(*(S_GPR + (ret.target)), ret.source1, ret.source2);
-#ifdef DEBUG
-		      printf("result: 0x%x\n", *(S_GPR + (ret.target)));
-#endif
 		      ret.data = *(S_GPR + (ret.target));
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 5) & 0x3f), 1, clust, *(S_GPR + ((inst >> 5) & 0x3f)));
 		    }
 		  break;
 		case 1:
 		  ret.opcode = AND;
 		  AND(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 5) & 0x3f), 1, clust, *(S_GPR + ((inst >> 5) & 0x3f)));
 		  break;
 		case 2:
 		  ret.opcode = ANDC;
 		  ANDC(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 5) & 0x3f), 1, clust, *(S_GPR + ((inst >> 5) & 0x3f)));
 		  break;
 		case 3:
 		  ret.opcode = MAXS;
 		  MAXS(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 5) & 0x3f), 1, clust, *(S_GPR + ((inst >> 5) & 0x3f)));
 		  break;
 		case 4:
 		  ret.opcode = MAXU;
 		  MAXU(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 5) & 0x3f), 1, clust, *(S_GPR + ((inst >> 5) & 0x3f)));
 		  break;
 		case 5:
 		  ret.opcode = MINS;
 		  MINS(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 5) & 0x3f), 1, clust, *(S_GPR + ((inst >> 5) & 0x3f)));
 		  break;
 		case 6:
 		  ret.opcode = MINU;
 		  MINU(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 5) & 0x3f), 1, clust, *(S_GPR + ((inst >> 5) & 0x3f)));
 		  break;
 		case 7:
 		  ret.opcode = OR;
 		  OR(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 5) & 0x3f), 1, clust, *(S_GPR + ((inst >> 5) & 0x3f)));
 		  break;
 		case 8:
 		  ret.opcode = ORC;
 		  ORC(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 5) & 0x3f), 1, clust, *(S_GPR + ((inst >> 5) & 0x3f)));
 		  break;
 		case 9:
 		  ret.opcode = SH1ADD;
 		  SH1ADD(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 5) & 0x3f), 1, clust, *(S_GPR + ((inst >> 5) & 0x3f)));
 		  break;
 		case 10:
 		  ret.opcode = SH2ADD;
 		  SH2ADD(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 5) & 0x3f), 1, clust, *(S_GPR + ((inst >> 5) & 0x3f)));
 		  break;
 		case 11:
 		  ret.opcode = SH3ADD;
 		  SH3ADD(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 5) & 0x3f), 1, clust, *(S_GPR + ((inst >> 5) & 0x3f)));
 		  break;
 		case 12:
 		  ret.opcode = SH4ADD;
 		  SH4ADD(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 5) & 0x3f), 1, clust, *(S_GPR + ((inst >> 5) & 0x3f)));
 		  break;
 		case 13:
 		  ret.opcode = SHL;
 		  SHL(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 5) & 0x3f), 1, clust, *(S_GPR + ((inst >> 5) & 0x3f)));
 		  break;
 		case 14:
 		  ret.opcode = SHRS;
 		  SHRS(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 5) & 0x3f), 1, clust, *(S_GPR + ((inst >> 5) & 0x3f)));
 		  break;
 		case 15:
 		  ret.opcode = SHRU;
 		  SHRU(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 5) & 0x3f), 1, clust, *(S_GPR + ((inst >> 5) & 0x3f)));
 		  break;
 		case 16:
 		  ret.opcode = SUB;
 		  SUB(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 5) & 0x3f), 1, clust, *(S_GPR + ((inst >> 5) & 0x3f)));
 		  break;
 		case 17:
 		  ret.opcode = XOR;
 		  XOR(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 5) & 0x3f), 1, clust, *(S_GPR + ((inst >> 5) & 0x3f)));
 		  break;
 		case 18:
 		  ret.opcode = MLSLL;
 		  MLSLL(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 5) & 0x3f), 1, clust, *(S_GPR + ((inst >> 5) & 0x3f)));
 		  break;
 		case 19:
 		  ret.opcode = MLULL;
 		  MLULL(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 5) & 0x3f), 1, clust, *(S_GPR + ((inst >> 5) & 0x3f)));
 		  break;
 		case 20:
 		  ret.opcode = MLSLH;
 		  MLSLH(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 5) & 0x3f), 1, clust, *(S_GPR + ((inst >> 5) & 0x3f)));
 		  break;
 		case 21:
 		  ret.opcode = MLULH;
 		  MLULH(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 5) & 0x3f), 1, clust, *(S_GPR + ((inst >> 5) & 0x3f)));
 		  break;
 		case 22:
 		  ret.opcode = MLSHH;
 		  MLSHH(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 5) & 0x3f), 1, clust, *(S_GPR + ((inst >> 5) & 0x3f)));
 		  break;
 		case 23:
 		  ret.opcode = MLUHH;
 		  MLUHH(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 5) & 0x3f), 1, clust, *(S_GPR + ((inst >> 5) & 0x3f)));
 		  break;
 		case 24:
 		  ret.opcode = MLSL;
 		  MLSL(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 5) & 0x3f), 1, clust, *(S_GPR + ((inst >> 5) & 0x3f)));
 		  break;
 		case 25:
 		  ret.opcode = MLUL;
 		  MLUL(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 5) & 0x3f), 1, clust, *(S_GPR + ((inst >> 5) & 0x3f)));
 		  break;
 		case 26:
 		  ret.opcode = MLSH;
 		  MLSH(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 5) & 0x3f), 1, clust, *(S_GPR + ((inst >> 5) & 0x3f)));
 		  break;
 		case 27:
 		  ret.opcode = MLUH;
 		  MLUH(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 5) & 0x3f), 1, clust, *(S_GPR + ((inst >> 5) & 0x3f)));
 		  break;
 		case 28:
 		  ret.opcode = MLSHS;
 		  MLSHS(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 5) & 0x3f), 1, clust, *(S_GPR + ((inst >> 5) & 0x3f)));
 		  break;
 		case 29:
 		  ret.opcode = SWBT;
 		  ret.source3 = *(pS_PR + ((inst >> 12) & 0x7));
 		  SWBT(*(S_GPR + (ret.target)), ret.source3, ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 5) & 0x3f), 1, clust, *(S_GPR + ((inst >> 5) & 0x3f)));
 		  break;
 		case 30:
 		  ret.opcode = SWBF;
 		  ret.source3 = *(pS_PR + ((inst >> 12) & 0x7));
 		  SWBF(*(S_GPR + (ret.target)), ret.source3, ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 5) & 0x3f), 1, clust, *(S_GPR + ((inst >> 5) & 0x3f)));
 		  break;
 		case 31:
 		  ret.opcode = RSUB;
 		  RSUB(*(S_GPR + (ret.target)), ret.source2, ret.source1);
 		  ret.data = *(S_GPR + (ret.target));
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 5) & 0x3f), 1, clust, *(S_GPR + ((inst >> 5) & 0x3f)));
 		  break;
 		default:
 		  /*ret.opcode = XXX;
@@ -275,176 +388,266 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 
 		  ret.source1 = *(pS_GPR + ((inst) & 0x3f));
 		  ret.source2 = immediate;
+
 		  switch(opc)
 		    {
 		    case 0:
 		      ret.opcode = ADD;
-#ifdef DEBUG
-		      printf("ADD2\n");
-		      printf("r %d = %d + %d\n", ((inst >> 15) & 0x3f), ret.source1, ret.source2);
-#endif
 		      ADD(*(S_GPR + (ret.target)), ret.source1, ret.source2);
-#ifdef DEBUG
-		      printf("result: %d\n", *(S_GPR + (ret.target)));
-#endif
 		      ret.data = *(S_GPR + (ret.target));
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 1:
 		      ret.opcode = AND;
 		      AND(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 2:
 		      ret.opcode = ANDC;
 		      ANDC(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 3:
 		      ret.opcode = MAXS;
 		      MAXS(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 4:
 		      ret.opcode = MAXU;
 		      MAXU(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 5:
 		      ret.opcode = MINS;
 		      MINS(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 6:
 		      ret.opcode = MINU;
 		      MINU(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 7:
 		      ret.opcode = OR;
 		      OR(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 8:
 		      ret.opcode = ORC;
 		      ORC(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 9:
 		      ret.opcode = SH1ADD;
 		      SH1ADD(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 10:
 		      ret.opcode = SH2ADD;
 		      SH2ADD(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 11:
 		      ret.opcode = SH3ADD;
 		      SH3ADD(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 12:
 		      ret.opcode = SH4ADD;
 		      SH4ADD(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 13:
 		      ret.opcode = SHL;
 		      SHL(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 14:
 		      ret.opcode = SHRS;
 		      SHRS(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 15:
 		      ret.opcode = SHRU;
 		      SHRU(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 16:
 		      ret.opcode = SUB;
 		      SUB(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 17:
 		      ret.opcode = XOR;
 		      XOR(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 18:
 		      ret.opcode = MLSLL;
 		      MLSLL(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 19:
 		      ret.opcode = MLULL;
 		      MLULL(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 20:
 		      ret.opcode = MLSLH;
 		      MLSLH(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 21:
 		      ret.opcode = MLULH;
 		      MLULH(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 22:
 		      ret.opcode = MLSHH;
 		      MLSHH(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 23:
 		      ret.opcode = MLUHH;
 		      MLUHH(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 24:
 		      ret.opcode = MLSL;
 		      MLSL(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 25:
 		      ret.opcode = MLUL;
 		      MLUL(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 26:
 		      ret.opcode = MLSH;
 		      MLSH(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 27:
 		      ret.opcode = MLUH;
 		      MLUH(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 28:
 		      ret.opcode = MLSHS;
 		      MLSHS(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 29:
 		      ret.opcode = SWBT;
 		      ret.source3 = *(pS_PR + ((inst >> 12) & 0x7));
 		      SWBT(*(S_GPR + (ret.target)), ret.source3, ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 30:
 		      ret.opcode = SWBF;
 		      ret.source3 = *(pS_PR + ((inst >> 12) & 0x7));
 		      SWBF(*(S_GPR + (ret.target)), ret.source3, ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 31:
 		      ret.opcode = RSUB;
 		      RSUB(*(S_GPR + (ret.target)), ret.source2, ret.source1);
 		      ret.data = *(S_GPR + (ret.target));
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    default:
 		      /*ret.opcode = XXX;
@@ -465,32 +668,46 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		      ret.opcode = SEXTB;
 		      SEXTB(*(S_GPR + (ret.target)), ret.source1);
 		      ret.data = *(S_GPR + (ret.target));
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 1:
 		      ret.opcode = SEXTH;
 		      SEXTH(*(S_GPR + (ret.target)), ret.source1);
 		      ret.data = *(S_GPR + (ret.target));
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 2:
 		      ret.opcode = ZEXTB;
 		      ZEXTB(*(S_GPR + (ret.target)), ret.source1);
 		      ret.data = *(S_GPR + (ret.target));
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 3:
 		      ret.opcode = ZEXTH;
 		      ZEXTH(*(S_GPR + (ret.target)), ret.source1);
 		      ret.data = *(S_GPR + (ret.target));
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 4:
 		      ret.opcode = MVL2G;
 		      ADD(*(S_GPR + (ret.target)), *(pS_L), 0);
 		      ret.data = *(S_GPR + (ret.target));
+		      insertSource(&(ret.source[0]), LINK, 0, 1, *(pS_L), clust);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 5:
 		      ret.addr = _L_iss;
+		      ret.dest[0].target = LINK;
 		      ret.opcode = MVG2L;
 		      ADD(*(S_L), ret.source1, 0);
 		      ret.data = *(S_L);
+		      ret.dest[0].res = *(S_L + (ret.dest[0].reg));
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertDest(&(ret.dest[0]), LINK, 1, 0, 1, clust, *(S_L));
 		      break;
 		    case 6:
 		      /* not yet implemented: RDALTCTRL */
@@ -519,51 +736,111 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		      ret.opcode = LDSB;
 		      memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDSB);
 		      ret.data = -1;
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      _LDSB_iss(&ldsbVal, (system->dram + (ret.source[0].value + ret.source[1].value)));
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, ldsbVal);
+		      ret.maddr = ret.source[0].value + ret.source[1].value;
+		      ret.maddrValid = 1;
 		      break;
 		    case 4:
 		      ret.opcode = LDSB; /* LBSB.D */
 		      memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDSB);
 		      ret.data = -1;
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      _LDSB_iss(&ldsbVal, (system->dram + (ret.source[0].value + ret.source[1].value)));
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, ldsbVal);
+		      ret.maddr = ret.source[0].value + ret.source[1].value;
+		      ret.maddrValid = 1;
 		      break;
 		    case 7:
 		      ret.opcode = LDUB;
 		      memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDUB);
 		      ret.data = -1;
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      _LDUB_iss(&ldubVal, (system->dram + (ret.source[0].value + ret.source[1].value)));
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, ldubVal);
+		      ret.maddr = ret.source[0].value + ret.source[1].value;
+		      ret.maddrValid = 1;
 		      break;
 		    case 8:
 		      ret.opcode = LDUB; /* LBUB.D */
 		      memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDUB);
 		      ret.data = -1;
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      _LDUB_iss(&ldubVal, (system->dram + (ret.source[0].value + ret.source[1].value)));
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, ldubVal);
+		      ret.maddr = ret.source[0].value + ret.source[1].value;
+		      ret.maddrValid = 1;
 		      break;
 		    case 11:
 		      ret.opcode = LDSH;
 		      memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDSH);
 		      ret.data = -1;
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      _LDSH_iss(&ldshVal, (system->dram + (ret.source[0].value + ret.source[1].value)));
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, ldshVal);
+		      ret.maddr = ret.source[0].value + ret.source[1].value;
+		      ret.maddrValid = 1;
 		      break;
 		    case 12:
 		      ret.opcode = LDSH; /* LBSH.D */
 		      memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDSH);
 		      ret.data = -1;
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      _LDSH_iss(&ldshVal, (system->dram + (ret.source[0].value + ret.source[1].value)));
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, ldshVal);
+		      ret.maddr = ret.source[0].value + ret.source[1].value;
+		      ret.maddrValid = 1;
 		      break;
 		    case 15:
 		      ret.opcode = LDUH;
 		      memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDUH);
 		      ret.data = -1;
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      _LDUH_iss(&lduhVal, (system->dram + (ret.source[0].value + ret.source[1].value)));
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, lduhVal);
+		      ret.maddr = ret.source[0].value + ret.source[1].value;
+		      ret.maddrValid = 1;
 		      break;
 		    case 16:
 		      ret.opcode = LDUH; /* LDUH.D */
 		      memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDUH);
 		      ret.data = -1;
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      _LDUH_iss(&ldshVal, (system->dram + (ret.source[0].value + ret.source[1].value)));
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, lduhVal);
+		      ret.maddr = ret.source[0].value + ret.source[1].value;
+		      ret.maddrValid = 1;
 		      break;
 		    case 18:
 		      ret.opcode = LDW; /* LDW.D */
 		      memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDW);
 		      ret.data = -1;
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      _LDW_iss(&ldwVal, (system->dram + (ret.source[0].value + ret.source[1].value)));
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, ldwVal);
+		      ret.maddr = ret.source[0].value + ret.source[1].value;
+		      ret.maddrValid = 1;
 		      break;
 		    case 19:
 		      ret.opcode = LDW;
 		      memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDW);
 		      ret.data = -1;
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      _LDW_iss(&ldwVal, (system->dram + (ret.source[0].value + ret.source[1].value)));
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, ldwVal);
+		      ret.maddr = ret.source[0].value + ret.source[1].value;
+		      ret.maddrValid = 1;
 		      break;
 		    case 20:
 		      ret.opcode = PSYSCALL;
@@ -575,7 +852,16 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		      memRequest(system, S_L, (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDW);
 		      ret.data = -1;
 		      ret.addr = _L_iss;
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      _LDW_iss(&ldlVal, (system->dram + (ret.source[0].value + ret.source[1].value)));
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, ldlVal);
+		      ret.maddr = ret.source[0].value + ret.source[1].value;
+		      ret.maddrValid = 1;
 		      break;
+		      /* TODO: CUSTOM INSTRUCTIONS POSSIBLY SHOULDN'T BE
+			 EXECUTED IN API MODE
+		      */
 		    case 24:
 		      ret.opcode = CUSTOM;
 		      /* not yet implemented: CASM7 */
@@ -788,11 +1074,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		case 3:
 		  ret.addr = _MEM_iss;
 
-
 		  ret.source1 = *(pS_GPR + ((inst) & 0x3f));
-#ifdef DEBUG
-		  printf("ret.source1: 0x%x\n", ret.source1);
-#endif
 		  ret.source2 = *(pS_GPR + ((inst >> 15) & 0x3f));
 
 		  /*ret.target = immediate + ret.source1;*/
@@ -802,24 +1084,37 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		    case 0:
 		      ret.opcode = STB;
 		      ret.target = immediate + ret.source1;
-		      /*printf("HERE1: value to store: 0x%x (%d)\n", *(S_GPR + ((inst >> 15) & 0x3f)), ((inst >> 15) & 0x3f));*/
 		      memRequest(system, (pS_GPR + ((inst >> 15) & 0x3f)), ret.target, hypercontext->VT_CTRL, mSTB);
 		      ret.data = ret.source2;
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), MEM, 1, 0, 1, 0, *(pS_GPR + ((inst >>15) & 0x3f)));
+		      ret.maddr = immediate + ret.source[0].value;
+		      ret.maddrValid = 1;
 		      break;
 		    case 1:
 		      ret.opcode = STH;
 		      ret.target = immediate + ret.source1;
 		      memRequest(system, (pS_GPR + ((inst >> 15) & 0x3f)), ret.target, hypercontext->VT_CTRL, mSTH);
 		      ret.data = ret.source2;
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), MEM, 1, 0, 1, 0, *(pS_GPR + ((inst >>15) & 0x3f)));
+		      /*insertDest(&(ret.dest[0]), MEM, 1, 0, 0, 0, 0);*/
+		      ret.maddr = immediate + ret.source[0].value;
+		      ret.maddrValid = 1;
 		      break;
 		    case 2:
 		      ret.opcode = STW;
 		      ret.target = immediate + ret.source1;
-#ifdef DEBUG
-		      printf("STW to register: %d\n", ((inst >> 15) & 0x3f));
-#endif
 		      memRequest(system, (pS_GPR + ((inst >> 15) & 0x3f)), ret.target, hypercontext->VT_CTRL, mSTW);
 		      ret.data = ret.source2;
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), MEM, 1, 0, 1, 0, *(pS_GPR + ((inst >>15) & 0x3f)));
+		      /*insertDest(&(ret.dest[0]), MEM, 1, 0, 0, 0, 0);*/
+		      ret.maddr = immediate + ret.source[0].value;
+		      ret.maddrValid = 1;
 		      break;
 		    case 3:
 		      ret.opcode = PFT;
@@ -829,13 +1124,13 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		    case 12:
 		      ret.opcode = STL;
 		      ret.target = immediate + ret.source1;
-#ifdef DEBUG
-		      printf("STL!\n");
-		      printf("immediate: %d\n", immediate);
-		      printf("ret.source1: %d\n", ret.source1);
-#endif
 		      memRequest(system, pS_L, ret.target, hypercontext->VT_CTRL, mSTW);
 		      ret.data = ret.source2;
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), MEM, 1, 0, 1, 0, *(pS_L));
+		      ret.maddr = immediate + *(pS_GPR + (inst & 0x3f));
+		      ret.maddrValid = 1;
 		      break;
 		    default:
 		      /*ret.opcode = XXX;
@@ -856,157 +1151,270 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 
 	      ret.source1 = *(pS_GPR + ((inst) & 0x3f));
 	      ret.source2 = (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8); /* IMM9 */
+
 	      switch(opc)
 		{
 		case 0:
 		  ret.opcode = ADD;
-#ifdef DEBUG
-		  printf("IT SHOULD BE THIS ADD!\n");
-#endif
 		  ADD(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		  break;
 		case 1:
 		  ret.opcode = AND;
 		  AND(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		  break;
 		case 2:
 		  ret.opcode = ANDC;
 		  ANDC(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		  break;
 		case 3:
 		  ret.opcode = MAXS;
 		  MAXS(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		  break;
 		case 4:
 		  ret.opcode = MAXU;
 		  MAXU(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		  break;
 		case 5:
 		  ret.opcode = MINS;
 		  MINS(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		  break;
 		case 6:
 		  ret.opcode = MINU;
 		  MINU(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		  break;
 		case 7:
 		  ret.opcode = OR;
 		  OR(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		  break;
 		case 8:
 		  ret.opcode = ORC;
 		  ORC(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		  break;
 		case 9:
 		  ret.opcode = SH1ADD;
 		  SH1ADD(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		  break;
 		case 10:
 		  ret.opcode = SH2ADD;
 		  SH2ADD(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		  break;
 		case 11:
 		  ret.opcode = SH3ADD;
 		  SH3ADD(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		  break;
 		case 12:
 		  ret.opcode = SH4ADD;
 		  SH4ADD(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		  break;
 		case 13:
 		  ret.opcode = SHL;
 		  SHL(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		  break;
 		case 14:
 		  ret.opcode = SHRS;
 		  SHRS(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		  break;
 		case 15:
 		  ret.opcode = SHRU;
 		  SHRU(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		  break;
 		case 16:
 		  ret.opcode = SUB;
 		  SUB(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		  break;
 		case 17:
 		  ret.opcode = XOR;
 		  XOR(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		  break;
 		case 18:
 		  ret.opcode = MLSLL;
 		  MLSLL(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		  break;
 		case 19:
 		  ret.opcode = MLULL;
 		  MLULL(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		  break;
 		case 20:
 		  ret.opcode = MLSLH;
 		  MLSLH(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		  break;
 		case 21:
 		  ret.opcode = MLULH;
 		  MLULH(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		  break;
 		case 22:
 		  ret.opcode = MLSHH;
 		  MLSHH(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		  break;
 		case 23:
 		  ret.opcode = MLUHH;
 		  MLUHH(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		  break;
 		case 24:
 		  ret.opcode = MLSL;
 		  MLSL(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		  break;
 		case 25:
 		  ret.opcode = MLUL;
 		  MLUL(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		  break;
 		case 26:
 		  ret.opcode = MLSH;
 		  MLSH(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		  break;
 		case 27:
 		  ret.opcode = MLUH;
 		  MLUH(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		  break;
 		case 28:
 		  ret.opcode = MLSHS;
 		  MLSHS(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		  ret.data = *(S_GPR + (ret.target));
-		  break;
 
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
+		  break;
 		case 29:
 
 		  extra = (inst >> 20) & 0x1;
@@ -1108,6 +1516,10 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		  ret.opcode = RSUB;
 		  RSUB(*(S_GPR + (ret.target)), ret.source2, ret.source1);
 		  ret.data = *(S_GPR + (ret.target));
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		  break;
 		default:
 		  /*ret.opcode = XXX;
@@ -1126,7 +1538,6 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 	      ret.source1 = *(pS_GPR + ((inst) & 0x3f));
 	      ret.source2 = *(pS_GPR + ((inst >> 6) & 0x3f));
 
-
 	      switch(opc)
 		{
 		case 0:
@@ -1135,6 +1546,11 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		  ADDCG(*(S_GPR + (ret.target)), *(S_PR + (ret.target2)), ret.source1, ret.source1, ret.source3);
 		  ret.data = *(S_GPR + (ret.target));
 		  ret.data2 = *(S_PR + (ret.target2));
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
+		  insertDest(&(ret.dest[1]), S_PRED, 1, ((inst >> 21) & 0x7), 1, clust, *(S_PR + ((inst >> 21) & 0x7)));
 		  break;
 		case 1:
 		  ret.opcode = DIVS;
@@ -1142,6 +1558,11 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		  DIVS(*(S_GPR + (ret.target)), *(S_PR + (ret.target2)), ret.source1, ret.source2, ret.source3);
 		  ret.data = *(S_GPR + (ret.target));
 		  ret.data2 = *(S_PR + (ret.target2));
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
+		  insertDest(&(ret.dest[1]), S_PRED, 1, ((inst >> 21) & 0x7), 1, clust, *(S_PR + ((inst >> 21) & 0x7)));
 		  break;
 		case 2:
 
@@ -1154,6 +1575,8 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		      ret.source3 = *(pS_PR + ((inst >> 12) & 0x7));
 		      MFB(*(S_GPR + (ret.target)), ret.source3);
 		      ret.data = *(S_GPR + (ret.target));
+		      insertSource(&(ret.source[0]), S_PRED, ((inst >> 12) & 0x7), 1, *(pS_PR + ((inst >> 12) & 0x7)), clust);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 1:
 		      ret.opcode = GOTO;
@@ -1229,6 +1652,9 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		      /* TODO: check this is correct
 			 target2 is the cluster value */
 		      ret.data = *(clusterForBranch->pS_PR + (ret.target));
+
+		      insertSource(&(ret.source[0]), S_PRED, ((inst >> 21) & 0x7), 1, *(clusterForBranch->pS_PR + ((inst >> 21) & 0x7)), ((inst >> 16) & 0xf));
+
 		      if(*(clusterForBranch->pS_PR + (ret.target)))
 			{
 			  /* branch taken */
@@ -1249,6 +1675,8 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		    case 1:
 		      ret.opcode = BRANCHF;
 		      ret.data = *(clusterForBranch->pS_PR + (ret.target));
+
+		      insertSource(&(ret.source[0]), S_PRED, ((inst >> 21) & 0x7), 1, *(clusterForBranch->pS_PR + ((inst >> 21) & 0x7)), ((inst >> 16) & 0xf));
 		      if(*(clusterForBranch->pS_PR + (ret.target)))
 			{
 			  /* branch not taken */
@@ -1288,78 +1716,146 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		      ret.opcode = CMPEQ;
 		      CMPEQ(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 1:
 		      ret.opcode = CMPGES;
 		      CMPGES(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 2:
 		      ret.opcode = CMPGEU;
 		      CMPGEU(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 3:
 		      ret.opcode = CMPGTS;
 		      CMPGTS(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 4:
 		      ret.opcode = CMPGTU;
 		      CMPGTU(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 5:
 		      ret.opcode = CMPLES;
 		      CMPLES(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 6:
 		      ret.opcode = CMPLEU;
 		      CMPLEU(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 7:
 		      ret.opcode = CMPLTS;
 		      CMPLTS(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 8:
 		      ret.opcode = CMPLTU;
 		      CMPLTU(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 9:
 		      ret.opcode = CMPNE;
 		      CMPNE(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 10:
 		      ret.opcode = NANDL;
 		      NANDL(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 11:
 		      ret.opcode = NORL;
-		      /*printf("NORL - sim_r - ");*/
 		      NORL(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 12:
 		      ret.opcode = ORL;
 		      ORL(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 13:
 		      ret.opcode = ANDL;
 		      ANDL(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 14:
 		      /* TODO: special case */
 		      /*ret.opcode = MVCL;
 			MVCL(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 			ret.data = *(S_GPR + (ret.target));*/
+		      {
+			unsigned sourceCluster = (inst >> 6) & 0xf;
+			unsigned destCluster = (inst >> 10) & 0xf;
+
+			clusterT *sourceClusterP;
+			sourceClusterP = (clusterT *)((unsigned)hypercontext->registers + (sourceCluster * sizeof(clusterT)));
+			clusterT *destClusterP;
+			destClusterP = (clusterT *)((unsigned)hypercontext->registers + (destCluster * sizeof(clusterT)));
+
+			ADD(*(destClusterP->S_GPR + (ret.target)), *(sourceClusterP->pS_GPR + (ret.source1)), 0);
+			insertSource(&(ret.source[0]), S_PRED, (inst & 0x3f), 1, *(sourceClusterP->pS_GPR + (inst & 0x3f)), sourceCluster);
+			insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, destCluster, *(destClusterP->S_GPR + ((inst >> 15) & 0x3f)));
+		      }
 		      break;
 		    case 15:
 		      /* CASM3 */
@@ -1407,82 +1903,145 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		      ret.opcode = CMPEQ;
 		      CMPEQ(*(S_PR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_PR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		      insertDest(&(ret.dest[0]), S_PRED, 1, ((inst >> 15) & 0x7), 1, clust, *(S_PR + ((inst >> 15) & 0x7)));
 		      break;
 		    case 1:
 		      ret.opcode = CMPGES;
 		      CMPGES(*(S_PR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_PR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		      insertDest(&(ret.dest[0]), S_PRED, 1, ((inst >> 15) & 0x7), 1, clust, *(S_PR + ((inst >> 15) & 0x7)));
 		      break;
 		    case 2:
 		      ret.opcode = CMPGEU;
 		      CMPGEU(*(S_PR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_PR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		      insertDest(&(ret.dest[0]), S_PRED, 1, ((inst >> 15) & 0x7), 1, clust, *(S_PR + ((inst >> 15) & 0x7)));
 		      break;
 		    case 3:
 		      ret.opcode = CMPGTS;
 		      CMPGTS(*(S_PR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_PR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		      insertDest(&(ret.dest[0]), S_PRED, 1, ((inst >> 15) & 0x7), 1, clust, *(S_PR + ((inst >> 15) & 0x7)));
 		      break;
 		    case 4:
 		      ret.opcode = CMPGTU;
 		      CMPGTU(*(S_PR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_PR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		      insertDest(&(ret.dest[0]), S_PRED, 1, ((inst >> 15) & 0x7), 1, clust, *(S_PR + ((inst >> 15) & 0x7)));
 		      break;
 		    case 5:
 		      ret.opcode = CMPLES;
 		      CMPLES(*(S_PR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_PR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		      insertDest(&(ret.dest[0]), S_PRED, 1, ((inst >> 15) & 0x7), 1, clust, *(S_PR + ((inst >> 15) & 0x7)));
 		      break;
 		    case 6:
 		      ret.opcode = CMPLEU;
 		      CMPLEU(*(S_PR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_PR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		      insertDest(&(ret.dest[0]), S_PRED, 1, ((inst >> 15) & 0x7), 1, clust, *(S_PR + ((inst >> 15) & 0x7)));
 		      break;
 		    case 7:
 		      ret.opcode = CMPLTS;
 		      CMPLTS(*(S_PR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_PR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		      insertDest(&(ret.dest[0]), S_PRED, 1, ((inst >> 15) & 0x7), 1, clust, *(S_PR + ((inst >> 15) & 0x7)));
 		      break;
 		    case 8:
 		      ret.opcode = CMPLTU;
 		      CMPLTU(*(S_PR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_PR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		      insertDest(&(ret.dest[0]), S_PRED, 1, ((inst >> 15) & 0x7), 1, clust, *(S_PR + ((inst >> 15) & 0x7)));
 		      break;
 		    case 9:
 		      ret.opcode = CMPNE;
 		      CMPNE(*(S_PR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_PR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		      insertDest(&(ret.dest[0]), S_PRED, 1, ((inst >> 15) & 0x7), 1, clust, *(S_PR + ((inst >> 15) & 0x7)));
 		      break;
 		    case 10:
 		      ret.opcode = NANDL;
 		      NANDL(*(S_PR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_PR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		      insertDest(&(ret.dest[0]), S_PRED, 1, ((inst >> 15) & 0x7), 1, clust, *(S_PR + ((inst >> 15) & 0x7)));
 		      break;
 		    case 11:
 		      ret.opcode = NORL;
 		      NORL(*(S_PR + (ret.target)), ret.source1, ret.source2);
-		      /*printf("NORL - sim_b (%d) - ", *(S_PR + (ret.target)));*/
 		      ret.data = *(S_PR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		      insertDest(&(ret.dest[0]), S_PRED, 1, ((inst >> 15) & 0x7), 1, clust, *(S_PR + ((inst >> 15) & 0x7)));
 		      break;
 		    case 12:
 		      ret.opcode = ORL;
 		      ORL(*(S_PR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_PR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		      insertDest(&(ret.dest[0]), S_PRED, 1, ((inst >> 15) & 0x7), 1, clust, *(S_PR + ((inst >> 15) & 0x7)));
 		      break;
 		    case 13:
 		      ret.opcode = ANDL;
 		      ANDL(*(S_PR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_PR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		      insertDest(&(ret.dest[0]), S_PRED, 1, ((inst >> 15) & 0x7), 1, clust, *(S_PR + ((inst >> 15) & 0x7)));
 		      break;
 		    case 14:
 		      ret.opcode = MTB;
 		      MTB(*(S_PR + (ret.target)), ret.source1);
 		      ret.data = *(S_PR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		      insertDest(&(ret.dest[0]), S_PRED, 1, ((inst >> 15) & 0x7), 1, clust, *(S_PR + ((inst >> 15) & 0x7)));
 		      break;
 		    case 15:
 		      ret.opcode = MTBF;
 		      MTBF(*(S_PR + (ret.target)), ret.source1);
 		      ret.data = *(S_PR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		      insertDest(&(ret.dest[0]), S_PRED, 1, ((inst >> 15) & 0x7), 1, clust, *(S_PR + ((inst >> 15) & 0x7)));
 		      break;
 		    }
 		  break;
@@ -1506,71 +2065,127 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		      ret.opcode = CMPEQ;
 		      CMPEQ(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 1:
 		      ret.opcode = CMPGES;
 		      CMPGES(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 2:
 		      ret.opcode = CMPGEU;
 		      CMPGEU(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 3:
 		      ret.opcode = CMPGTS;
 		      CMPGTS(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 4:
 		      ret.opcode = CMPGTU;
 		      CMPGTU(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 5:
 		      ret.opcode = CMPLES;
 		      CMPLES(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 6:
 		      ret.opcode = CMPLEU;
 		      CMPLEU(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 7:
 		      ret.opcode = CMPLTS;
 		      CMPLTS(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 8:
 		      ret.opcode = CMPLTU;
 		      CMPLTU(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 9:
 		      ret.opcode = CMPNE;
 		      CMPNE(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 10:
 		      ret.opcode = NANDL;
 		      NANDL(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 11:
 		      ret.opcode = NORL;
 		      NORL(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 12:
 		      ret.opcode = ORL;
 		      ORL(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 13:
 		      ret.opcode = ANDL;
 		      ANDL(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    default:
 		      /*ret.opcode = XXX;
@@ -1587,71 +2202,127 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		      ret.opcode = CMPEQ;
 		      CMPEQ(*(S_PR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_PR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), S_PRED, 1, ((inst >> 15) & 0x7), 1, clust, *(S_PR + ((inst >> 15) & 0x7)));
 		      break;
 		    case 1:
 		      ret.opcode = CMPGES;
 		      CMPGES(*(S_PR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_PR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), S_PRED, 1, ((inst >> 15) & 0x7), 1, clust, *(S_PR + ((inst >> 15) & 0x7)));
 		      break;
 		    case 2:
 		      ret.opcode = CMPGEU;
 		      CMPGEU(*(S_PR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_PR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), S_PRED, 1, ((inst >> 15) & 0x7), 1, clust, *(S_PR + ((inst >> 15) & 0x7)));
 		      break;
 		    case 3:
 		      ret.opcode = CMPGTS;
 		      CMPGTS(*(S_PR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_PR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), S_PRED, 1, ((inst >> 15) & 0x7), 1, clust, *(S_PR + ((inst >> 15) & 0x7)));
 		      break;
 		    case 4:
 		      ret.opcode = CMPGTU;
 		      CMPGTU(*(S_PR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_PR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), S_PRED, 1, ((inst >> 15) & 0x7), 1, clust, *(S_PR + ((inst >> 15) & 0x7)));
 		      break;
 		    case 5:
 		      ret.opcode = CMPLES;
 		      CMPLES(*(S_PR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_PR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), S_PRED, 1, ((inst >> 15) & 0x7), 1, clust, *(S_PR + ((inst >> 15) & 0x7)));
 		      break;
 		    case 6:
 		      ret.opcode = CMPLEU;
 		      CMPLEU(*(S_PR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_PR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), S_PRED, 1, ((inst >> 15) & 0x7), 1, clust, *(S_PR + ((inst >> 15) & 0x7)));
 		      break;
 		    case 7:
 		      ret.opcode = CMPLTS;
 		      CMPLTS(*(S_PR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_PR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), S_PRED, 1, ((inst >> 15) & 0x7), 1, clust, *(S_PR + ((inst >> 15) & 0x7)));
 		      break;
 		    case 8:
 		      ret.opcode = CMPLTU;
 		      CMPLTU(*(S_PR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_PR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), S_PRED, 1, ((inst >> 15) & 0x7), 1, clust, *(S_PR + ((inst >> 15) & 0x7)));
 		      break;
 		    case 9:
 		      ret.opcode = CMPNE;
 		      CMPNE(*(S_PR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_PR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), S_PRED, 1, ((inst >> 15) & 0x7), 1, clust, *(S_PR + ((inst >> 15) & 0x7)));
 		      break;
 		    case 10:
 		      ret.opcode = NANDL;
 		      NANDL(*(S_PR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_PR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), S_PRED, 1, ((inst >> 15) & 0x7), 1, clust, *(S_PR + ((inst >> 15) & 0x7)));
 		      break;
 		    case 11:
 		      ret.opcode = NORL;
 		      NORL(*(S_PR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_PR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), S_PRED, 1, ((inst >> 15) & 0x7), 1, clust, *(S_PR + ((inst >> 15) & 0x7)));
 		      break;
 		    case 12:
 		      ret.opcode = ORL;
 		      ORL(*(S_PR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_PR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), S_PRED, 1, ((inst >> 15) & 0x7), 1, clust, *(S_PR + ((inst >> 15) & 0x7)));
 		      break;
 		    case 13:
 		      ret.opcode = ANDL;
 		      ANDL(*(S_PR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_PR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
+		      insertDest(&(ret.dest[0]), S_PRED, 1, ((inst >> 15) & 0x7), 1, clust, *(S_PR + ((inst >> 15) & 0x7)));
 		      break;
 		    default:
 		      /*ret.opcode = XXX;
@@ -1680,71 +2351,127 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		      ret.opcode = CMPEQ;
 		      CMPEQ(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 1:
 		      ret.opcode = CMPGES;
 		      CMPGES(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 2:
 		      ret.opcode = CMPGEU;
 		      CMPGEU(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 3:
 		      ret.opcode = CMPGTS;
 		      CMPGTS(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 4:
 		      ret.opcode = CMPGTU;
 		      CMPGTU(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 5:
 		      ret.opcode = CMPLES;
 		      CMPLES(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 6:
 		      ret.opcode = CMPLEU;
 		      CMPLEU(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 7:
 		      ret.opcode = CMPLTS;
 		      CMPLTS(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 8:
 		      ret.opcode = CMPLTU;
 		      CMPLTU(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 9:
 		      ret.opcode = CMPNE;
 		      CMPNE(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 10:
 		      ret.opcode = NANDL;
 		      NANDL(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 11:
 		      ret.opcode = NORL;
 		      NORL(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 12:
 		      ret.opcode = ORL;
 		      ORL(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    case 13:
 		      ret.opcode = ANDL;
 		      ANDL(*(S_GPR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_GPR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, *(S_GPR + ((inst >> 15) & 0x3f)));
 		      break;
 		    default:
 		      /*ret.opcode = XXX;
@@ -1761,71 +2488,127 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		      ret.opcode = CMPEQ;
 		      CMPEQ(*(S_PR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_PR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		      insertDest(&(ret.dest[0]), S_PRED, 1, ((inst >> 15) & 0x7), 1, clust, *(S_PR + ((inst >> 15) & 0x7)));
 		      break;
 		    case 1:
 		      ret.opcode = CMPGES;
 		      CMPGES(*(S_PR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_PR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		      insertDest(&(ret.dest[0]), S_PRED, 1, ((inst >> 15) & 0x7), 1, clust, *(S_PR + ((inst >> 15) & 0x7)));
 		      break;
 		    case 2:
 		      ret.opcode = CMPGEU;
 		      CMPGEU(*(S_PR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_PR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		      insertDest(&(ret.dest[0]), S_PRED, 1, ((inst >> 15) & 0x7), 1, clust, *(S_PR + ((inst >> 15) & 0x7)));
 		      break;
 		    case 3:
 		      ret.opcode = CMPGTS;
 		      CMPGTS(*(S_PR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_PR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		      insertDest(&(ret.dest[0]), S_PRED, 1, ((inst >> 15) & 0x7), 1, clust, *(S_PR + ((inst >> 15) & 0x7)));
 		      break;
 		    case 4:
 		      ret.opcode = CMPGTU;
 		      CMPGTU(*(S_PR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_PR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		      insertDest(&(ret.dest[0]), S_PRED, 1, ((inst >> 15) & 0x7), 1, clust, *(S_PR + ((inst >> 15) & 0x7)));
 		      break;
 		    case 5:
 		      ret.opcode = CMPLES;
 		      CMPLES(*(S_PR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_PR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		      insertDest(&(ret.dest[0]), S_PRED, 1, ((inst >> 15) & 0x7), 1, clust, *(S_PR + ((inst >> 15) & 0x7)));
 		      break;
 		    case 6:
 		      ret.opcode = CMPLEU;
 		      CMPLEU(*(S_PR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_PR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		      insertDest(&(ret.dest[0]), S_PRED, 1, ((inst >> 15) & 0x7), 1, clust, *(S_PR + ((inst >> 15) & 0x7)));
 		      break;
 		    case 7:
 		      ret.opcode = CMPLTS;
 		      CMPLTS(*(S_PR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_PR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		      insertDest(&(ret.dest[0]), S_PRED, 1, ((inst >> 15) & 0x7), 1, clust, *(S_PR + ((inst >> 15) & 0x7)));
 		      break;
 		    case 8:
 		      ret.opcode = CMPLTU;
 		      CMPLTU(*(S_PR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_PR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		      insertDest(&(ret.dest[0]), S_PRED, 1, ((inst >> 15) & 0x7), 1, clust, *(S_PR + ((inst >> 15) & 0x7)));
 		      break;
 		    case 9:
 		      ret.opcode = CMPNE;
 		      CMPNE(*(S_PR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_PR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		      insertDest(&(ret.dest[0]), S_PRED, 1, ((inst >> 15) & 0x7), 1, clust, *(S_PR + ((inst >> 15) & 0x7)));
 		      break;
 		    case 10:
 		      ret.opcode = NANDL;
 		      NANDL(*(S_PR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_PR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		      insertDest(&(ret.dest[0]), S_PRED, 1, ((inst >> 15) & 0x7), 1, clust, *(S_PR + ((inst >> 15) & 0x7)));
 		      break;
 		    case 11:
 		      ret.opcode = NORL;
 		      NORL(*(S_PR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_PR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		      insertDest(&(ret.dest[0]), S_PRED, 1, ((inst >> 15) & 0x7), 1, clust, *(S_PR + ((inst >> 15) & 0x7)));
 		      break;
 		    case 12:
 		      ret.opcode = ORL;
 		      ORL(*(S_PR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_PR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		      insertDest(&(ret.dest[0]), S_PRED, 1, ((inst >> 15) & 0x7), 1, clust, *(S_PR + ((inst >> 15) & 0x7)));
 		      break;
 		    case 13:
 		      ret.opcode = ANDL;
 		      ANDL(*(S_PR + (ret.target)), ret.source1, ret.source2);
 		      ret.data = *(S_PR + (ret.target));
+
+		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		      insertSource(&(ret.source[1]), IMM9, 0, 1, (((inst >> 6) & 0x1ff) ^ (1 << 8)) - (1 << 8), 0);
+		      insertDest(&(ret.dest[0]), S_PRED, 1, ((inst >> 15) & 0x7), 1, clust, *(S_PR + ((inst >> 15) & 0x7)));
 		      break;
 		    default:
 		      /*ret.opcode = XXX;
@@ -1839,7 +2622,6 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 	    case 7:
 	      ret.addr = _MEM_iss;
 
-
 	      ret.source1 = *(pS_GPR + ((inst) & 0x3f));
 	      ret.source2 = *(pS_GPR + ((inst >> 6) & 0x3f));
 
@@ -1850,24 +2632,41 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		case 0:
 		  ret.opcode = STB;
 		  ret.target = (((inst >> 12) & 0xfff) ^ (1 << 11)) - (1 << 11) + ret.source1; /* IMM12 */
-		  /*printf("HERE2: value to store: 0x%x (%d)\n", *(S_GPR + ((inst >> 6) & 0x3f)), ((inst >> 6) & 0x3f));*/
 		  memRequest(system, (pS_GPR + ((inst >> 6) & 0x3f)), ret.target, hypercontext->VT_CTRL, mSTB);
 		  ret.data = ret.source2;
+
+		  insertSource(&(ret.source[0]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM12, 0, 1, (((inst >> 12) & 0xfff) ^ (1 << 11)) - (1 << 11), 0);
+		  insertDest(&(ret.dest[0]), MEM, 1, 0, 1, 0, *(pS_GPR + (inst & 0x3f)));
+		  ret.maddr = (((inst >> 12) & 0xfff) ^ (1 << 11)) - (1 << 11) + ret.source[0].value;
+		  ret.maddrValid = 1;
 		  break;
 		case 1:
 		  ret.opcode = STH;
 		  ret.target = (((inst >> 12) & 0xfff) ^ (1 << 11)) - (1 << 11) + ret.source1; /* IMM12 */
 		  memRequest(system, (pS_GPR + ((inst >> 6) & 0x3f)), ret.target, hypercontext->VT_CTRL, mSTH);
 		  ret.data = ret.source2;
+
+		  insertSource(&(ret.source[0]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM12, 0, 1, (((inst >> 12) & 0xfff) ^ (1 << 11)) - (1 << 11), 0);
+		  insertDest(&(ret.dest[0]), MEM, 1, 0, 1, 0, *(pS_GPR + (inst & 0x3f)));
+		  ret.maddr = (((inst >> 12) & 0xfff) ^ (1 << 11)) - (1 << 11) + ret.source[0].value;
+		  ret.maddrValid = 1;
 		  break;
 		case 2:
 		  ret.opcode = STW;
 		  ret.target = (((inst >> 12) & 0xfff) ^ (1 << 11)) - (1 << 11) + ret.source1; /* IMM12 */
-#ifdef DEBUG
-		  printf("STW to register: %d\n", ((inst >> 6) & 0x3f));
-#endif
 		  memRequest(system, (pS_GPR + ((inst >> 6) & 0x3f)), ret.target, hypercontext->VT_CTRL, mSTW);
 		  ret.data = ret.source2;
+
+		  insertSource(&(ret.source[0]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM12, 0, 1, (((inst >> 12) & 0xfff) ^ (1 << 11)) - (1 << 11), 0);
+		  insertDest(&(ret.dest[0]), MEM, 1, 0, 1, 0, *(pS_GPR + (inst & 0x3f)));
+		  /*insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		  insertDest(&(ret.dest[0]), MEM, 1, 0, 0, 0, 0);*/
+		  ret.maddr = (((inst >> 12) & 0xfff) ^ (1 << 11)) - (1 << 11) + ret.source[0].value;
+		  ret.maddrValid = 1;
 		  break;
 		case 3:
 		  /* not yet implemented: STWPS/STWAS */
@@ -1898,11 +2697,25 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		  ret.opcode = LDSB;
 		  memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDSB);
 		  ret.data = -1;
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM12, 0, 1, (((inst >> 12) & 0xfff) ^ (1 << 11)) - (1 << 11), 0);
+		  _LDSB_iss(&ldsbVal, (system->dram + (ret.source[0].value + ret.source[1].value)));
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 6) & 0x3f), 1, clust, ldsbVal);
+		  ret.maddr = ret.source[0].value + ret.source[1].value;
+		  ret.maddrValid = 1;
 		  break;
 		case 1:
 		  ret.opcode = LDSB; /* LDSB.D */
 		  memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDSB);
 		  ret.data = -1;
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM12, 0, 1, (((inst >> 12) & 0xfff) ^ (1 << 11)) - (1 << 11), 0);
+		  _LDSB_iss(&ldsbVal, (system->dram + (ret.source[0].value + ret.source[1].value)));
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 6) & 0x3f), 1, clust, ldsbVal);
+		  ret.maddr = ret.source[0].value + ret.source[1].value;
+		  ret.maddrValid = 1;
 		  break;
 		case 2:
 		  /* not yet implemented: LDV */
@@ -1929,11 +2742,25 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		  ret.opcode = LDUB;
 		  memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDUB);
 		  ret.data = -1;
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM12, 0, 1, (((inst >> 12) & 0xfff) ^ (1 << 11)) - (1 << 11), 0);
+		  _LDUB_iss(&ldubVal, (system->dram + (ret.source[0].value + ret.source[1].value)));
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 6) & 0x3f), 1, clust, ldubVal);
+		  ret.maddr = ret.source[0].value + ret.source[1].value;
+		  ret.maddrValid = 1;
 		  break;
 		case 1:
 		  ret.opcode = LDUB; /* LDUB.D */
 		  memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDUB);
 		  ret.data = -1;
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM12, 0, 1, (((inst >> 12) & 0xfff) ^ (1 << 11)) - (1 << 11), 0);
+		  _LDUB_iss(&ldubVal, (system->dram + (ret.source[0].value + ret.source[1].value)));
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 6) & 0x3f), 1, clust, ldubVal);
+		  ret.maddr = ret.source[0].value + ret.source[1].value;
+		  ret.maddrValid = 1;
 		  break;
 		case 2:
 		  /* not yet implemented: LDV.D */
@@ -1959,11 +2786,25 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		  ret.opcode = LDSH;
 		  memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDSH);
 		  ret.data = -1;
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM12, 0, 1, (((inst >> 12) & 0xfff) ^ (1 << 11)) - (1 << 11), 0);
+		  _LDSH_iss(&ldshVal, (system->dram + (ret.source[0].value + ret.source[1].value)));
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 6) & 0x3f), 1, clust, ldshVal);
+		  ret.maddr = ret.source[0].value + ret.source[1].value;
+		  ret.maddrValid = 1;
 		  break;
 		case 1:
 		  ret.opcode = LDSH; /* LDSH.D */
 		  memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDSH);
 		  ret.data = -1;
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM12, 0, 1, (((inst >> 12) & 0xfff) ^ (1 << 11)) - (1 << 11), 0);
+		  _LDSH_iss(&ldshVal, (system->dram + (ret.source[0].value + ret.source[1].value)));
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 6) & 0x3f), 1, clust, ldshVal);
+		  ret.maddr = ret.source[0].value + ret.source[1].value;
+		  ret.maddrValid = 1;
 		  break;
 		default:
 		  /*ret.opcode = XXX;
@@ -1985,11 +2826,25 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		  ret.opcode = LDUH;
 		  memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDUH);
 		  ret.data = -1;
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM12, 0, 1, (((inst >> 12) & 0xfff) ^ (1 << 11)) - (1 << 11), 0);
+		  _LDUH_iss(&lduhVal, (system->dram + (ret.source[0].value + ret.source[1].value)));
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 6) & 0x3f), 1, clust, lduhVal);
+		  ret.maddr = ret.source[0].value + ret.source[1].value;
+		  ret.maddrValid = 1;
 		  break;
 		case 1:
 		  ret.opcode = LDUH; /* LDUH.D */
 		  memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDUH);
 		  ret.data = -1;
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM12, 0, 1, (((inst >> 12) & 0xfff) ^ (1 << 11)) - (1 << 11), 0);
+		  _LDUH_iss(&lduhVal, (system->dram + (ret.source[0].value + ret.source[1].value)));
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 6) & 0x3f), 1, clust, lduhVal);
+		  ret.maddr = ret.source[0].value + ret.source[1].value;
+		  ret.maddrValid = 1;
 		  break;
 		default:
 		  /*ret.opcode = XXX;
@@ -2011,11 +2866,25 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		  ret.opcode = LDW;
 		  memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDW);
 		  ret.data = -1;
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM12, 0, 1, (((inst >> 12) & 0xfff) ^ (1 << 11)) - (1 << 11), 0);
+		  _LDW_iss(&ldwVal, (system->dram + (ret.source[0].value + ret.source[1].value)));
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 6) & 0x3f), 1, clust, ldwVal);
+		  ret.maddr = ret.source[0].value + ret.source[1].value;
+		  ret.maddrValid = 1;
 		  break;
 		case 1:
 		  ret.opcode = LDW; /* LDW.D */
 		  memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDW);
 		  ret.data = -1;
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM12, 0, 1, (((inst >> 12) & 0xfff) ^ (1 << 11)) - (1 << 11), 0);
+		  _LDW_iss(&ldwVal, (system->dram + (ret.source[0].value + ret.source[1].value)));
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 6) & 0x3f), 1, clust, ldwVal);
+		  ret.maddr = ret.source[0].value + ret.source[1].value;
+		  ret.maddrValid = 1;
 		  break;
 		case 2:
 		  /* not yet implemented: LDWPS/LDWAS */
@@ -2041,26 +2910,61 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		  ret.opcode = LDUB;
 		  memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDUB);
 		  ret.data = -1;
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM8, 0, 1, (((inst >> 12) & 0xff) ^ (1 << 7)) - (1 << 7), 0);
+		  _LDUB_iss(&ldubVal, (system->dram + (ret.source[0].value + ret.source[1].value)));
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 6) & 0x3f), 1, clust, ldubVal);
+		  ret.maddr = ret.source[0].value + ret.source[1].value;
+		  ret.maddrValid = 1;
 		  break;
 		case 1:
 		  ret.opcode = LDSB;
 		  memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDSB);
 		  ret.data = -1;
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM8, 0, 1, (((inst >> 12) & 0xff) ^ (1 << 7)) - (1 << 7), 0);
+		  _LDSB_iss(&ldsbVal, (system->dram + (ret.source[0].value + ret.source[1].value)));
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 6) & 0x3f), 1, clust, ldsbVal);
+		  ret.maddr = ret.source[0].value + ret.source[1].value;
+		  ret.maddrValid = 1;
 		  break;
 		case 2:
 		  ret.opcode = LDUH;
 		  memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDUH);
 		  ret.data = -1;
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM8, 0, 1, (((inst >> 12) & 0xff) ^ (1 << 7)) - (1 << 7), 0);
+		  _LDUH_iss(&lduhVal, (system->dram + (ret.source[0].value + ret.source[1].value)));
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 6) & 0x3f), 1, clust, lduhVal);
+		  ret.maddr = ret.source[0].value + ret.source[1].value;
+		  ret.maddrValid = 1;
 		  break;
 		case 3:
 		  ret.opcode = LDSH;
 		  memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDSH);
 		  ret.data = -1;
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM8, 0, 1, (((inst >> 12) & 0xff) ^ (1 << 7)) - (1 << 7), 0);
+		  _LDSH_iss(&ldshVal, (system->dram + (ret.source[0].value + ret.source[1].value)));
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 6) & 0x3f), 1, clust, ldshVal);
+		  ret.maddr = ret.source[0].value + ret.source[1].value;
+		  ret.maddrValid = 1;
 		  break;
 		case 4:
 		  ret.opcode = LDW;
 		  memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDW);
 		  ret.data = -1;
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM8, 0, 1, (((inst >> 12) & 0xff) ^ (1 << 7)) - (1 << 7), 0);
+		  _LDW_iss(&ldwVal, (system->dram + (ret.source[0].value + ret.source[1].value)));
+		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 6) & 0x3f), 1, clust, ldwVal);
+		  ret.maddr = ret.source[0].value + ret.source[1].value;
+		  ret.maddrValid = 1;
 		  break;
 		case 5:
 		  /* not yet implemented: LDAS */
@@ -2070,9 +2974,14 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		  /* TODO: memAlign */
 		  /* source2 + dest wrong way round */
 		  ret.opcode = STB;
-		  /*printf("HERE3: value to store: 0x%x (%d)\n", *(S_GPR + ret.target), ret.target);*/
 		  memRequest(system, (pS_GPR + (ret.target)), (ret.source2 + ret.source1), hypercontext->VT_CTRL, mSTB);
 		  ret.data = *(pS_GPR + (ret.target));
+
+		  insertSource(&(ret.source[0]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM8, 0, 1, (((inst >> 12) & 0xff) ^ (1 << 7)) - (1 << 7), 0);
+		  insertDest(&(ret.dest[0]), MEM, 1, 0, 1, 0, *(pS_GPR + (inst & 0x3f)));
+		  ret.maddr = ret.source[0].value + ret.source[1].value;
+		  ret.maddrValid = 1;
 		  break;
 		case 33:
 		  /* TODO: memAlign */
@@ -2080,16 +2989,25 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		  ret.opcode = STH; /* STHW */
 		  memRequest(system, (pS_GPR + (ret.target)), (ret.source2 + ret.source1), hypercontext->VT_CTRL, mSTH);
 		  ret.data = *(pS_GPR + (ret.target));
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM8, 0, 1, (((inst >> 12) & 0xff) ^ (1 << 7)) - (1 << 7), 0);
+		  insertDest(&(ret.dest[0]), MEM, 1, 0, 1, 0, *(pS_GPR + (inst & 0x3f)));
+		  ret.maddr = ret.source[0].value + ret.source[1].value;
+		  ret.maddrValid = 1;
 		  break;
 		case 34:
 		  /* TODO: memAlign */
 		  /* source2 + dest wrong way round */
 		  ret.opcode = STW;
-#ifdef DEBUG
-		  printf("STW to register: %d\n", ret.target);
-#endif
 		  memRequest(system, (pS_GPR + (ret.target)), (ret.source2 + ret.source1), hypercontext->VT_CTRL, mSTW);
 		  ret.data = *(pS_GPR + (ret.target));
+
+		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
+		  insertSource(&(ret.source[1]), IMM8, 0, 1, (((inst >> 12) & 0xff) ^ (1 << 7)) - (1 << 7), 0);
+		  insertDest(&(ret.dest[0]), MEM, 1, 0, 1, 0, *(pS_GPR + (inst & 0x3f)));
+		  ret.maddr = ret.source[0].value + ret.source[1].value;
+		  ret.maddrValid = 1;
 		  break;
 		case 35:
 		  /* not yet implemented: STAS */
@@ -2111,4 +3029,34 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
     }
 
   return ret;
+}
+
+void insertSource(sourceReg *src,
+		  regT target,
+		  unsigned short reg,
+		  unsigned char valid,
+		  unsigned value,
+		  unsigned char cluster) {
+  src->target = target;
+  src->reg = reg;
+  src->valid = valid;
+  src->value = value;
+  src->cluster = cluster;
+  return;
+}
+
+void insertDest(destReg *dst,
+		regT target,
+		unsigned char chk,
+		unsigned short reg,
+		unsigned char valid,
+		unsigned char cluster,
+		unsigned res) {
+  dst->target = target;
+  dst->chk = chk;
+  dst->reg = reg;
+  dst->valid = valid;
+  dst->cluster = cluster;
+  dst->res = res;
+  return;
 }
