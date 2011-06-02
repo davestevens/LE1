@@ -16,3 +16,6 @@ typedef struct {
 int readConf(char *);
 void processNode(xmlTextReaderPtr, xmlReturn *);
 
+#ifdef API
+int readConfStatic(char *);
+#endif
