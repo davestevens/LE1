@@ -17,5 +17,6 @@ int readConf(char *);
 void processNode(xmlTextReaderPtr, xmlReturn *);
 
 #ifdef API
-int readConfStatic(char *);
+#include "vtapi.h"
+int readConfStatic(char *, galaxyConfigT *);
 #endif

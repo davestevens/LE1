@@ -161,7 +161,7 @@ int readConf(char *filename) {
 	    CNT = (contextConfig *)((unsigned)SYS->CONTEXT + (currentContext * sizeof(contextConfig)));
 
 	    CNT->CONTEXT_CONFIG = 0;
-	    CNT->CONTEXT_CTRL_REG = 0;
+	    CNT->CONTEXT_CTRL = 0;
 	    CNT->IFE_SIMPLE_IRAM_PRIV_CONFIG = 0;
 
 	    currentClusterTemplate = -1;
@@ -524,7 +524,7 @@ void processNode(xmlTextReaderPtr reader, xmlReturn *xmlR) {
 }
 
 #ifdef API
-int readConfStatic(char *filename) {
+int readConfStatic(char *filename, galaxyConfigT *galaxyConfig) {
   xmlTextReaderPtr reader;
   int ret;
 
@@ -555,10 +555,10 @@ int readConfStatic(char *filename) {
 	  ret = xmlTextReaderRead(reader);
 	  processNode(reader, &xmlR);
 
-	  galaxyConfig.ctrlState.GALAXY_CONFIG = 0;
-	  galaxyConfig.ctrlState.GALAXY_CONFIG |= atoi(xmlR.value);
+	  galaxyConfig->ctrlState.GALAXY_CONFIG = 0;
+	  galaxyConfig->ctrlState.GALAXY_CONFIG |= atoi(xmlR.value);
 
-	  if(galaxyConfig.ctrlState.GALAXY_CONFIG > MASTERCFG_SYSTEMS_MAX) {
+	  if(galaxyConfig->ctrlState.GALAXY_CONFIG > MASTERCFG_SYSTEMS_MAX) {
 	    printf("You have specified a number of SYSTEMS greater than the MAX\n");
 	    return -1;
 	  }
@@ -566,7 +566,7 @@ int readConfStatic(char *filename) {
 	else if(!strcmp(xmlR.name, "system")) {
 	  /* need to make sure the number of these is less than the number of systems */
 	  currentSystem++;
-	  if(currentSystem >= (galaxyConfig.ctrlState.GALAXY_CONFIG & 0xff)) {
+	  if(currentSystem >= (galaxyConfig->ctrlState.GALAXY_CONFIG & 0xff)) {
 	    printf("xml file contains more system definitions than are specified\n");
 	    return -1;
 	  }
@@ -574,9 +574,9 @@ int readConfStatic(char *filename) {
 	    /*printf("currentSystem: %d\n", currentSystem);*/
 	    /* TODO: this doesn't seem to be here? */
 	    /* SYS->DRAM_SHARED_CTRL = 0;*/
-	    galaxyConfig.ctrlState.SYSTEM_CONFIG[currentSystem] = 0;
-	    galaxyConfig.ctrlState.PERIPH_WRAP_CONFIG[currentSystem] = 0;
-	    galaxyConfig.ctrlState.DRAM_SHARED_CONFIG0[currentSystem] = 0;
+	    galaxyConfig->ctrlState.SYSTEM_CONFIG[currentSystem] = 0;
+	    galaxyConfig->ctrlState.PERIPH_WRAP_CONFIG[currentSystem] = 0;
+	    galaxyConfig->ctrlState.DRAM_SHARED_CONFIG0[currentSystem] = 0;
 
 	    currentContext = -1;
 	  }
@@ -584,32 +584,32 @@ int readConfStatic(char *filename) {
 	else if(!strcmp(xmlR.name, "contexts")) {
 	  ret = xmlTextReaderRead(reader);
 	  processNode(reader, &xmlR);
-	  galaxyConfig.ctrlState.SYSTEM_CONFIG[currentSystem] |= atoi(xmlR.value);
+	  galaxyConfig->ctrlState.SYSTEM_CONFIG[currentSystem] |= atoi(xmlR.value);
 	}
 	else if(!strcmp(xmlR.name, "SCALARSYS_PRESENT")) {
 	  ret = xmlTextReaderRead(reader);
 	  processNode(reader, &xmlR);
-	  galaxyConfig.ctrlState.SYSTEM_CONFIG[currentSystem] |= (atoi(xmlR.value) << 8);
+	  galaxyConfig->ctrlState.SYSTEM_CONFIG[currentSystem] |= (atoi(xmlR.value) << 8);
 	}
 	else if(!strcmp(xmlR.name, "PERIPH_PRESENT")) {
 	  ret = xmlTextReaderRead(reader);
 	  processNode(reader, &xmlR);
-	  galaxyConfig.ctrlState.SYSTEM_CONFIG[currentSystem] |= (atoi(xmlR.value) << 10);
+	  galaxyConfig->ctrlState.SYSTEM_CONFIG[currentSystem] |= (atoi(xmlR.value) << 10);
 	}
 	else if(!strcmp(xmlR.name, "DRAM_BLK_SIZE")) {
 	  ret = xmlTextReaderRead(reader);
 	  processNode(reader, &xmlR);
-	  galaxyConfig.ctrlState.DRAM_SHARED_CONFIG0[currentSystem] |= atoi(xmlR.value);
+	  galaxyConfig->ctrlState.DRAM_SHARED_CONFIG0[currentSystem] |= atoi(xmlR.value);
 	}
 	else if(!strcmp(xmlR.name, "DRAM_SIZE")) {
 	  ret = xmlTextReaderRead(reader);
 	  processNode(reader, &xmlR);
-	  galaxyConfig.ctrlState.DRAM_SHARED_CONFIG0[currentSystem] |= (atoi(xmlR.value) << 8);
+	  galaxyConfig->ctrlState.DRAM_SHARED_CONFIG0[currentSystem] |= (atoi(xmlR.value) << 8);
 	}
 	else if(!strcmp(xmlR.name, "DRAM_BANKS")) {
 	  ret = xmlTextReaderRead(reader);
 	  processNode(reader, &xmlR);
-	  galaxyConfig.ctrlState.DRAM_SHARED_CONFIG0[currentSystem] |= (atoi(xmlR.value) << 24);
+	  galaxyConfig->ctrlState.DRAM_SHARED_CONFIG0[currentSystem] |= (atoi(xmlR.value) << 24);
 	}
 	else if(!strcmp(xmlR.name, "DARCH")) {
 	  ret = xmlTextReaderRead(reader);
@@ -617,7 +617,7 @@ int readConfStatic(char *filename) {
 
 	  /* TODO: enum type maybe ?*/
 	  if(!strcmp(xmlR.value, "DRAM_SHARED"))
-	    galaxyConfig.ctrlState.SYSTEM_CONFIG[currentSystem] |= (0 << 11);
+	    galaxyConfig->ctrlState.SYSTEM_CONFIG[currentSystem] |= (0 << 11);
 	  else {
 	    printf("unknown DARCH: %s\n", xmlR.value);
 	    return -1;
@@ -627,7 +627,7 @@ int readConfStatic(char *filename) {
 	else if(!strcmp(xmlR.name, "context")) {
 	  /* need to make sure the number of these is less than the number of systems */
 	  currentContext++;
-	  if(currentContext >= (galaxyConfig.ctrlState.SYSTEM_CONFIG[currentSystem] & 0xff)) {
+	  if(currentContext >= (galaxyConfig->ctrlState.SYSTEM_CONFIG[currentSystem] & 0xff)) {
 	    printf("xml file contains more context definitions than are specified for this system (%d)\n", currentSystem);
 	    return -1;
 	  }
@@ -636,8 +636,8 @@ int readConfStatic(char *filename) {
 	    /* TODO: unknown */
 	    /* CNT->CONTEXT_CTRL_REG = 0;*/
 
-	    galaxyConfig.ctrlState.CONTEXT_CONFIG[currentSystem][currentContext] = 0;
-	    galaxyConfig.ctrlState.IFE_SIMPLE_IRAM_PRIV_CONFIG0[currentSystem][currentContext] = 0;
+	    galaxyConfig->ctrlState.CONTEXT_CONFIG[currentSystem][currentContext] = 0;
+	    galaxyConfig->ctrlState.IFE_SIMPLE_IRAM_PRIV_CONFIG0[currentSystem][currentContext] = 0;
 
 	    currentClusterTemplate = -1;
 	    currentHyperContext = -1;
@@ -648,13 +648,13 @@ int readConfStatic(char *filename) {
 	  processNode(reader, &xmlR);
 
 	  if(!strcmp(xmlR.value, "VT32PP"))
-	    galaxyConfig.ctrlState.CONTEXT_CONFIG[currentSystem][currentContext] |= VT32PP;
+	    galaxyConfig->ctrlState.CONTEXT_CONFIG[currentSystem][currentContext] |= VT32PP;
 	  else if(!strcmp(xmlR.value, "VT64PP"))
-	    galaxyConfig.ctrlState.CONTEXT_CONFIG[currentSystem][currentContext] |= VT64PP;
+	    galaxyConfig->ctrlState.CONTEXT_CONFIG[currentSystem][currentContext] |= VT64PP;
 	  else if(!strcmp(xmlR.value, "VT32EPIC"))
-	    galaxyConfig.ctrlState.CONTEXT_CONFIG[currentSystem][currentContext] |= VT32EPIC;
+	    galaxyConfig->ctrlState.CONTEXT_CONFIG[currentSystem][currentContext] |= VT32EPIC;
 	  else if(!strcmp(xmlR.value, "VT64EPIC"))
-	    galaxyConfig.ctrlState.CONTEXT_CONFIG[currentSystem][currentContext] |= VT64EPIC;
+	    galaxyConfig->ctrlState.CONTEXT_CONFIG[currentSystem][currentContext] |= VT64EPIC;
 	  else {
 	    printf("unknown ISA_PRSPCTV: %s\n", xmlR.value);
 	    return -1;
@@ -663,17 +663,17 @@ int readConfStatic(char *filename) {
 	else if(!strcmp(xmlR.name, "HYPERCONTEXTS")) {
 	  ret = xmlTextReaderRead(reader);
 	  processNode(reader, &xmlR);
-	  galaxyConfig.ctrlState.CONTEXT_CONFIG[currentSystem][currentContext] |= (atoi(xmlR.value) << 4);
+	  galaxyConfig->ctrlState.CONTEXT_CONFIG[currentSystem][currentContext] |= (atoi(xmlR.value) << 4);
 	}
 	else if(!strcmp(xmlR.name, "CLUST_TEMPL")) {
 	  ret = xmlTextReaderRead(reader);
 	  processNode(reader, &xmlR);
-	  galaxyConfig.ctrlState.CONTEXT_CONFIG[currentSystem][currentContext] |= (atoi(xmlR.value) << 8);
+	  galaxyConfig->ctrlState.CONTEXT_CONFIG[currentSystem][currentContext] |= (atoi(xmlR.value) << 8);
 	}
 	else if(!strcmp(xmlR.name, "ISSUE_WIDTH_MAX")) {
 	  ret = xmlTextReaderRead(reader);
 	  processNode(reader, &xmlR);
-	  galaxyConfig.ctrlState.CONTEXT_CONFIG[currentSystem][currentContext] |= (atoi(xmlR.value) << 12);
+	  galaxyConfig->ctrlState.CONTEXT_CONFIG[currentSystem][currentContext] |= (atoi(xmlR.value) << 12);
 	}
 	else if(!strcmp(xmlR.name, "IARCH")) {
 	  ret = xmlTextReaderRead(reader);
@@ -681,7 +681,7 @@ int readConfStatic(char *filename) {
 
 	  /* TODO: enum? */
 	  if(!strcmp(xmlR.value, "IFE_SIMPLE_IRAM_PRIV"))
-	    galaxyConfig.ctrlState.CONTEXT_CONFIG[currentSystem][currentContext] |= (0 << 20);
+	    galaxyConfig->ctrlState.CONTEXT_CONFIG[currentSystem][currentContext] |= (0 << 20);
 	  else {
 	    printf("unknown IARCH: %s\n", xmlR.value);
 	    return -1;
@@ -690,115 +690,115 @@ int readConfStatic(char *filename) {
 	else if(!strcmp(xmlR.name, "IFETCH_WIDTH")) {
 	  ret = xmlTextReaderRead(reader);
 	  processNode(reader, &xmlR);
-	  galaxyConfig.ctrlState.IFE_SIMPLE_IRAM_PRIV_CONFIG0[currentSystem][currentContext] |= atoi(xmlR.value);
+	  galaxyConfig->ctrlState.IFE_SIMPLE_IRAM_PRIV_CONFIG0[currentSystem][currentContext] |= atoi(xmlR.value);
 	}
 	else if(!strcmp(xmlR.name, "IRAM_SIZE")) {
 	  ret = xmlTextReaderRead(reader);
 	  processNode(reader, &xmlR);
-	  galaxyConfig.ctrlState.IFE_SIMPLE_IRAM_PRIV_CONFIG0[currentSystem][currentContext] |= (atoi(xmlR.value) << 8);
+	  galaxyConfig->ctrlState.IFE_SIMPLE_IRAM_PRIV_CONFIG0[currentSystem][currentContext] |= (atoi(xmlR.value) << 8);
 	}
 	else if(!strcmp(xmlR.name, "clusterTemplate")) {
 	  /* need to make sure the number of these is less than the number of systems */
 	  currentClusterTemplate++;
-	  if(currentClusterTemplate >= ((galaxyConfig.ctrlState.CONTEXT_CONFIG[currentSystem][currentContext] >> 8) & 0xf)) {
+	  if(currentClusterTemplate >= ((galaxyConfig->ctrlState.CONTEXT_CONFIG[currentSystem][currentContext] >> 8) & 0xf)) {
 	    printf("xml file contains more clusterTemplate definitions than are specified for this context (%d)\n", currentContext);
 	    return -1;
 	  }
 	  else {
-	    galaxyConfig.ctrlState.CLUST_TEMPL_CONFIG[currentSystem][currentContext][currentClusterTemplate] = 0;
-	    galaxyConfig.ctrlState.CLUST_TEMPL_STATIC_REGFILE_CONFIG[currentSystem][currentContext][currentClusterTemplate] = 0;
-	    galaxyConfig.ctrlState.CLUST_TEMPL_SCORE_CONFIG[currentSystem][currentContext][currentClusterTemplate] = 0;
+	    galaxyConfig->ctrlState.CLUST_TEMPL_CONFIG[currentSystem][currentContext][currentClusterTemplate] = 0;
+	    galaxyConfig->ctrlState.CLUST_TEMPL_STATIC_REGFILE_CONFIG[currentSystem][currentContext][currentClusterTemplate] = 0;
+	    galaxyConfig->ctrlState.CLUST_TEMPL_SCORE_CONFIG[currentSystem][currentContext][currentClusterTemplate] = 0;
 	  }
 	}
 	else if(!strcmp(xmlR.name, "SCORE_PRESENT")) {
 	  ret = xmlTextReaderRead(reader);
 	  processNode(reader, &xmlR);
-	  galaxyConfig.ctrlState.CLUST_TEMPL_CONFIG[currentSystem][currentContext][currentClusterTemplate] |= atoi(xmlR.value);
+	  galaxyConfig->ctrlState.CLUST_TEMPL_CONFIG[currentSystem][currentContext][currentClusterTemplate] |= atoi(xmlR.value);
 	}
 	else if(!strcmp(xmlR.name, "VCORE_PRESENT")) {
 	  ret = xmlTextReaderRead(reader);
 	  processNode(reader, &xmlR);
-	  galaxyConfig.ctrlState.CLUST_TEMPL_CONFIG[currentSystem][currentContext][currentClusterTemplate] |= (atoi(xmlR.value) << 1);
+	  galaxyConfig->ctrlState.CLUST_TEMPL_CONFIG[currentSystem][currentContext][currentClusterTemplate] |= (atoi(xmlR.value) << 1);
 	}
 	else if(!strcmp(xmlR.name, "FPCORE_PRESENT")) {
 	  ret = xmlTextReaderRead(reader);
 	  processNode(reader, &xmlR);
-	  galaxyConfig.ctrlState.CLUST_TEMPL_CONFIG[currentSystem][currentContext][currentClusterTemplate] |= (atoi(xmlR.value) << 2);
+	  galaxyConfig->ctrlState.CLUST_TEMPL_CONFIG[currentSystem][currentContext][currentClusterTemplate] |= (atoi(xmlR.value) << 2);
 	}
 	else if(!strcmp(xmlR.name, "CCORE_PRESENT")) {
 	  ret = xmlTextReaderRead(reader);
 	  processNode(reader, &xmlR);
-	  galaxyConfig.ctrlState.CLUST_TEMPL_CONFIG[currentSystem][currentContext][currentClusterTemplate] |= (atoi(xmlR.value) << 3);
+	  galaxyConfig->ctrlState.CLUST_TEMPL_CONFIG[currentSystem][currentContext][currentClusterTemplate] |= (atoi(xmlR.value) << 3);
 	}
 	else if(!strcmp(xmlR.name, "INSTANCES")) {
 	  ret = xmlTextReaderRead(reader);
 	  processNode(reader, &xmlR);
-	  galaxyConfig.ctrlState.CLUST_TEMPL_CONFIG[currentSystem][currentContext][currentClusterTemplate] |= (atoi(xmlR.value) << 17);
+	  galaxyConfig->ctrlState.CLUST_TEMPL_CONFIG[currentSystem][currentContext][currentClusterTemplate] |= (atoi(xmlR.value) << 17);
 	}
 	else if(!strcmp(xmlR.name, "INSTANTIATE")) {
 	  ret = xmlTextReaderRead(reader);
 	  processNode(reader, &xmlR);
-	  galaxyConfig.ctrlState.CLUST_TEMPL_CONFIG[currentSystem][currentContext][currentClusterTemplate] |= (atoi(xmlR.value) << 16);
+	  galaxyConfig->ctrlState.CLUST_TEMPL_CONFIG[currentSystem][currentContext][currentClusterTemplate] |= (atoi(xmlR.value) << 16);
 	}
 	else if(!strcmp(xmlR.name, "ISSUE_WIDTH")) {
 	  ret = xmlTextReaderRead(reader);
 	  processNode(reader, &xmlR);
-	  galaxyConfig.ctrlState.CLUST_TEMPL_CONFIG[currentSystem][currentContext][currentClusterTemplate] |= (atoi(xmlR.value) << 8);
+	  galaxyConfig->ctrlState.CLUST_TEMPL_CONFIG[currentSystem][currentContext][currentClusterTemplate] |= (atoi(xmlR.value) << 8);
 	}
 	else if(!strcmp(xmlR.name, "S_GPR_FILE_SIZE")) {
 	  ret = xmlTextReaderRead(reader);
 	  processNode(reader, &xmlR);
-	  galaxyConfig.ctrlState.CLUST_TEMPL_STATIC_REGFILE_CONFIG[currentSystem][currentContext][currentClusterTemplate] |= atoi(xmlR.value);
+	  galaxyConfig->ctrlState.CLUST_TEMPL_STATIC_REGFILE_CONFIG[currentSystem][currentContext][currentClusterTemplate] |= atoi(xmlR.value);
 	}
 	else if(!strcmp(xmlR.name, "S_FPR_FILE_SIZE")) {
 	  ret = xmlTextReaderRead(reader);
 	  processNode(reader, &xmlR);
-	  galaxyConfig.ctrlState.CLUST_TEMPL_STATIC_REGFILE_CONFIG[currentSystem][currentContext][currentClusterTemplate] |= (atoi(xmlR.value) << 8);
+	  galaxyConfig->ctrlState.CLUST_TEMPL_STATIC_REGFILE_CONFIG[currentSystem][currentContext][currentClusterTemplate] |= (atoi(xmlR.value) << 8);
 	}
 	else if(!strcmp(xmlR.name, "S_VR_FILE_SIZE")) {
 	  ret = xmlTextReaderRead(reader);
 	  processNode(reader, &xmlR);
-	  galaxyConfig.ctrlState.CLUST_TEMPL_STATIC_REGFILE_CONFIG[currentSystem][currentContext][currentClusterTemplate] |= (atoi(xmlR.value) << 16);
+	  galaxyConfig->ctrlState.CLUST_TEMPL_STATIC_REGFILE_CONFIG[currentSystem][currentContext][currentClusterTemplate] |= (atoi(xmlR.value) << 16);
 	}
 	else if(!strcmp(xmlR.name, "S_PR_FILE_SIZE")) {
 	  ret = xmlTextReaderRead(reader);
 	  processNode(reader, &xmlR);
-	  galaxyConfig.ctrlState.CLUST_TEMPL_STATIC_REGFILE_CONFIG[currentSystem][currentContext][currentClusterTemplate] |= (atoi(xmlR.value) << 24);
+	  galaxyConfig->ctrlState.CLUST_TEMPL_STATIC_REGFILE_CONFIG[currentSystem][currentContext][currentClusterTemplate] |= (atoi(xmlR.value) << 24);
 	}
 	else if(!strcmp(xmlR.name, "IALUS")) {
 	  ret = xmlTextReaderRead(reader);
 	  processNode(reader, &xmlR);
-	  galaxyConfig.ctrlState.CLUST_TEMPL_SCORE_CONFIG[currentSystem][currentContext][currentClusterTemplate] |= atoi(xmlR.value);
+	  galaxyConfig->ctrlState.CLUST_TEMPL_SCORE_CONFIG[currentSystem][currentContext][currentClusterTemplate] |= atoi(xmlR.value);
 	}
 	else if(!strcmp(xmlR.name, "IMULTS")) {
 	  ret = xmlTextReaderRead(reader);
 	  processNode(reader, &xmlR);
-	  galaxyConfig.ctrlState.CLUST_TEMPL_SCORE_CONFIG[currentSystem][currentContext][currentClusterTemplate] |= (atoi(xmlR.value) << 8);
+	  galaxyConfig->ctrlState.CLUST_TEMPL_SCORE_CONFIG[currentSystem][currentContext][currentClusterTemplate] |= (atoi(xmlR.value) << 8);
 	}
 	else if(!strcmp(xmlR.name, "LSU_CHANNELS")) {
 	  ret = xmlTextReaderRead(reader);
 	  processNode(reader, &xmlR);
-	  galaxyConfig.ctrlState.CLUST_TEMPL_SCORE_CONFIG[currentSystem][currentContext][currentClusterTemplate] |= (atoi(xmlR.value) << 16);
+	  galaxyConfig->ctrlState.CLUST_TEMPL_SCORE_CONFIG[currentSystem][currentContext][currentClusterTemplate] |= (atoi(xmlR.value) << 16);
 	}
 	else if(!strcmp(xmlR.name, "BRUS")) {
 	  ret = xmlTextReaderRead(reader);
 	  processNode(reader, &xmlR);
-	  galaxyConfig.ctrlState.CLUST_TEMPL_SCORE_CONFIG[currentSystem][currentContext][currentClusterTemplate] |= (atoi(xmlR.value) << 24);
+	  galaxyConfig->ctrlState.CLUST_TEMPL_SCORE_CONFIG[currentSystem][currentContext][currentClusterTemplate] |= (atoi(xmlR.value) << 24);
 	}
 
 	else if(!strcmp(xmlR.name, "hypercontext")) {
 	  /* need to make sure the number of these is less than the number of systems */
 	  currentHyperContext++;
-	  if(currentHyperContext >= ((galaxyConfig.ctrlState.CONTEXT_CONFIG[currentSystem][currentContext] >> 4) & 0xf)) {
+	  if(currentHyperContext >= ((galaxyConfig->ctrlState.CONTEXT_CONFIG[currentSystem][currentContext] >> 4) & 0xf)) {
 	    printf("xml file contains more hyperContext definitions than are specified for this context (%d)\n", currentContext);
 	    return -1;
 	  }
 	  else {
-	    galaxyConfig.ctrlState.HCONTEXT_CONFIG[currentSystem][currentContext][currentHyperContext] = 0;
-	    galaxyConfig.ctrlState.HCONTEXT_CLUST_TEMPL0[currentSystem][currentContext][currentHyperContext] = 0;
-	    galaxyConfig.ctrlState.HCONTEXT_CLUST_TEMPL1[currentSystem][currentContext][currentHyperContext] = 0;
-	    galaxyConfig.ctrlState.HCONTEXT_CLUST_TEMPL_INST0[currentSystem][currentContext][currentHyperContext] = 0;
-	    galaxyConfig.ctrlState.HCONTEXT_CLUST_TEMPL_INST1[currentSystem][currentContext][currentHyperContext] = 0;
+	    galaxyConfig->ctrlState.HCONTEXT_CONFIG[currentSystem][currentContext][currentHyperContext] = 0;
+	    galaxyConfig->ctrlState.HCONTEXT_CLUST_TEMPL0[currentSystem][currentContext][currentHyperContext] = 0;
+	    galaxyConfig->ctrlState.HCONTEXT_CLUST_TEMPL1[currentSystem][currentContext][currentHyperContext] = 0;
+	    galaxyConfig->ctrlState.HCONTEXT_CLUST_TEMPL_INST0[currentSystem][currentContext][currentHyperContext] = 0;
+	    galaxyConfig->ctrlState.HCONTEXT_CLUST_TEMPL_INST1[currentSystem][currentContext][currentHyperContext] = 0;
 	  }
 	}
 	else if(!strcmp(xmlR.name, "cluster")) {
@@ -807,15 +807,15 @@ int readConfStatic(char *filename) {
 	  sscanf(xmlR.value, "%d_%d", &templ, &inst);
 
 	  /* TODO: check hi and lo */
-	  if((galaxyConfig.ctrlState.HCONTEXT_CONFIG[currentSystem][currentContext][currentHyperContext] & 0xf) > 8) {
-	    galaxyConfig.ctrlState.HCONTEXT_CLUST_TEMPL1[currentSystem][currentContext][currentHyperContext]|= (templ << (4 * (galaxyConfig.ctrlState.HCONTEXT_CONFIG[currentSystem][currentContext][currentHyperContext] & 0xf)));
-	    galaxyConfig.ctrlState.HCONTEXT_CLUST_TEMPL_INST1[currentSystem][currentContext][currentHyperContext] |= (inst << (4 * (galaxyConfig.ctrlState.HCONTEXT_CONFIG[currentSystem][currentContext][currentHyperContext] & 0xf)));
+	  if((galaxyConfig->ctrlState.HCONTEXT_CONFIG[currentSystem][currentContext][currentHyperContext] & 0xf) > 8) {
+	    galaxyConfig->ctrlState.HCONTEXT_CLUST_TEMPL1[currentSystem][currentContext][currentHyperContext]|= (templ << (4 * (galaxyConfig->ctrlState.HCONTEXT_CONFIG[currentSystem][currentContext][currentHyperContext] & 0xf)));
+	    galaxyConfig->ctrlState.HCONTEXT_CLUST_TEMPL_INST1[currentSystem][currentContext][currentHyperContext] |= (inst << (4 * (galaxyConfig->ctrlState.HCONTEXT_CONFIG[currentSystem][currentContext][currentHyperContext] & 0xf)));
 	  }
 	  else {
-	    galaxyConfig.ctrlState.HCONTEXT_CLUST_TEMPL0[currentSystem][currentContext][currentHyperContext] |= (templ << (4 * (galaxyConfig.ctrlState.HCONTEXT_CONFIG[currentSystem][currentContext][currentHyperContext] & 0xf)));
-	    galaxyConfig.ctrlState.HCONTEXT_CLUST_TEMPL_INST0[currentSystem][currentContext][currentHyperContext] |= (inst << (4 * (galaxyConfig.ctrlState.HCONTEXT_CONFIG[currentSystem][currentContext][currentHyperContext] & 0xf)));
+	    galaxyConfig->ctrlState.HCONTEXT_CLUST_TEMPL0[currentSystem][currentContext][currentHyperContext] |= (templ << (4 * (galaxyConfig->ctrlState.HCONTEXT_CONFIG[currentSystem][currentContext][currentHyperContext] & 0xf)));
+	    galaxyConfig->ctrlState.HCONTEXT_CLUST_TEMPL_INST0[currentSystem][currentContext][currentHyperContext] |= (inst << (4 * (galaxyConfig->ctrlState.HCONTEXT_CONFIG[currentSystem][currentContext][currentHyperContext] & 0xf)));
 	  }
-	  galaxyConfig.ctrlState.HCONTEXT_CONFIG[currentSystem][currentContext][currentHyperContext] += 1;
+	  galaxyConfig->ctrlState.HCONTEXT_CONFIG[currentSystem][currentContext][currentHyperContext] += 1;
 	}
       }
       ret = xmlTextReaderRead(reader);
