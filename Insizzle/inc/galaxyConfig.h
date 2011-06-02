@@ -34,7 +34,7 @@ typedef struct {
 
 typedef struct {
   unsigned CONTEXT_CONFIG;
-  unsigned CONTEXT_CTRL_REG;
+  unsigned CONTEXT_CTRL;
   unsigned IFE_SIMPLE_IRAM_PRIV_CONFIG;
 
   /* for each hypercontext & cluster template need to allocate memory */
