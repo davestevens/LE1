@@ -1120,6 +1120,10 @@ int insizzleAPIStubInitVtApi(galaxyConfigT *galaxyConfig) {
     printf("error reading config file: %s\n", filename);
     return -1;
   }
+  if(readConfStatic(filename, galaxyConfig) == -1) {
+    printf("error reading config file: %s\n", filename);
+    return -1;
+  }
   printf("then setupGalaxy()\n");
   if(setupGalaxy() == -1) {
     printf("error setting up galaxy\n");
