@@ -935,9 +935,11 @@ void insizzleAPILdIRAM(char *iram, int size) {
   int i;
   char *point;
 
+#ifdef APIDEBUG
   printf("loadIRAM:\n");
   printf("\t%p\n", iram);
   printf("\t%d\n", size);
+#endif
 
   /* need to malloc a space of memory */
 
@@ -958,9 +960,11 @@ void insizzleAPILdDRAM(char *dram, int size) {
   int i;
   char *point;
 
+#ifdef APIDEBUG
   printf("loadDRAM:\n");
   printf("\t%p\n", dram);
   printf("\t%d\n", size);
+#endif
 
   /* need to malloc a space of memory */
 
@@ -987,7 +991,9 @@ void insizzleAPILdDRAM(char *dram, int size) {
 /* setup global System, Context and Hypercontext pointers
  */
 int insizzleAPISetCurrent(unsigned system, unsigned context, unsigned hypercontext, unsigned cluster) {
+#ifdef APIDEBUG
   printf("insizzleAPISetCurrent(%d, %d, %d, %d)\n", system, context, hypercontext, cluster);
+#endif
   /* TODO: should put a check here to see its not above the MAX */
   if(system >= MASTERCFG_SYSTEMS_MAX) {
     printf("\tsystem %d >= MASTERCFG_SYSTEMS_MAX: %d\n", system, MASTERCFG_SYSTEMS_MAX);
@@ -1018,7 +1024,9 @@ int insizzleAPISetCurrent(unsigned system, unsigned context, unsigned hyperconte
  */
 int insizzleAPIRdOneIramLocation(galaxyConfigT *galaxyConfig, unsigned iaddr, unsigned *data) {
   *data = (unsigned)*(globalC->iram + (iaddr >> 2));
+#ifdef APIDEBUG
   printf("insizzleAPIRdOneIramLocation: 0x%08x = 0x%08x\n", iaddr, *data);
+#endif
   return 0;
 }
 
@@ -1026,7 +1034,9 @@ int insizzleAPIRdOneIramLocation(galaxyConfigT *galaxyConfig, unsigned iaddr, un
  */
 int insizzleAPIWrOneIramLocation(galaxyConfigT *galaxyConfig, unsigned iaddr, unsigned data) {
   *(globalC->iram + (iaddr >> 2)) = data;
+#ifdef APIDEBUG
   printf("insizzleAPIWrOneIramLocation: 0x%08x = 0x%08x\n", iaddr, data);
+#endif
   return 0;
 }
 
@@ -1034,7 +1044,9 @@ int insizzleAPIWrOneIramLocation(galaxyConfigT *galaxyConfig, unsigned iaddr, un
  */
 int insizzleAPIRdOneDramLocation (galaxyConfigT *galaxyConfig, unsigned daddr, unsigned *data) {
   *data = (unsigned)*(globalS->dram + (daddr >> 2));
+#ifdef APIDEBUG
   printf("insizzleAPIRdOneDramLocation: 0x%08x = 0x%08x\n", daddr, *data);
+#endif
   return 0;
 }
 
@@ -1042,7 +1054,9 @@ int insizzleAPIRdOneDramLocation (galaxyConfigT *galaxyConfig, unsigned daddr, u
  */
 int insizzleAPIWrOneDramLocation (galaxyConfigT *galaxyConfig, unsigned daddr, unsigned data) {
   *(globalS->dram + (daddr >> 2)) = data;
+#ifdef APIDEBUG
   printf("insizzleAPIWrOneDramLocation: 0x%08x = 0x%08x\n", daddr, data);
+#endif
   return 0;
 }
 
@@ -1050,7 +1064,9 @@ int insizzleAPIWrOneDramLocation (galaxyConfigT *galaxyConfig, unsigned daddr, u
  */
 int insizzleAPIRdOneSGpr(unsigned sgpr, unsigned *rdata) {
   *rdata = (unsigned)*(globalHC->S_GPR + sgpr);
+#ifdef APIDEBUG
   printf("insizzleAPIRdOneSGpr: 0x%08x\n", *rdata);
+#endif
   return 0;
 }
 
@@ -1059,7 +1075,9 @@ int insizzleAPIRdOneSGpr(unsigned sgpr, unsigned *rdata) {
 int insizzleAPIWrOneSGpr(unsigned sgpr, unsigned wdata) {
   *(globalHC->S_GPR + sgpr) = wdata;
   *(globalHC->pS_GPR + sgpr) = wdata;
+#ifdef APIDEBUG
   printf("insizzleAPIWrOneSGpr: 0x%08x\n", wdata);
+#endif
   return 0;
 }
 
@@ -1067,7 +1085,9 @@ int insizzleAPIWrOneSGpr(unsigned sgpr, unsigned wdata) {
  */
 int insizzleAPIRdOneLr(galaxyConfigT *galaxyConfig, unsigned *rdata) {
   *rdata = globalHC->linkReg;
+#ifdef APIDEBUG
   printf("insizzzleAPIRdOneLr: 0x%08x\n", *rdata);
+#endif
   return 0;
 }
 
@@ -1076,7 +1096,9 @@ int insizzleAPIRdOneLr(galaxyConfigT *galaxyConfig, unsigned *rdata) {
 int insizzleAPIWrOneLr(galaxyConfigT *galaxyConfig, unsigned wdata) {
   globalHC->linkReg = wdata;
   globalHC->plinkReg = wdata;
+#ifdef APIDEBUG
   printf("insizzleAPIWrOneLr: 0x%08x\n", wdata);
+#endif
   return 0;
 }
 
@@ -1084,7 +1106,9 @@ int insizzleAPIWrOneLr(galaxyConfigT *galaxyConfig, unsigned wdata) {
  */
 int insizzleAPIRdOneBr(unsigned br, unsigned *rdata) {
   *rdata = (unsigned)*(globalHC->S_PR + br);
+#ifdef APIDEBUG
   printf("insizzleAPIWrOneBr: 0x%x\n", *rdata);
+#endif
   return 0;
 }
 
@@ -1093,7 +1117,9 @@ int insizzleAPIRdOneBr(unsigned br, unsigned *rdata) {
 int insizzleAPIWrOneBr(unsigned br, unsigned wdata) {
   *(globalHC->S_PR + br) = (wdata & 0x1);
   *(globalHC->pS_PR + br) = (wdata & 0x1);
+#ifdef APIDEBUG
   printf("insizzleAPIWrOneBr: 0x%x\n", wdata);
+#endif
   return 0;
 }
 
@@ -1101,7 +1127,9 @@ int insizzleAPIWrOneBr(unsigned br, unsigned wdata) {
  */
 int insizzleAPIRdCtrl(galaxyConfigT *galaxyConfig, unsigned *val) {
   *val = (globalHC->VT_CTRL >> 3) & 0xff;
+#ifdef APIDEBUG
   printf("insizzleAPIRdCtrl: 0x%08x\n", *val);
+#endif
   return 0;
 }
 
@@ -1110,7 +1138,9 @@ int insizzleAPIRdCtrl(galaxyConfigT *galaxyConfig, unsigned *val) {
 int insizzleAPIWrCtrl(galaxyConfigT *galaxyConfig, unsigned val) {
   globalHC->VT_CTRL &= 0xfffff807;
   globalHC->VT_CTRL |= (val & 0xff) << 3;
+#ifdef APIDEBUG
   printf("insizzleAPIWrCtrl: 0x%08x\n", globalHC->VT_CTRL);
+#endif
   return 0;
 }
 
@@ -1118,8 +1148,10 @@ int insizzleAPIWrCtrl(galaxyConfigT *galaxyConfig, unsigned val) {
  */
 int insizzleAPIStubInitVtApi(galaxyConfigT *galaxyConfig) {
   char *filename = "LE1/Insizzle/MM/vexdefault.xml";
+#ifdef APIDEBUG
   printf("insizzleAPIStubInitVtApi (FROM INSIZZLE)\n");
   printf("need to open and read in: %s\n", filename);
+#endif
   if(readConf(filename) == -1) {
     printf("error reading config file: %s\n", filename);
     return -1;
@@ -1128,7 +1160,9 @@ int insizzleAPIStubInitVtApi(galaxyConfigT *galaxyConfig) {
     printf("error reading config file: %s\n", filename);
     return -1;
   }
+#ifdef APIDEBUG
   printf("then setupGalaxy()\n");
+#endif
   if(setupGalaxy() == -1) {
     printf("error setting up galaxy\n");
     return -1;
@@ -1140,13 +1174,17 @@ int insizzleAPIStubInitVtApi(galaxyConfigT *galaxyConfig) {
  */
 int insizzleAPIWrPC(galaxyConfigT *galaxyConfig, unsigned val) {
   globalHC->programCounter = val;
+#ifdef APIDEBUG
   printf("insizzleAPIWrPC: 0x%08x\n", val);
+#endif
   return 0;
 }
 
 int insizzleAPIRdPC(galaxyConfigT *galaxyConfig, unsigned *val) {
   *val = globalHC->programCounter;
+#ifdef APIDEBUG
   printf("insizzleAPIRdPC: 0x%08x\n", *val);
+#endif
   return 0;
 }
 #endif
