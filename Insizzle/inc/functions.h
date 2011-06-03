@@ -10,12 +10,12 @@
 #endif
 
 /* deepstate defines */
-#define READY                 0
+/*#define READY                 0
 #define RUNNING               1
 #define BLOCKED_MUTEX_LOCK    2
 #define TERMINATED_ASYNC_HOST 3
 #define TERMINATED_ASYNC      4
-#define TERMINATED_SYNC       5
+#define TERMINATED_SYNC       5*/
 
 #define PIPELINE_REFILL       3
 #define STACK_SIZE            8 /* KB */

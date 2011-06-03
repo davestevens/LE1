@@ -1123,10 +1123,71 @@ int insizzleAPIWrOneBr(unsigned br, unsigned wdata) {
   return 0;
 }
 
+/* defines used here, will need to change to fit with vtAPI */
+#define RDY 0
+#define RNG 1
+#define BML 2
+#define TS  3
+#define TAS 4
+#define TA  5
+
 /* read control register
  */
-int insizzleAPIRdCtrl(galaxyConfigT *galaxyConfig, unsigned *val) {
-  *val = (globalHC->VT_CTRL >> 3) & 0xff;
+int insizzleAPIRdCtrl(galaxyConfigT *galaxyConfig, vtCtrlStateE *val) {
+  /*val = (globalHC->VT_CTRL >> 3) & 0xff;*/
+  if((globalHC->VT_CTRL >> 1) & 0x1) {
+    *val = _DEBUG;
+  }
+  else {
+    if((globalHC->VT_CTRL >> 2) & 0x1) {
+      /* single step mode */
+      switch((globalHC->VT_CTRL >> 3) & 0xff) {
+      case RDY:
+	*val = SSTEP_READY;
+	break;
+      case RNG:
+	*val = SSTEP_RUNNING;
+	break;
+      case BML:
+	*val = SSTEP_BLOCKED_MUTEX_LOCK;
+	break;
+      case TS:
+	*val = SSTEP_TERMINATED_SYNC;
+	break;
+      default:
+	printf("unknown VT_CTRL mode: %d\n", globalHC->VT_CTRL);
+	return -1;
+	break;
+      }
+    }
+    else {
+      /* normal mode */
+      switch((globalHC->VT_CTRL >> 3) & 0xff) {
+      case RDY:
+	*val = READY;
+	break;
+      case RNG:
+	*val = RUNNING;
+	break;
+      case BML:
+	*val = BLOCKED_MUTEX_LOCK;
+	break;
+      case TS:
+	*val = TERMINATED_SYNC;
+	break;
+      case TAS:
+	*val = TERMINATED_ASYNC_HOST;
+	break;
+      case TA:
+	*val = TERMINATED_ASYNC;
+	break;
+      default:
+	printf("unknown VT_CTRL mode: %d\n", globalHC->VT_CTRL);
+	return -1;
+	break;
+      }
+    }
+  }
 #ifdef APIDEBUG
   printf("insizzleAPIRdCtrl: 0x%08x\n", *val);
 #endif
@@ -1135,9 +1196,57 @@ int insizzleAPIRdCtrl(galaxyConfigT *galaxyConfig, unsigned *val) {
 
 /* write control register
  */
-int insizzleAPIWrCtrl(galaxyConfigT *galaxyConfig, unsigned val) {
-  globalHC->VT_CTRL &= 0xfffff807;
-  globalHC->VT_CTRL |= (val & 0xff) << 3;
+int insizzleAPIWrCtrl(galaxyConfigT *galaxyConfig, vtCtrlStateE val) {
+  switch(val) {
+  case _DEBUG:
+    globalHC->VT_CTRL &= 0xfffffffb;
+    globalHC->VT_CTRL |= (1 << 1);
+    break;
+  case SSTEP_READY:
+    globalHC->VT_CTRL &= 0xfffffffd;
+    globalHC->VT_CTRL |= (RDY << 3);
+    break;
+  case SSTEP_RUNNING:
+    globalHC->VT_CTRL &= 0xfffffffd;
+    globalHC->VT_CTRL |= (RNG << 3);
+    break;
+  case SSTEP_BLOCKED_MUTEX_LOCK:
+    globalHC->VT_CTRL &= 0xfffffffd;
+    globalHC->VT_CTRL |= (BML << 3);
+    break;
+  case SSTEP_TERMINATED_SYNC:
+    globalHC->VT_CTRL &= 0xfffffffd;
+    globalHC->VT_CTRL |= (TS << 3);
+    break;
+  case READY:
+    globalHC->VT_CTRL &= 0xfffffff9;
+    globalHC->VT_CTRL |= (RDY << 3);
+    break;
+  case RUNNING:
+    globalHC->VT_CTRL &= 0xfffffff9;
+    globalHC->VT_CTRL |= (RNG << 3);
+    break;
+  case BLOCKED_MUTEX_LOCK:
+    globalHC->VT_CTRL &= 0xfffffff9;
+    globalHC->VT_CTRL |= (BML << 3);
+    break;
+  case TERMINATED_ASYNC_HOST:
+    globalHC->VT_CTRL &= 0xfffffff9;
+    globalHC->VT_CTRL |= (TAS << 3);
+    break;
+  case TERMINATED_ASYNC:
+    globalHC->VT_CTRL &= 0xfffffff9;
+    globalHC->VT_CTRL |= (TA << 3);
+    break;
+  case TERMINATED_SYNC:
+    globalHC->VT_CTRL &= 0xfffffff9;
+    globalHC->VT_CTRL |= (TS << 3);
+    break;
+  default:
+    printf("unknown Control State requested (%d)\n", val);
+    return -1;
+    break;
+  }
 #ifdef APIDEBUG
   printf("insizzleAPIWrCtrl: 0x%08x\n", globalHC->VT_CTRL);
 #endif
