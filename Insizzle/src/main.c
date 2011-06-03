@@ -5,7 +5,7 @@
 #include "xmlRead.h"
 #include "functions.h"
 #include "macros.h"
-/* HELLO */
+
 /* compile with
    gcc -o Insizzle `xml2-config --cflags` main.c `xml2-config --libs` -m32 -Wall -Wextra -pedantic -std=c99
 */
@@ -458,7 +458,11 @@ int main(int argc, char *argv[])
 					hypercontext->programCounter = inst.packet.newPC;
 					inst.packet.newPCValid = 0;
 					/* TODO: add stalls for control flow change */
+#ifndef API
 					hypercontext->stalled += PIPELINE_REFILL;
+#else
+					hypercontext->stallCount += PIPELINE_REFILL;
+#endif
 #ifdef DEBUG
 					printf("control flow change!\n");
 #endif

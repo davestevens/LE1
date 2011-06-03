@@ -220,7 +220,11 @@ unsigned checkBundle(hyperContextT *hypercontext, unsigned startPC, unsigned end
       if((numOfWords == (totalWidth * 2)) && ((startPC >> 2) % totalWidth))
 	{
 	  hypercontext->decodeStallCount++;
+#ifndef API
 	  hypercontext->stalled++;
+#else
+	  hypercontext->stallCount++;
+#endif
 	}
       bundleCount = (unsigned long long *)((unsigned)hypercontext->bundleCount);
       *bundleCount = *bundleCount + 1;
