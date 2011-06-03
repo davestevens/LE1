@@ -5,7 +5,7 @@
 #include "xmlRead.h"
 #include "functions.h"
 #include "macros.h"
-
+/* HELLO */
 /* compile with
    gcc -o Insizzle `xml2-config --cflags` main.c `xml2-config --libs` -m32 -Wall -Wextra -pedantic -std=c99
 */
