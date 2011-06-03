@@ -195,6 +195,8 @@ int insizzleAPIStubInitVtApi(galaxyConfigT *);
 int insizzleAPIWrPC(galaxyConfigT *, unsigned);
 int insizzleAPIRdPC(galaxyConfigT *, unsigned *);
 
+int insizzleAPIoutputCounts(void);
+
 systemT *globalS;
 contextT *globalC;
 hyperContextT *globalHC;

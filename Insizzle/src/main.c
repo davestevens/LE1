@@ -1014,6 +1014,19 @@ int main(int argc, char *argv[])
 #endif
 
 #endif
+
+#else
+  int insizzleAPIoutputCounts(void) {
+    unsigned i, j, k;
+
+    systemConfig *SYS;
+    contextConfig *CNT;
+    hyperContextConfig *HCNT;
+
+    systemT *system;
+    contextT *context;
+    hyperContextT *hypercontext;
+#endif
   /* print out details */
   printf("galaxy: 0\n");
   /* loop through systems in the galaxy */
@@ -1055,7 +1068,6 @@ int main(int argc, char *argv[])
 
   return 0;
 }
-#endif
 
 /* read galaxyConfig and setup registers and memory */
 int setupGalaxy(void)
