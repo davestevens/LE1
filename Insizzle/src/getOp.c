@@ -44,7 +44,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
   ret.newPC = 0;
   ret.newPCValid = 0;
 
-  ret.executed = 0;
+  ret.executed = 1;
   ret.maddr = 0;
   ret.maddrValid = 0;
   for(i=0;i<7;i++) {
@@ -866,16 +866,19 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		      ret.opcode = CUSTOM;
 		      /* not yet implemented: CASM7 */
 		      ret.data = 0;
+		      ret.executed = 0; /* operation is not executed */
 		      break;
 		    case 25:
 		      ret.opcode = CUSTOM;
 		      /* not yet implemented: CASM6 */
 		      ret.data = 0;
+		      ret.executed = 0; /* operation is not executed */
 		      break;
 		    case 26:
 		      ret.opcode = CUSTOM; /* CASM5 */
 		      /* need to figure out which it is */
 		      extra = ((immediate >> 30) & 0x3);
+		      ret.executed = 0; /* operation is not executed */
 		      switch(extra)
 			{
 			case 0:
@@ -1058,11 +1061,13 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		      ret.opcode = CUSTOM;
 		      /* not yet implemented: CASM4 */
 		      ret.data = 0;
+		      ret.executed = 0; /* operation is not executed */
 		      break;
 		    case 28:
 		      ret.opcode = CUSTOM;
 		      /* not yet implemented: CASM3 */
 		      ret.data = 0;
+		      ret.executed = 0; /* operation is not executed */
 		      break;
 		    default:
 		      /*ret.opcode = XXX;
@@ -1480,6 +1485,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 			  /* TODO: THIS */
 			  /*printOutDataPerThread(data, cnt, hcnt);*/
 			  hypercontext->VT_CTRL |= 1 << 1;
+			  ret.executed = 0; /* operation is not executed */
 			  break;
 			case 2:
 			  ret.opcode = RDCTRL;
@@ -1861,6 +1867,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		      /* CASM3 */
 		      ret.opcode = CUSTOM;
 		      extra = ((inst >> 12) & 0x7);
+		      ret.executed = 0; /* operation is not executed */
 		      switch(extra)
 			{
 			case 0:
