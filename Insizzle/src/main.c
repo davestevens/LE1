@@ -372,15 +372,16 @@ int main(int argc, char *argv[])
 				    /* populate the gTracePacketT here */
 				    gTracePacket[i][j][k].bundle[bundlePos].executed = inst.packet.executed;
 				    gTracePacket[i][j][k].bundle[bundlePos].syll = this.op;
+				    gTracePacket[i][j][k].bundle[bundlePos].syllValid = 1;
 				    gTracePacket[i][j][k].bundle[bundlePos].pc = hypercontext->programCounter;
 
 				    if(this.immValid) {
 				      gTracePacket[i][j][k].bundle[bundlePos].imm = this.imm;
-				      gTracePacket[i][j][k].bundle[bundlePos].imm = this.immValid;
+				      gTracePacket[i][j][k].bundle[bundlePos].immValid = this.immValid;
 				    }
 				    else {
 				      gTracePacket[i][j][k].bundle[bundlePos].imm = 0;
-				      gTracePacket[i][j][k].bundle[bundlePos].imm = this.immValid;
+				      gTracePacket[i][j][k].bundle[bundlePos].immValid = this.immValid;
 				    }
 
 				    gTracePacket[i][j][k].bundle[bundlePos].maddr = inst.packet.maddr;
