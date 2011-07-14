@@ -384,8 +384,25 @@ if($DONE == 0)
 	}
 	else
 	{
-	    print "Running Command: $vex_location -S $libraries$toImport $arguments -fexpand-div -fno-xnop -w -fmm=$fmm 2>&1\n";
-#	    @return = readpipe("$vex_location -S $cfiles $arguments -fexpand-div -fno-xnop -w -fmm=$fmm 2>&1");
+	    if($malloc_size) {
+		print "\t\tRunning Command: $vex_location -S $libraries$toImport $arguments -fexpand-div -fno-xnop -w -DHEAP_SIZE=$malloc_size -fmm=$fmm 2>&1\n";
+		@return = readpipe("$vex_location -S $libraries$toImport $arguments -fexpand-div -fno-xnop -w  -DHEAP_SIZE=$malloc_size -fmm=$fmm 2>&1");
+	    }
+	    else {
+		print "\t\tRunning Command: $vex_location -S $libraries$toImport $arguments -fexpand-div -fno-xnop -w -fmm=$fmm 2>&1\n";
+		@return = readpipe("$vex_location -S $libraries$toImport $arguments -fexpand-div -fno-xnop -w -fmm=$fmm 2>&1");
+	    }
+	    &check_return();
+	    # then run firstpass on this
+	    $toImport =~ /(\w+)\/(\w+)\.c/;
+	    $forFP = $2 . ".s";
+	    print "\t\tRunning Command: $perl $firstpass $forFP -s=$stack_size2>&1\n";
+	    @return = readpipe("$perl $firstpass $forFP -s=$stack_size 2>&1");
+	    &check_return();
+
+	    ($filename, $rest) = split(/ contains /, $return[$#return]);
+	    push @files2, $filename;
+
 	}
     }
 
