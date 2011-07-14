@@ -440,6 +440,7 @@ if($DONE == 0)
     printf("done looking for imports\n");
     if(@toImport > 0)
     {
+	$file3 = '';
 	goto REWIND;
     }
 }
