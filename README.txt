@@ -14,3 +14,4 @@ where *.vajazzle.[co] are created by the Assembler
 need to sort out endianness, i think i need to go back to working out types again
 at the moment it works with sizes, but shorts/chars can take up 4 bytes because of packing
 
+TEST
