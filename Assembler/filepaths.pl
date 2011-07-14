@@ -5,8 +5,8 @@ use Getopt::Long;  # Switch option Handling
 
 # default switch options
 my $help;
-$vex_location    = "/home/mark/Desktop/Jink/thirdpartytools/LE1/vex-3.41/bin/cc"; 
-$le1_folder      = "/home/mark/Desktop/Jink/thirdpartytools/LE1";
+$vex_location    = "/home/elds2/vex-3.41/bin/cc";
+$le1_folder      = "/home/elds2/LE1_2";
 
 # name of the folder containing assembler
 $assembler_folder = "Assembler";

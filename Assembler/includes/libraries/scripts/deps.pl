@@ -94,6 +94,9 @@
 
 
 # STDLIB
+@malloc = ("stdlib/mem.c");
+@calloc = ("stdlib/mem.c");
+@free = ("stdlib/mem.c");
 
 # SOFTFLOAT
 

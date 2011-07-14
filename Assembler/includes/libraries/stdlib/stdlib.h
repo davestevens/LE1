@@ -9,7 +9,7 @@ void *calloc(size_t num, size_t size);
 void free(void *ap);
 
 #ifndef HEAP_SIZE
-#define HEAP_SIZE 100 /* chunks */
+#define HEAP_SIZE 100 /* chunks */ /* 1 chunk = 2 bytes */
 #endif
 
 struct chunk {

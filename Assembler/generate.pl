@@ -23,6 +23,7 @@ $sim_mem_blocks = 1;
 $sim_width = 4;
 $mem_align = 0;
 $vex_sim = 0;
+$malloc_size = 0;
 foreach $arg (@ARGV)
 {
     if($arg eq "-d")
@@ -72,6 +73,10 @@ foreach $arg (@ARGV)
     elsif($arg =~ /-SIM_WIDTH=(\d+)/)
     {
 	$sim_width = $1;
+    }
+    elsif($arg =~ /-MALLOC_SIZE=(\d+)/)
+    {
+	$malloc_size = $1;
     }
     elsif($arg =~ /-D(.+)=(.+)/)
     {
@@ -357,8 +362,14 @@ if($DONE == 0)
 
 	if($fmm eq "")
 	{
-	    print "\t\tRunning Command: $vex_location -S $libraries$toImport $arguments -fexpand-div -fno-xnop -w 2>&1\n";
-	    @return = readpipe("$vex_location -S $libraries$toImport $arguments -fexpand-div -fno-xnop -w 2>&1");
+	    if($malloc_size) {
+		print "\t\tRunning Command: $vex_location -S $libraries$toImport $arguments -fexpand-div -fno-xnop -w -DHEAP_SIZE=$malloc_size 2>&1\n";
+		@return = readpipe("$vex_location -S $libraries$toImport $arguments -fexpand-div -fno-xnop -w  -DHEAP_SIZE=$malloc_size 2>&1");
+	    }
+	    else {
+		print "\t\tRunning Command: $vex_location -S $libraries$toImport $arguments -fexpand-div -fno-xnop -w 2>&1\n";
+		@return = readpipe("$vex_location -S $libraries$toImport $arguments -fexpand-div -fno-xnop -w 2>&1");
+	    }
 	    &check_return();
 	    # then run firstpass on this
 	    $toImport =~ /(\w+)\/(\w+)\.c/;
