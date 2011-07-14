@@ -157,20 +157,20 @@ EOH
 	{
 	    if($fmm eq "")
 	    {
-		print "Running Command: $vex_location -c $cfiles $arguments -ms -mas_g -fexpand-div -fno-xnop -w 2>&1\n";
+		print "Running Command: $vex_location -S $cfiles $arguments -fexpand-div -fno-xnop -w 2>&1\n";
 	    }
 	    else
 	    {
-		print "Running Command: $vex_location -c $cfiles $arguments -ms -mas_g -fexpand-div -fno-xnop -w -fmm=$fmm 2>&1\n";
+		print "Running Command: $vex_location -S $cfiles $arguments -fexpand-div -fno-xnop -w -fmm=$fmm 2>&1\n";
 	    }
 	}
 	if($fmm eq "")
 	{
-	    @return = readpipe("$vex_location -c $cfiles $arguments -ms -mas_g -fexpand-div -fno-xnop -w 2>&1");
+	    @return = readpipe("$vex_location -S $cfiles $arguments -fexpand-div -fno-xnop -w 2>&1");
 	}
 	else
 	{
-	    @return = readpipe("$vex_location -c $cfiles $arguments -ms -mas_g -fexpand-div -fno-xnop -w -fmm=$fmm 2>&1");
+	    @return = readpipe("$vex_location -S $cfiles $arguments -fexpand-div -fno-xnop -w -fmm=$fmm 2>&1");
 	}
 	&check_return();
 	print "VEX run completed, created all .s and .cs.c files\n";
@@ -193,19 +193,19 @@ EOH
 		    $floatlib_args =~ s/-c99inline//g;
 		    if($fmm eq "")
 		    {
-			print "Running Command: $vex_location -c $floatlib $floatlib_args -ms -mas_g -fexpand-div -fno-xnop -w 2>&1\n";
+			print "Running Command: $vex_location -S $floatlib $floatlib_args -fexpand-div -fno-xnop -w 2>&1\n";
 		    }
 		    else
 		    {
-			print "Running Command: $vex_location -c $floatlib $floatlib_args -ms -mas_g -fexpand-div -fno-xnop -w -fmm=$fmm 2>&1\n";
+			print "Running Command: $vex_location -S $floatlib $floatlib_args -fexpand-div -fno-xnop -w -fmm=$fmm 2>&1\n";
 		    }
 		    if($fmm eq "")
 		    {
-			@return = readpipe("$vex_location -c $floatlib $floatlib_args -ms -mas_g -fexpand-div -fno-xnop -w 2>&1");
+			@return = readpipe("$vex_location -S $floatlib $floatlib_args -fexpand-div -fno-xnop -w 2>&1");
 		    }
 		    else
 		    {
-			@return = readpipe("$vex_location -c $floatlib $floatlib_args -ms -mas_g -fexpand-div -fno-xnop -w -fmm=$fmm 2>&1");
+			@return = readpipe("$vex_location -S $floatlib $floatlib_args -fexpand-div -fno-xnop -w -fmm=$fmm 2>&1");
 		    }
 		    &check_return();
 		    push @cfiles, "floatlib.c";
@@ -357,8 +357,8 @@ if($DONE == 0)
 
 	if($fmm eq "")
 	{
-	    print "\t\tRunning Command: $vex_location -c $libraries$toImport $arguments -ms -mas_g -fexpand-div -fno-xnop -w 2>&1\n";
-	    @return = readpipe("$vex_location -c $libraries$toImport $arguments -ms -mas_g -fexpand-div -fno-xnop -w 2>&1");
+	    print "\t\tRunning Command: $vex_location -S $libraries$toImport $arguments -fexpand-div -fno-xnop -w 2>&1\n";
+	    @return = readpipe("$vex_location -S $libraries$toImport $arguments -fexpand-div -fno-xnop -w 2>&1");
 	    &check_return();
 	    # then run firstpass on this
 	    $toImport =~ /(\w+)\/(\w+)\.c/;
@@ -372,8 +372,8 @@ if($DONE == 0)
 	}
 	else
 	{
-	    print "Running Command: $vex_location -c $libraries$toImport $arguments -ms -mas_g -fexpand-div -fno-xnop -w -fmm=$fmm 2>&1\n";
-#	    @return = readpipe("$vex_location -c $cfiles $arguments -ms -mas_g -fexpand-div -fno-xnop -w -fmm=$fmm 2>&1");
+	    print "Running Command: $vex_location -S $libraries$toImport $arguments -fexpand-div -fno-xnop -w -fmm=$fmm 2>&1\n";
+#	    @return = readpipe("$vex_location -S $cfiles $arguments -fexpand-div -fno-xnop -w -fmm=$fmm 2>&1");
 	}
     }
 
@@ -395,13 +395,13 @@ if($DONE == 0)
 		    $floatlib_args =~ s/-c99inline//g;
 		    if($fmm eq "")
 		    {
-			print "Running Command: $vex_location -c $floatlib $floatlib_args -ms -mas_g -fexpand-div -fno-xnop -w 2>&1\n";
-			@return = readpipe("$vex_location -c $floatlib $floatlib_args -ms -mas_g -fexpand-div -fno-xnop -w 2>&1");
+			print "Running Command: $vex_location -S $floatlib $floatlib_args -fexpand-div -fno-xnop -w 2>&1\n";
+			@return = readpipe("$vex_location -S $floatlib $floatlib_args -fexpand-div -fno-xnop -w 2>&1");
 		    }
 		    else
 		    {
-			print "Running Command: $vex_location -c $floatlib $floatlib_args -ms -mas_g -fexpand-div -fno-xnop -w -fmm=$fmm 2>&1\n";
-			@return = readpipe("$vex_location -c $floatlib $floatlib_args -ms -mas_g -fexpand-div -fno-xnop -w -fmm=$fmm 2>&1");
+			print "Running Command: $vex_location -S $floatlib $floatlib_args -fexpand-div -fno-xnop -w -fmm=$fmm 2>&1\n";
+			@return = readpipe("$vex_location -S $floatlib $floatlib_args -fexpand-div -fno-xnop -w -fmm=$fmm 2>&1");
 		    }
 		    &check_return();
 		    push @cfiles, "floatlib.c";
