@@ -5,27 +5,8 @@ use Getopt::Long;  # Switch option Handling
 
 # default switch options
 my $help;
-$vex_location    = "/home/elds2/vex-3.41/bin/cc";
-$le1_folder      = "/home/elds2/git/LE1";
-
-# use default values if no command line parameters are passed or there is an unknown parameter, otherwise user drive parameters are
-# used.
-usage() if (! GetOptions('help|?' => \$help, 'vex_location=s' => \$vex_location, 'le1_folder=s' => \$le1_folder) or defined $help );
-
-sub usage
-{
-  print "Unknown option: @_\n" if ( @_ );
-  print "usage: program [--vex_location VEX_LOCATION] [--le1_location LE1_LOCATION] [--help|-?]\n";
-  print "\n.o0 SWITCH OPTIONS INFO 0o. \n";
-  print "--vex_location : directory and file to invoke vex\n";
-  print "--le1_location : directory where LE1 is located\n";
-  print "\n.o0 DEFAULT SWITCH OPTIONS INFO 0o. \n";
-  print "--vex_location $vex_location\n";
-  print "--le1_location $le1_folder\n";
-
-  exit;
-}
-
+$vex_location    = "/home/mark/Desktop/Jink/thirdpartytools/LE1/vex-3.41/bin/cc"; 
+$le1_folder      = "/home/mark/Desktop/Jink/thirdpartytools/LE1";
 
 # name of the folder containing assembler
 $assembler_folder = "Assembler";
