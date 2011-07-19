@@ -24,6 +24,7 @@ $sim_width = 4;
 $mem_align = 0;
 $vex_sim = 0;
 $malloc_size = 0;
+$dram_base_offset = '0x0';
 foreach $arg (@ARGV)
 {
     if($arg eq "-d")
@@ -77,6 +78,10 @@ foreach $arg (@ARGV)
     elsif($arg =~ /-MALLOC_SIZE=(\d+)/)
     {
 	$malloc_size = $1;
+    }
+    elsif($arg =~ /-DRAM_OFFSET=(0x\w+)/)
+    {
+	$dram_base_offset = $1;
     }
     elsif($arg =~ /-D(.+)=(.+)/)
     {
@@ -472,20 +477,20 @@ EOH
 	print "Running secondpass on: $file3\n";
 	if($mem_align)
 	{
-	    print "Running Command: $perl $secondpass -s=$stack_size -d=0 -mem_align $file3 -OPC=$opcodes 2>&1\n";
+	    print "Running Command: $perl $secondpass -s=$stack_size -d=0 -mem_align $file3 -OPC=$opcodes -DRAM_OFFSET=$dram_base_offset 2>&1\n";
 	}
 	else
 	{
-	    print "Running Command: $perl $secondpass -s=$stack_size -d=0 $file3 -OPC=$opcodes 2>&1\n";
+	    print "Running Command: $perl $secondpass -s=$stack_size -d=0 $file3 -OPC=$opcodes -DRAM_OFFSET=$dram_base_offset 2>&1\n";
 	}
     }
     if($mem_align)
     {
-	@return = readpipe("$perl $secondpass -s=$stack_size -d=0 -mem_align $file3 -OPC=$opcodes 2>&1");
+	@return = readpipe("$perl $secondpass -s=$stack_size -d=0 -mem_align $file3 -OPC=$opcodes -DRAM_OFFSET=$dram_base_offset 2>&1");
     }
     else
     {
-	@return = readpipe("$perl $secondpass -s=$stack_size -d=0 $file3 -OPC=$opcodes 2>&1");
+	@return = readpipe("$perl $secondpass -s=$stack_size -d=0 $file3 -OPC=$opcodes -DRAM_OFFSET=$dram_base_offset 2>&1");
     }
     &check_return();
     print "Secondpass completed\n";

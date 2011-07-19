@@ -13,6 +13,7 @@ $return_count = 0;
 
 $debug = 0;
 $mem_align = 0;
+$dram_base_offset = 0;
 if($ARGV[0] eq "")
 {
     print<<EOR;
@@ -43,12 +44,17 @@ else
 	{
 	    $opcodes_txt = $1;
 	}
+	elsif($arg =~ /-DRAM_OFFSET=0x(\w+)/)
+	{
+	    $dram_base_offset = hex($1);
+	}
 	else
 	{
 	    $input_file = $arg;
 	}
     }
     print "mem align: $mem_align\n";
+    print "dram_base_offset: $dram_base_offset\n";
     if(-e $input_file)
     {
 	($output_file) = split(/\./, $input_file);
@@ -221,7 +227,7 @@ sub grab_data()
 		($address, $label) = split(/ \- /, $in_file[$i]);
 		if(defined($label))
 		{
-		    $Data_Label{$label} = hex($address);
+		    $Data_Label{$label} = hex($address) + $dram_base_offset;
 		    undef($label);
 		}
 		$i++;
