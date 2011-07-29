@@ -20,7 +20,7 @@
 #endif
 
 #define PIPELINE_REFILL       3
-#define STACK_SIZE            8 /* KB */
+#define STACK_SIZE            10 /* KB */
 
 #define MAX_GALAXIES          1
 #define MAX_SYSTEMS           16 /* per galaxy */
@@ -141,8 +141,8 @@ int printCounts(hyperContextT *);
 unsigned checkActive(void);
 instructionPacket fetchInstruction(contextT *, unsigned);
 unsigned checkBundle(hyperContextT *, unsigned, unsigned);
-instruction instructionDecode(unsigned, unsigned, /*unsigned *,*/ hyperContextT *, systemT *, contextT *, unsigned);
-packetT getOp(unsigned, unsigned, unsigned, unsigned, /*unsigned *,*/ hyperContextT *, systemT *, contextT *, unsigned);
+instruction instructionDecode(unsigned, unsigned, /*unsigned *,*/ hyperContextT *, systemT *, contextT *, unsigned, unsigned);
+packetT getOp(unsigned, unsigned, unsigned, unsigned, /*unsigned *,*/ hyperContextT *, systemT *, contextT *, unsigned, unsigned);
 void memRequest(systemT *, unsigned *, unsigned, unsigned, memOpT);
 int memoryDump(unsigned, unsigned, unsigned *);
 void newThreadRequest(unsigned, unsigned, systemT *);
