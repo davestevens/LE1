@@ -1,4 +1,4 @@
-R#include <stdio.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 
@@ -105,6 +105,8 @@ int main(int argc, char *argv[])
     }
 #endif
 
+  int totalHC = 0;
+
       /* loop through systems in the galaxy */
   for(i=0;i<(GALAXY_CONFIG & 0xff);i++)
     {
@@ -124,8 +126,11 @@ int main(int argc, char *argv[])
 	      hypercontext = (hyperContextT *)((unsigned)context->hypercontext + (k * sizeof(hyperContextT)));
 
 	      printf("hypercontext: %d\n", k);
+	      *(hypercontext->S_GPR + (unsigned)1) = (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000) - ((STACK_SIZE * 1000) * totalHC);
+	      *(hypercontext->pS_GPR + (unsigned)1) = (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000) - ((STACK_SIZE * 1000) * totalHC);
 	      printf("\tr1: 0x%x\n", *(hypercontext->S_GPR + (unsigned)1));
 	      printf("\tr1: 0x%x\n", *(hypercontext->pS_GPR + (unsigned)1));
+	      totalHC++;
 	    }
 
 	}
@@ -290,9 +295,10 @@ int main(int argc, char *argv[])
 			      bundleCount = 0;
 			      if(hypercontext->stalled > 0)
 				{
-				  /*printf("stalled\n");*/
+				  /*printf("stalled111\n");*/
 				  hypercontext->stallCount++;
 				  hypercontext->stalled--;
+				  hypercontext->wasStalled = 1;
 				}
 			      else
 				{
@@ -835,7 +841,6 @@ int main(int argc, char *argv[])
 #ifdef DEBUG
 		  printf("hypercontext cycleCount: %lld\n", hypercontext->cycleCount);
 #endif
-
 		  /* at this point flip registers ready for next cycle
 		     only need to do it when hypercontext has been active
 		  */
@@ -1311,16 +1316,16 @@ int setupGalaxy(void)
 		  cluster = (clusterT *)((unsigned)hypercontext->registers + (l * sizeof(clusterT)));
 
 		  cluster->S_GPR = (unsigned *)((unsigned)hypercontext->S_GPR + sGPRCount);
-		  *(cluster->S_GPR + (unsigned)1) = (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000) -
-		    (MAX_CONTEXTS * (STACK_SIZE * 1000) * j) - ((STACK_SIZE * 1000) * k);
+		  /**(cluster->S_GPR + (unsigned)1) = (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000) -
+		     (MAX_CONTEXTS * (STACK_SIZE * 1000) * j) - ((STACK_SIZE * 1000) * k);*/
 		  printf("[%d][%d][%d] = 0x%x\n", i, j, k, *(cluster->S_GPR + (unsigned)1));
 		  cluster->S_FPR = (unsigned *)((unsigned)hypercontext->S_FPR + sFPRCount);
 		  cluster->S_VR = (unsigned *)((unsigned)hypercontext->S_VR + sVRCount);
 		  cluster->S_PR = (unsigned char*)((unsigned)hypercontext->S_PR + sPRCount);
 
 		  cluster->pS_GPR = (unsigned *)((unsigned)hypercontext->pS_GPR + sGPRCount);
-		  *(cluster->pS_GPR + (unsigned)1) = (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000) -
-		    (MAX_CONTEXTS * (STACK_SIZE * 1000) * j) - ((STACK_SIZE * 1000) * k);
+		  /**(cluster->pS_GPR + (unsigned)1) = (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000) -
+		     (MAX_CONTEXTS * (STACK_SIZE * 1000) * j) - ((STACK_SIZE * 1000) * k);*/
 		  cluster->pS_FPR = (unsigned *)((unsigned)hypercontext->pS_FPR + sFPRCount);
 		  cluster->pS_VR = (unsigned *)((unsigned)hypercontext->pS_VR + sVRCount);
 		  cluster->pS_PR = (unsigned char*)((unsigned)hypercontext->pS_PR + sPRCount);

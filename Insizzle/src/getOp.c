@@ -735,7 +735,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		    {
 		    case 3:
 		      ret.opcode = LDSB;
-		      memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDSB);
+		      memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDSB, 0);
 		      ret.data = -1;
 		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
 		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
@@ -746,7 +746,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		      break;
 		    case 4:
 		      ret.opcode = LDSB; /* LBSB.D */
-		      memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDSB);
+		      memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDSB, 0);
 		      ret.data = -1;
 		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
 		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
@@ -757,7 +757,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		      break;
 		    case 7:
 		      ret.opcode = LDUB;
-		      memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDUB);
+		      memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDUB, 0);
 		      ret.data = -1;
 		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
 		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
@@ -768,7 +768,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		      break;
 		    case 8:
 		      ret.opcode = LDUB; /* LBUB.D */
-		      memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDUB);
+		      memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDUB, 0);
 		      ret.data = -1;
 		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
 		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
@@ -779,7 +779,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		      break;
 		    case 11:
 		      ret.opcode = LDSH;
-		      memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDSH);
+		      memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDSH, 0);
 		      ret.data = -1;
 		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
 		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
@@ -790,7 +790,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		      break;
 		    case 12:
 		      ret.opcode = LDSH; /* LBSH.D */
-		      memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDSH);
+		      memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDSH, 0);
 		      ret.data = -1;
 		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
 		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
@@ -801,7 +801,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		      break;
 		    case 15:
 		      ret.opcode = LDUH;
-		      memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDUH);
+		      memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDUH, 0);
 		      ret.data = -1;
 		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
 		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
@@ -812,7 +812,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		      break;
 		    case 16:
 		      ret.opcode = LDUH; /* LDUH.D */
-		      memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDUH);
+		      memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDUH, 0);
 		      ret.data = -1;
 		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
 		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
@@ -823,7 +823,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		      break;
 		    case 18:
 		      ret.opcode = LDW; /* LDW.D */
-		      memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDW);
+		      memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDW, 0);
 		      ret.data = -1;
 		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
 		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
@@ -840,7 +840,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		      break;
 		    case 19:
 		      ret.opcode = LDW;
-		      memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDW);
+		      memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDW, 0);
 		      ret.data = -1;
 		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
 		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
@@ -862,7 +862,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		      break;
 		    case 21:
 		      ret.opcode = LDL;
-		      memRequest(system, S_L, (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDW);
+		      memRequest(system, S_L, (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDW, 0);
 		      ret.data = -1;
 		      ret.addr = _L_iss;
 		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
@@ -1108,7 +1108,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		    case 0:
 		      ret.opcode = STB;
 		      ret.target = immediate + ret.source1;
-		      memRequest(system, (pS_GPR + ((inst >> 15) & 0x3f)), ret.target, hypercontext->VT_CTRL, mSTB);
+		      memRequest(system, NULL, ret.target, hypercontext->VT_CTRL, mSTB, *(pS_GPR + ((inst >> 15) & 0x3f)));
 		      ret.data = ret.source2;
 		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
 		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
@@ -1119,7 +1119,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		    case 1:
 		      ret.opcode = STH;
 		      ret.target = immediate + ret.source1;
-		      memRequest(system, (pS_GPR + ((inst >> 15) & 0x3f)), ret.target, hypercontext->VT_CTRL, mSTH);
+		      memRequest(system, NULL, ret.target, hypercontext->VT_CTRL, mSTH, *(pS_GPR + ((inst >> 15) & 0x3f)));
 		      ret.data = ret.source2;
 		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
 		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
@@ -1131,7 +1131,8 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		    case 2:
 		      ret.opcode = STW;
 		      ret.target = immediate + ret.source1;
-		      memRequest(system, (pS_GPR + ((inst >> 15) & 0x3f)), ret.target, hypercontext->VT_CTRL, mSTW);
+		      /*memRequest(system, (pS_GPR + ((inst >> 15) & 0x3f)), ret.target, hypercontext->VT_CTRL, mSTW);*/
+		      memRequest(system, NULL, ret.target, hypercontext->VT_CTRL, mSTW, *(pS_GPR + ((inst >> 15) & 0x3f)));
 		      ret.data = ret.source2;
 		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
 		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
@@ -1150,9 +1151,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		      ret.target = immediate + ret.source1;
 		      /*ret.data = ret.source2;*/
 		      ret.data = *pS_L;
-		      unsigned *thisIsATest = (unsigned *)malloc(sizeof(int));
-		      *thisIsATest = *pS_L;
-		      memRequest(system, thisIsATest, ret.target, hypercontext->VT_CTRL, mSTW);
+		      memRequest(system, NULL, ret.target, hypercontext->VT_CTRL, mSTW, *pS_L);
 		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
 		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
 		      insertDest(&(ret.dest[0]), MEM, 1, 0, 1, 0, *(pS_L));
@@ -2661,7 +2660,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		case 0:
 		  ret.opcode = STB;
 		  ret.target = (((inst >> 12) & 0xfff) ^ (1 << 11)) - (1 << 11) + ret.source1; /* IMM12 */
-		  memRequest(system, (pS_GPR + ((inst >> 6) & 0x3f)), ret.target, hypercontext->VT_CTRL, mSTB);
+		  memRequest(system, NULL, ret.target, hypercontext->VT_CTRL, mSTB, *(pS_GPR + ((inst >> 6) & 0x3f)));
 		  ret.data = ret.source2;
 
 		  insertSource(&(ret.source[0]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
@@ -2673,7 +2672,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		case 1:
 		  ret.opcode = STH;
 		  ret.target = (((inst >> 12) & 0xfff) ^ (1 << 11)) - (1 << 11) + ret.source1; /* IMM12 */
-		  memRequest(system, (pS_GPR + ((inst >> 6) & 0x3f)), ret.target, hypercontext->VT_CTRL, mSTH);
+		  memRequest(system, NULL, ret.target, hypercontext->VT_CTRL, mSTH, *(pS_GPR + ((inst >> 6) & 0x3f)));
 		  ret.data = ret.source2;
 
 		  insertSource(&(ret.source[0]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
@@ -2685,7 +2684,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		case 2:
 		  ret.opcode = STW;
 		  ret.target = (((inst >> 12) & 0xfff) ^ (1 << 11)) - (1 << 11) + ret.source1; /* IMM12 */
-		  memRequest(system, (pS_GPR + ((inst >> 6) & 0x3f)), ret.target, hypercontext->VT_CTRL, mSTW);
+		  memRequest(system, NULL, ret.target, hypercontext->VT_CTRL, mSTW, *(pS_GPR + ((inst >> 6) & 0x3f)));
 		  ret.data = ret.source2;
 
 		  insertSource(&(ret.source[0]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
@@ -2724,7 +2723,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		{
 		case 0:
 		  ret.opcode = LDSB;
-		  memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDSB);
+		  memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDSB, 0);
 		  ret.data = -1;
 
 		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
@@ -2742,7 +2741,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		  break;
 		case 1:
 		  ret.opcode = LDSB; /* LDSB.D */
-		  memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDSB);
+		  memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDSB, 0);
 		  ret.data = -1;
 
 		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
@@ -2781,7 +2780,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		{
 		case 0:
 		  ret.opcode = LDUB;
-		  memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDUB);
+		  memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDUB, 0);
 		  ret.data = -1;
 
 		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
@@ -2799,7 +2798,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		  break;
 		case 1:
 		  ret.opcode = LDUB; /* LDUB.D */
-		  memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDUB);
+		  memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDUB, 0);
 		  ret.data = -1;
 
 		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
@@ -2837,7 +2836,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		{
 		case 0:
 		  ret.opcode = LDSH;
-		  memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDSH);
+		  memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDSH, 0);
 		  ret.data = -1;
 
 		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
@@ -2855,7 +2854,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		  break;
 		case 1:
 		  ret.opcode = LDSH; /* LDSH.D */
-		  memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDSH);
+		  memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDSH, 0);
 		  ret.data = -1;
 
 		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
@@ -2889,7 +2888,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		{
 		case 0:
 		  ret.opcode = LDUH;
-		  memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDUH);
+		  memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDUH, 0);
 		  ret.data = -1;
 
 		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
@@ -2906,7 +2905,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		  break;
 		case 1:
 		  ret.opcode = LDUH; /* LDUH.D */
-		  memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDUH);
+		  memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDUH, 0);
 		  ret.data = -1;
 
 		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
@@ -2940,7 +2939,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		{
 		case 0:
 		  ret.opcode = LDW;
-		  memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDW);
+		  memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDW, 0);
 		  ret.data = -1;
 
 		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
@@ -2958,7 +2957,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		  break;
 		case 1:
 		  ret.opcode = LDW; /* LDW.D */
-		  memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDW);
+		  memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDW, 0);
 		  ret.data = -1;
 
 		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
@@ -2996,7 +2995,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		{
 		case 0:
 		  ret.opcode = LDUB;
-		  memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDUB);
+		  memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDUB, 0);
 		  ret.data = -1;
 
 		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
@@ -3014,7 +3013,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		  break;
 		case 1:
 		  ret.opcode = LDSB;
-		  memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDSB);
+		  memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDSB, 0);
 		  ret.data = -1;
 
 		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
@@ -3032,7 +3031,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		  break;
 		case 2:
 		  ret.opcode = LDUH;
-		  memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDUH);
+		  memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDUH, 0);
 		  ret.data = -1;
 
 		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
@@ -3050,7 +3049,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		  break;
 		case 3:
 		  ret.opcode = LDSH;
-		  memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDSH);
+		  memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDSH, 0);
 		  ret.data = -1;
 
 		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
@@ -3068,7 +3067,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		  break;
 		case 4:
 		  ret.opcode = LDW;
-		  memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDW);
+		  memRequest(system, (S_GPR + (ret.target)), (ret.source1 + ret.source2), hypercontext->VT_CTRL, mLDW, 0);
 		  ret.data = -1;
 
 		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
@@ -3092,7 +3091,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		  /* TODO: memAlign */
 		  /* source2 + dest wrong way round */
 		  ret.opcode = STB;
-		  memRequest(system, (pS_GPR + (ret.target)), (ret.source2 + ret.source1), hypercontext->VT_CTRL, mSTB);
+		  memRequest(system, NULL, (ret.source2 + ret.source1), hypercontext->VT_CTRL, mSTB, *(pS_GPR + (ret.target)));
 		  ret.data = *(pS_GPR + (ret.target));
 
 		  insertSource(&(ret.source[0]), GPR, ((inst >> 6) & 0x3f), 1, *(pS_GPR + ((inst >> 6) & 0x3f)), clust);
@@ -3105,7 +3104,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		  /* TODO: memAlign */
 		  /* source2 + dest wrong way round */
 		  ret.opcode = STH; /* STHW */
-		  memRequest(system, (pS_GPR + (ret.target)), (ret.source2 + ret.source1), hypercontext->VT_CTRL, mSTH);
+		  memRequest(system, NULL, (ret.source2 + ret.source1), hypercontext->VT_CTRL, mSTH, *(pS_GPR + (ret.target)));
 		  ret.data = *(pS_GPR + (ret.target));
 
 		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
@@ -3118,7 +3117,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		  /* TODO: memAlign */
 		  /* source2 + dest wrong way round */
 		  ret.opcode = STW;
-		  memRequest(system, (pS_GPR + (ret.target)), (ret.source2 + ret.source1), hypercontext->VT_CTRL, mSTW);
+		  memRequest(system, NULL, (ret.source2 + ret.source1), hypercontext->VT_CTRL, mSTW, *(pS_GPR + (ret.target)));
 		  ret.data = *(pS_GPR + (ret.target));
 
 		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);

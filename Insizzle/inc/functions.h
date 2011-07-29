@@ -20,7 +20,7 @@
 #endif
 
 #define PIPELINE_REFILL       3
-#define STACK_SIZE            10 /* KB */
+#define STACK_SIZE            12 /* KB */
 
 #define MAX_GALAXIES          1
 #define MAX_SYSTEMS           16 /* per galaxy */
@@ -126,6 +126,7 @@ struct memReqT {
   unsigned value;
   unsigned ctrlReg;
   memOpT memOp;
+  unsigned pointerV;
   struct memReqT *next;
 };
 
@@ -143,7 +144,7 @@ instructionPacket fetchInstruction(contextT *, unsigned);
 unsigned checkBundle(hyperContextT *, unsigned, unsigned);
 instruction instructionDecode(unsigned, unsigned, /*unsigned *,*/ hyperContextT *, systemT *, contextT *, unsigned, unsigned);
 packetT getOp(unsigned, unsigned, unsigned, unsigned, /*unsigned *,*/ hyperContextT *, systemT *, contextT *, unsigned, unsigned);
-void memRequest(systemT *, unsigned *, unsigned, unsigned, memOpT);
+void memRequest(systemT *, unsigned *, unsigned, unsigned, memOpT, unsigned);
 int memoryDump(unsigned, unsigned, unsigned *);
 void newThreadRequest(unsigned, unsigned, systemT *);
 

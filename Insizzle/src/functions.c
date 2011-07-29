@@ -323,7 +323,7 @@ instruction instructionDecode(unsigned inst, unsigned immediate, /*unsigned *dra
   return this;
 }
 
-void memRequest(systemT *system, unsigned *t, unsigned s1, unsigned ctrlReg, memOpT memOp)
+void memRequest(systemT *system, unsigned *t, unsigned s1, unsigned ctrlReg, memOpT memOp, unsigned tV)
 {
 
   struct memReqT *temp;
@@ -358,6 +358,7 @@ void memRequest(systemT *system, unsigned *t, unsigned s1, unsigned ctrlReg, mem
   temp->value = s1;
   temp->ctrlReg = ctrlReg;
   temp->memOp = memOp;
+  temp->pointerV = tV;
 
   temp->next = NULL;
 
@@ -581,6 +582,9 @@ void serviceMemRequest(systemT *system, unsigned findBank, unsigned numBanks, un
 			  }
 			else
 			  _LDSH_iss(temp->pointer, (temp->value + (unsigned)(system->dram)));
+#ifdef DEBUGmem
+			printf("value: 0x%x\n", *(unsigned *)(temp->pointer));
+#endif
 			break;
 		      case mLDUH:
 			if(temp->value >= dramSize)
@@ -612,8 +616,7 @@ void serviceMemRequest(systemT *system, unsigned findBank, unsigned numBanks, un
 		      case mSTB:
 #ifdef DEBUGmem
 			printf("STB!!!\n");
-			printf("storing: 0x%x\n", *temp->pointer);
-			printf("%p\n", (void *)temp->pointer);
+			printf("storing: 0x%x\n", temp->pointerV);
 			printf("to: 0x%x\n", (temp->value));
 #endif
 			if(temp->value >= dramSize)
@@ -623,8 +626,12 @@ void serviceMemRequest(systemT *system, unsigned findBank, unsigned numBanks, un
 			    printf("ERROR: OOB\n");
 			    _STB_iss((temp->value + (unsigned)(system->dram)), fuckingZero);
 			  }
-			else
-			  _STB_iss((temp->value + (unsigned)(system->dram)), temp->pointer);
+			else {
+			  unsigned *tempP = (unsigned *)malloc(sizeof(int));
+			  *tempP = temp->pointerV;
+			  _STB_iss((temp->value + (unsigned)(system->dram)), tempP);
+			  free(tempP);
+			}
 #ifdef DEBUGmem
 			printf("memory now: 0x%x\n", *(unsigned *)((unsigned)system->dram + temp->value));
 #endif
@@ -642,8 +649,12 @@ void serviceMemRequest(systemT *system, unsigned findBank, unsigned numBanks, un
 			    unsigned *fuckingZero = &fZero;
 			    _STB_iss((temp->value + (unsigned)(system->dram)), fuckingZero);
 			  }
-			else
-			  _STB_iss((temp->value + (unsigned)(system->dram)), temp->pointer);
+			else {
+			  unsigned *tempP = (unsigned *)malloc(sizeof(int));
+			  *tempP = temp->pointerV;
+			  _STB_iss((temp->value + (unsigned)(system->dram)), tempP);
+			  free(tempP);
+			}
 #ifdef DEBUGmem
 			printf("memory now: 0x%x\n", *(unsigned *)((unsigned)system->dram + temp->value));
 #endif
@@ -661,11 +672,16 @@ void serviceMemRequest(systemT *system, unsigned findBank, unsigned numBanks, un
 			    unsigned *fuckingZero = &fZero;
 			    _STH_iss((temp->value + (unsigned)(system->dram)), fuckingZero);
 			  }
-			else
-			  _STH_iss((temp->value + (unsigned)(system->dram)), temp->pointer);
+			else {
+			  unsigned *tempP = (unsigned *)malloc(sizeof(int));
+			  *tempP = temp->pointerV;
+			  _STH_iss((temp->value + (unsigned)(system->dram)), tempP);
+			  free(tempP);
+			}
 #ifdef DEBUGmem
 			printf("memory now: 0x%x\n", *(unsigned *)((unsigned)system->dram + temp->value));
 #endif
+
 			break;
 		      case mSTW:
 			{
@@ -681,8 +697,12 @@ void serviceMemRequest(systemT *system, unsigned findBank, unsigned numBanks, un
 			      unsigned *fuckingZero = &fZero;
 			      _STW_iss((temp->value + (unsigned)(system->dram)), fuckingZero);
 			    }
-			  else
-			    _STW_iss((temp->value + (unsigned)(system->dram)), temp->pointer);
+			  else {
+			    unsigned *tempP = (unsigned *)malloc(sizeof(int));
+			    *tempP = temp->pointerV;
+			    _STW_iss((temp->value + (unsigned)(system->dram)), tempP);
+			    free(tempP);
+			  }
 #ifdef DEBUGmem
 			  printf("memory now: 0x%x\n", *(unsigned *)((unsigned)system->dram + temp->value));
 #endif
