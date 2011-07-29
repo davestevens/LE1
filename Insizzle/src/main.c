@@ -1,4 +1,4 @@
-#include <stdio.h>
+R#include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
 
@@ -357,7 +357,7 @@ int main(int argc, char *argv[])
 				      printf("PC: 0x%x, this.imm: 0x%08x\n", (hypercontext->programCounter + 4), this.imm);
 #endif
 
-				    inst = instructionDecode(this.op, this.imm, /*system->dram,*/ hypercontext, system, context, hypercontext->VT_CTRL);
+				    inst = instructionDecode(this.op, this.imm, /*system->dram,*/ hypercontext, system, context, hypercontext->VT_CTRL, (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000));
 
 				    /*printf("%d : %d : ", *(hypercontext->S_GPR + 60), *(hypercontext->pS_GPR + 60));*/
 #ifdef PRINTOUT
@@ -1143,7 +1143,10 @@ int setupGalaxy(void)
 #if 0
       scanf("%s", binary);
 #else
-      strcpy(binary, "binaries/iram.bin");
+      /* this now reads a separate binary per context */
+      char tempFileName[256];
+      sprintf(tempFileName, "binaries/iram%d.bin", j);
+      strcpy(binary, tempFileName);
 #endif
 	  printf("file: %s\n", binary);
 
