@@ -246,7 +246,7 @@ unsigned checkBundle(hyperContextT *hypercontext, unsigned startPC, unsigned end
   return 0;
 }
 
-instruction instructionDecode(unsigned inst, unsigned immediate, /*unsigned *dram,*/ hyperContextT *hypercontext, systemT *system, contextT *context, unsigned VT_CTRL)
+instruction instructionDecode(unsigned inst, unsigned immediate, /*unsigned *dram,*/ hyperContextT *hypercontext, systemT *system, contextT *context, unsigned VT_CTRL, unsigned dramSize)
 {
   instruction this; /* TODO: possibly zero this out */
 
@@ -318,7 +318,7 @@ instruction instructionDecode(unsigned inst, unsigned immediate, /*unsigned *dra
       break;
     }
 
-  this.packet = getOp(this.format, this.opc, inst, immediate, /*dram,*/ hypercontext, system, context, VT_CTRL);
+  this.packet = getOp(this.format, this.opc, inst, immediate, /*dram,*/ hypercontext, system, context, VT_CTRL, dramSize);
 
   return this;
 }
