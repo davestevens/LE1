@@ -508,9 +508,12 @@ void serviceMemRequest(systemT *system, unsigned findBank, unsigned numBanks, un
 #ifdef DEBUGmem
 	  printf("whichBank: %d\n", whichBank);
 #endif
+	  temp = system->memReq;
+	  if(temp == NULL) {
+	    break;
+	  }
 	  do {
-
-	    if((temp->value & findBank) == whichBank)
+	    if(((temp->value >> 2) & findBank) == whichBank)
 	      {
 #ifdef DEBUGmem
 		printf("\tthis req is on this bank\n");
@@ -639,7 +642,7 @@ void serviceMemRequest(systemT *system, unsigned findBank, unsigned numBanks, un
 		      case mSTBs:
 #ifdef DEBUGmem
 			printf("STBs!!!\n");
-			printf("storing: 0x%x\n", *temp->pointer);
+			printf("storing: 0x%x\n", temp->pointerV);
 			printf("to: 0x%x\n", (temp->value));
 #endif
 			if(temp->value >= dramSize)
@@ -662,7 +665,7 @@ void serviceMemRequest(systemT *system, unsigned findBank, unsigned numBanks, un
 		      case mSTH:
 #ifdef DEBUGmem
 			printf("STH!!!\n");
-			printf("storing: 0x%x\n", *temp->pointer);
+			printf("storing: 0x%x\n", temp->pointerV);
 			printf("to: 0x%x\n", (temp->value));
 #endif
 			if(temp->value >= dramSize)
@@ -687,7 +690,7 @@ void serviceMemRequest(systemT *system, unsigned findBank, unsigned numBanks, un
 			{
 #ifdef DEBUGmem
 			  printf("STW!!!\n");
-			  printf("storing: 0x%x\n", *temp->pointer);
+			  printf("storing: 0x%x\n", temp->pointerV);
 			  printf("to: 0x%x\n", (temp->value));
 #endif
 			  if(temp->value >= dramSize)
