@@ -138,6 +138,7 @@ int main(int argc, char *argv[])
 
 #endif
 #endif
+  start = time(NULL);
 #ifdef API
   int insizzleAPIClock(galaxyConfigT *galaxyConfig, hcTracePacketT gTracePacket[][MASTERCFG_CONTEXTS_MAX][MASTERCFG_HYPERCONTEXTS_MAX])
   {
@@ -295,10 +296,8 @@ int main(int argc, char *argv[])
 			      bundleCount = 0;
 			      if(hypercontext->stalled > 0)
 				{
-				  /*printf("stalled111\n");*/
 				  hypercontext->stallCount++;
 				  hypercontext->stalled--;
-				  hypercontext->wasStalled = 1;
 				}
 			      else
 				{
@@ -337,8 +336,10 @@ int main(int argc, char *argv[])
 					{
 					  /* this hypercontext needs stalling for x cycles */
 					  /*printf("needs to be stalled for a bit\n");*/
+#ifndef NOSTALLS
 					  hypercontext->cycleCount++;
 					  continue;
+#endif
 					}
 				    }
 
@@ -466,7 +467,11 @@ int main(int argc, char *argv[])
 					inst.packet.newPCValid = 0;
 					/* TODO: add stalls for control flow change */
 #ifndef API
+#ifdef NOSTALLS
+					hypercontext->stallCount += PIPELINE_REFILL;
+#else
 					hypercontext->stalled += PIPELINE_REFILL;
+#endif
 #else
 					hypercontext->stallCount += PIPELINE_REFILL;
 #endif
@@ -556,8 +561,11 @@ int main(int argc, char *argv[])
 	    findBankT = (unsigned)log2(((SYS->DRAM_SHARED_CONFIG >> 24) & 0xff));
 	    for(i=0;i<findBankT;i++)
 	      findBank |= 1 << i;
-
+#ifdef NOSTALLS
+	    serviceMemRequestNOSTALLS(system, findBank, ((SYS->DRAM_SHARED_CONFIG >> 24) & 0xff), (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000));
+#else
 	    serviceMemRequest(system, findBank, ((SYS->DRAM_SHARED_CONFIG >> 24) & 0xff), (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000));
+#endif
 	  }
 #else
 	  serviceMemRequestPERFECT(system, (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000));
@@ -614,7 +622,11 @@ int main(int argc, char *argv[])
 #ifdef DEBUGmem
 			      printf("need to stall this\n");
 #endif
+#ifdef NOSTALLS
+			      hcnt->stallCount++;
+#else
 			      hcnt->stalled++;
+#endif
 			    }
 			  else
 			    {
@@ -862,6 +874,8 @@ int main(int argc, char *argv[])
 #endif
     }
 
+  end = time(NULL);
+
 #ifndef API
 #ifdef VAJAZZLE
   printf("\tInsizzle run complete\n");
@@ -1034,6 +1048,10 @@ int main(int argc, char *argv[])
     hyperContextT *hypercontext;
 #endif
   /* print out details */
+    printf("Start Time: %ld\n", start);
+    printf("End Time: %ld\n", end);
+    printf("Total Time: %ld (seconds)\n", (end - start));
+
   printf("galaxy: 0\n");
   /* loop through systems in the galaxy */
   for(i=0;i<(GALAXY_CONFIG & 0xff);i++)
@@ -1301,6 +1319,7 @@ int setupGalaxy(void)
 	      hypercontext->branchNotTaken = 0;
 	      hypercontext->nopCount = 0;
 	      hypercontext->idleCount = 0;
+	      hypercontext->memoryAccessCount = 0;
 
 	      hypercontext->programCounter = 0;
 
