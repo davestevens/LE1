@@ -7,12 +7,17 @@
 #                          Loughborough University                            #
 #                              D.Stevens.ac.uk                                #
 ###############################################################################
+$dram_base_offset = 0;
 foreach $arg (@ARGV)
   {
     if($arg =~ /-o(\w+)/)
       {
 	$outputname = $1;
       }
+    elsif($arg =~ /-DRAM_OFFSET=0x(\w+)/)
+    {
+	$dram_base_offset = hex($1);
+    }
     else
       {
 	push @files, $arg;
@@ -180,7 +185,7 @@ for($i=0;$i<=$#current_file;$i++)
           {
 	      $hex =~ /(\(*(\w*\??(\w+\.*)+)((\s*[+-]?\s*\d*\))*))/;
 	      $rahrahrah = $filename . $2;
-	      $value_new = $Data_Labels{$rahrahrah};
+	      $value_new = ($Data_Labels{$rahrahrah} + $dram_base_offset);
 	      @value_extra = split(/\)/, $4);
 	      foreach $value_extra (@value_extra)
 	      {

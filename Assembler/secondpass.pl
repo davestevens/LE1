@@ -270,7 +270,7 @@ sub grab_data()
 		($address, $label) = split(/ - /, $in_file[$i]);
 		if(defined($label))
 		{
-		    $Data_Label{$label} = (hex($address) + $total_data);
+		    $Data_Label{$label} = (hex($address) + $total_data + $dram_base_offset);
 		    undef($label);
 		}
 		$i++;

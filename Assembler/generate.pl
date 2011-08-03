@@ -295,9 +295,9 @@ EOH
 	}
 	if($debug == 1)
 	{
-	    print "Running Command: $perl $midpass $midpassfiles -o$output_file 2>&1\n";
+	    print "Running Command: $perl $midpass $midpassfiles -o$output_file -DRAM_OFFSET=$dram_base_offset 2>&1\n";
 	}
-	@return = readpipe("$perl $midpass $midpassfiles -o$output_file 2>&1");
+	@return = readpipe("$perl $midpass $midpassfiles -o$output_file -DRAM_OFFSET=$dram_base_offset 2>&1");
 	&check_return();
 	$return[$#return] =~ s/ORDER//;
 	@order = split(/ /, $return[$#return]);
