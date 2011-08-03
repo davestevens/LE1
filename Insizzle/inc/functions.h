@@ -1,6 +1,8 @@
 #ifndef _FUNCTIONS
 #define FUNCTIONS
 
+#include <time.h>
+
 #include "galaxy.h"
 #include "galaxyConfig.h"
 
@@ -30,6 +32,7 @@
 
 
 unsigned memAlign;
+time_t start, end;
 
 typedef struct {
   unsigned op;
@@ -151,6 +154,7 @@ void newThreadRequest(unsigned, unsigned, systemT *);
 int serviceThreadRequests(systemT *);
 
 void serviceMemRequest(systemT *, unsigned, unsigned, unsigned);
+void serviceMemRequestNOSTALLS(systemT *, unsigned, unsigned, unsigned);
 void serviceMemRequestPERFECT(systemT *, unsigned);
 
 void returnOpcode(opT);
