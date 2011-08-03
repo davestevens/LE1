@@ -23,7 +23,12 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
   unsigned *S_L = &(hypercontext->linkReg);
   unsigned *pS_L = &(hypercontext->plinkReg);
 
-  unsigned ldwVal, lduhVal, ldshVal, ldubVal, ldsbVal, ldlVal;
+  unsigned ldwVal = 0;
+  unsigned lduhVal = 0;
+  unsigned ldshVal = 0;
+  unsigned ldubVal = 0;
+  unsigned ldsbVal = 0;
+  unsigned ldlVal = 0;
 
   ret.target = 0;
   ret.addr = 0;
@@ -1690,7 +1695,11 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 			  ret.newPC = hypercontext->programCounter + ret.source1;
 			  ret.newPCValid = 1;
 			  /* need to add stall cycles */
-			  /*hypercontext->stalled += PIPELINE_REFILL;*/
+#ifdef NOSTALLS
+			  hypercontext->stallCount += PIPELINE_REFILL;
+#else
+			  hypercontext->stalled += PIPELINE_REFILL;
+#endif
 			  hypercontext->controlFlowChange++;
 			}
 		      else
@@ -1717,7 +1726,11 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 			  ret.newPC = hypercontext->programCounter + ret.source1;
 			  ret.newPCValid = 1;
 			  /* need to add stall cycles */
-			  /*hypercontext->stalled += PIPELINE_REFILL;*/
+#ifdef NOSTALLS
+			  hypercontext->stallCount += PIPELINE_REFILL;
+#else
+			  hypercontext->stalled += PIPELINE_REFILL;
+#endif
 			  hypercontext->controlFlowChange++;
 			}
 		      break;
