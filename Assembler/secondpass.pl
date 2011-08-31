@@ -72,6 +72,10 @@ else
 	&second_pass();
 	if($ok == 1)
 	{
+	    # create binaries directory
+	    if(!(-e "binaries")) {
+		system("mkdir binaries");
+	    }
 	    &print_instructions($output_file_inst, $output_file_inst_readable, $output_header_file_inst);
 	    &print_data($output_file_data, $output_file_data_readable, $output_header_file_data, $output_data_le1_vars);
 
@@ -1600,12 +1604,11 @@ sub print_instructions()
     $instruction_size = 0;
     $test_address = 0;
     $return_count = 0;
+    open BIG_ENDIAN_INSTRUCTION, "> binaries/iram0.bin" or die
+	"Second Pass Failed\nCould not open file (binaries/iram0.bin : $!)\n";
 
-    open BIG_ENDIAN_INSTRUCTION, "> @_[0].big" or die
-	"Second Pass Failed\nCould not open file (@_[0].big : $!)\n";
-
-    open LITTLE_ENDIAN_INSTRUCTION, "> @_[0]\.little" or die
-	"Second Pass Failed\nCould not open file (@_[0].little : $!)\n";
+#    open LITTLE_ENDIAN_INSTRUCTION, "> @_[0]\.little" or die
+#	"Second Pass Failed\nCould not open file (@_[0].little : $!)\n";
 
     open IRAM_HEADER, "> @_[2]" or die
 	"Second Pass Failed\nCould not open file (@_[2]): $!\n";
@@ -1742,13 +1745,13 @@ sub print_instructions()
 		$test .= $str;
 	    }
 	    $instruction_size += 4;
-	    print LITTLE_ENDIAN_INSTRUCTION &hex_to_ascii($test);
+#	    print LITTLE_ENDIAN_INSTRUCTION &hex_to_ascii($test);
 	    $test_address++;
 	}
     }
     close INST_TXT_FILE;
     close BIG_ENDIAN_INSTRUCTION;
-    close LITTLE_ENDIAN_INSTRUCTION;
+#    close LITTLE_ENDIAN_INSTRUCTION;
     $_[3] =~ /^(\w+)/;
     print IRAM_HEADER "};\n#define " . uc($1) . "_INST_SIZE $instruction_size\n";
     close IRAM_HEADER;
@@ -1756,11 +1759,11 @@ sub print_instructions()
 
 sub print_data()
 {
-    open BIG_ENDIAN_DATA, "> @_[0].big" or die
-	"Second Pass Failed\nCould not open file (@_[0].big): $!\n";
+    open BIG_ENDIAN_DATA, "> binaries/dram.bin" or die
+	"Second Pass Failed\nCould not open file (binaries/dram.bin): $!\n";
 
-    open LITTLE_ENDIAN_DATA, "> @_[0]\.little" or die
-	"Second Pass Failed\nCould not open file (@_[0].little): $!\n";
+#    open LITTLE_ENDIAN_DATA, "> @_[0]\.little" or die
+#	"Second Pass Failed\nCould not open file (@_[0].little): $!\n";
 
     open DRAM_HEADER, "> @_[2]" or die
 	"Second Pass Failed\nCould not open file (@_[2]): $!\n";
@@ -1860,24 +1863,24 @@ sub print_data()
 	{
 	    print DRAM_HEADER "0x", $str, ",";
 	}
-	@str = reverse(@str);
-	undef($data_little);
-	foreach $str (@str)
-	{
-	    $data_little .= $str;
-	}
+#	@str = reverse(@str);
+#	undef($data_little);
+#	foreach $str (@str)
+#	{
+#	    $data_little .= $str;
+#	}
 	$line = &hex_to_ascii($data);
 	$line =~ s/\n/^n/g;
 	printf(DATA_TXT_FILE "%04x - %s - %s\n", ($count*4), $data, $line);
 	$count++;
 	print BIG_ENDIAN_DATA &hex_to_ascii($data);
-	print LITTLE_ENDIAN_DATA &hex_to_ascii($data_little);
+#	print LITTLE_ENDIAN_DATA &hex_to_ascii($data_little);
 	print DRAM_HEADER "\n";
     }
     print DRAM_HEADER "};\n";
     close DRAM_HEADER;
     close DATA_TXT_FILE;
-    close LITTLE_ENDIAN_DATA;
+#    close LITTLE_ENDIAN_DATA;
     close BIG_ENDIAN_DATA;
 }
 
