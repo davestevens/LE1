@@ -1,9 +1,10 @@
+
 # Makefile for InsizzleV3
 
 # use -DVTHREADS in CFLAGS for running code with vthreads
 
 CC = gcc
-CFLAGS = -c -Wall -pedantic -std=c99 -Wextra -m32 -g `xml2-config --cflags`
+CFLAGS = -c -Wall -pedantic -std=c99 -Wextra -m32 `xml2-config --cflags` -g -DSHM -D_XOPEN_SOURCE
 LDFLAGS = -lm -m32 `xml2-config --libs`
 
 INCDIR = inc
@@ -17,6 +18,8 @@ TARGET = INSIZZLE
 TARGETV = VAJAZZLE
 TARGETAPI = INSIZZLEAPI
 
+REV_PERL = `perl scripts/revision.pl ${TARGET} ${TARGET}`
+
 Vajazzle:	CFLAGS += -DVAJAZZLE
 API:		CFLAGS += -DAPI
 
@@ -28,6 +31,8 @@ API:	$(SRC) $(TARGETAPI)
 
 $(TARGET): $(OBJ)
 	   $(CC) $(OBJ) $(LDFLAGS) -o $@
+	@echo "Versioning"
+	@echo ${REV_PERL}
 
 $(TARGETV): $(OBJ)
 	ar cr $(TARGETV) $(OBJ)
