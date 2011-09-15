@@ -1,6 +1,8 @@
 #ifndef _FUNCTIONS
 #define FUNCTIONS
 
+#include <time.h>
+
 #include "galaxy.h"
 #include "galaxyConfig.h"
 
@@ -30,6 +32,7 @@
 
 
 unsigned memAlign;
+time_t start, end;
 
 typedef struct {
   unsigned op;
@@ -137,6 +140,9 @@ struct newThreadT {
 };
 
 unsigned *loadBinary(char *, unsigned);
+#ifdef SHM
+unsigned *loadBinaryD(char *, unsigned);
+#endif
 int cycle(contextT *, hyperContextT *, unsigned);
 int printCounts(hyperContextT *);
 unsigned checkActive(void);
@@ -151,6 +157,7 @@ void newThreadRequest(unsigned, unsigned, systemT *);
 int serviceThreadRequests(systemT *);
 
 void serviceMemRequest(systemT *, unsigned, unsigned, unsigned);
+void serviceMemRequestNOSTALLS(systemT *, unsigned, unsigned, unsigned);
 void serviceMemRequestPERFECT(systemT *, unsigned);
 
 void returnOpcode(opT);

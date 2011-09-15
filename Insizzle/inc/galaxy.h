@@ -44,7 +44,6 @@ typedef struct {
   unsigned VT_CTRL; /* current state */
   /*unsigned state;*/ /* micro-architecture state */
   unsigned long long stalled;
-  unsigned char wasStalled;
   int checkedPC;
 
   unsigned long long cycleCount;
@@ -55,6 +54,7 @@ typedef struct {
   unsigned long long branchNotTaken;
   unsigned long long nopCount;
   unsigned long long idleCount;
+  unsigned long long memoryAccessCount;
 
   unsigned long long controlFlowChange;
 
