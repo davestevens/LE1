@@ -36,11 +36,12 @@ int main(int argc, char *argv[])
   /*unsigned curClustTemplate, curClustInstance;*/
   /*unsigned sGPROffset, sFPROffset, sVROffset, sPROffset;*/
   unsigned long long cycleCount = 0;
+  char *versionNumber = "Insizzle_Revision";
 
 #ifdef VAJAZZLE
-  printf("Vajazzle\n");
+  printf("Vajazzle (%s)\n", versionNumber);
 #else
-  printf("Insizzle\n");
+  printf("Insizzle (%s)\n", versionNumber);
 #endif
 
 #ifndef API
@@ -138,6 +139,7 @@ int main(int argc, char *argv[])
 
 #endif
 #endif
+  start = time(NULL);
 #ifdef API
   int insizzleAPIClock(galaxyConfigT *galaxyConfig, hcTracePacketT gTracePacket[][MASTERCFG_CONTEXTS_MAX][MASTERCFG_HYPERCONTEXTS_MAX])
   {
@@ -295,10 +297,8 @@ int main(int argc, char *argv[])
 			      bundleCount = 0;
 			      if(hypercontext->stalled > 0)
 				{
-				  /*printf("stalled111\n");*/
 				  hypercontext->stallCount++;
 				  hypercontext->stalled--;
-				  hypercontext->wasStalled = 1;
 				}
 			      else
 				{
@@ -337,8 +337,10 @@ int main(int argc, char *argv[])
 					{
 					  /* this hypercontext needs stalling for x cycles */
 					  /*printf("needs to be stalled for a bit\n");*/
+#ifndef NOSTALLS
 					  hypercontext->cycleCount++;
 					  continue;
+#endif
 					}
 				    }
 
@@ -466,7 +468,11 @@ int main(int argc, char *argv[])
 					inst.packet.newPCValid = 0;
 					/* TODO: add stalls for control flow change */
 #ifndef API
+#ifdef NOSTALLS
+					hypercontext->stallCount += PIPELINE_REFILL;
+#else
 					hypercontext->stalled += PIPELINE_REFILL;
+#endif
 #else
 					hypercontext->stallCount += PIPELINE_REFILL;
 #endif
@@ -549,15 +555,19 @@ int main(int argc, char *argv[])
 	    }
 	  /* TODO: here need to service memory requests */
 	  /* print all memory requests */
-#ifndef API
+	  /*#ifndef API &&*/
+#if !defined(API)
 	  {
 	    unsigned findBank, findBankT, i;
 	    findBank=0;
 	    findBankT = (unsigned)log2(((SYS->DRAM_SHARED_CONFIG >> 24) & 0xff));
 	    for(i=0;i<findBankT;i++)
 	      findBank |= 1 << i;
-
+#if defined(NOSTALLS)
+	    serviceMemRequestNOSTALLS(system, findBank, ((SYS->DRAM_SHARED_CONFIG >> 24) & 0xff), (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000));
+#else
 	    serviceMemRequest(system, findBank, ((SYS->DRAM_SHARED_CONFIG >> 24) & 0xff), (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000));
+#endif
 	  }
 #else
 	  serviceMemRequestPERFECT(system, (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000));
@@ -614,7 +624,11 @@ int main(int argc, char *argv[])
 #ifdef DEBUGmem
 			      printf("need to stall this\n");
 #endif
+#ifdef NOSTALLS
+			      hcnt->stallCount++;
+#else
 			      hcnt->stalled++;
+#endif
 			    }
 			  else
 			    {
@@ -862,6 +876,8 @@ int main(int argc, char *argv[])
 #endif
     }
 
+  end = time(NULL);
+
 #ifndef API
 #ifdef VAJAZZLE
   printf("\tInsizzle run complete\n");
@@ -1034,6 +1050,10 @@ int main(int argc, char *argv[])
     hyperContextT *hypercontext;
 #endif
   /* print out details */
+    printf("Start Time: %ld\n", start);
+    printf("End Time: %ld\n", end);
+    printf("Total Time: %ld (seconds)\n", (end - start));
+
   printf("galaxy: 0\n");
   /* loop through systems in the galaxy */
   for(i=0;i<(GALAXY_CONFIG & 0xff);i++)
@@ -1127,7 +1147,12 @@ int setupGalaxy(void)
       strcpy(binary, "binaries/dram.bin");
 #endif
       printf("file: %s\n", binary);
+#ifdef SHM
+      system->dram = loadBinaryD(binary, ((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff));
+#else
       system->dram = loadBinary(binary, ((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff));
+#endif
+
 #else
       system->dram = (unsigned *)calloc((((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000), 1);
 #endif
@@ -1301,6 +1326,7 @@ int setupGalaxy(void)
 	      hypercontext->branchNotTaken = 0;
 	      hypercontext->nopCount = 0;
 	      hypercontext->idleCount = 0;
+	      hypercontext->memoryAccessCount = 0;
 
 	      hypercontext->programCounter = 0;
 
@@ -1370,7 +1396,9 @@ int freeMem(void)
       SYS = (systemConfig *)((unsigned)SYSTEM + (i * sizeof(systemConfig)));
       system = (systemT *)((unsigned)galaxyT + (i * sizeof(systemT)));
 
+#ifndef SHM
       free((unsigned *)system->dram);
+#endif
 
       for(j=0;j<(SYS->SYSTEM_CONFIG & 0xff);j++)
 	{
