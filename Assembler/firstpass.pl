@@ -786,7 +786,6 @@ sub check_calls()
     {
 	if(($Instructions[$calls_check] =~ /call \$l0\.0 =/) && ($Instructions[$calls_check+1] ne ";;"))
 	{
-	    print $Instructions[$calls_check] . "\n";
 	    $position_of_call = $calls_check;
 	    while($Instructions[$calls_check] ne ";;")
 	    {
@@ -820,7 +819,7 @@ sub move_main()
     {
 	if(($functions{$key} ne "") && ($there_is_a_main == -1))
 	{
-	    if($key =~ /main/)
+	    if($key =~ /FUNC_main/)
 	    {
 		$there_is_a_main = $functions{$key};
 		last;
