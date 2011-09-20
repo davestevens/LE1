@@ -96,8 +96,6 @@ sub first_pass()
 				    $file[$i] = "c0    call \$l0.0 = exit ## $comment";
 				    splice(@file,$i,0,"\.call exit, caller, arg(\$r0.3:s32), ret(\$r0.3:s32)");
 				    $i++;
-				    $file[$i] = ';;';
-				    $i++;
 				}
 				$i++;
 			    }
@@ -451,8 +449,6 @@ sub first_pass()
 			($data, $comment) = split(/##/, $file[$i]);
 			$file[$i] = "c0    call \$l0.0 = exit ## $comment";
 			splice(@file,$i,0,"\.call exit, caller, arg(\$r0.3:s32), ret(\$r0.3:s32)");
-			$i++;
-			$file[$i] = ';;';
 			$i++;
 		    }
 		    $i++;
