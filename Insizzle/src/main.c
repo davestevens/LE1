@@ -563,11 +563,7 @@ int main(int argc, char *argv[])
 	    findBankT = (unsigned)log2(((SYS->DRAM_SHARED_CONFIG >> 24) & 0xff));
 	    for(i=0;i<findBankT;i++)
 	      findBank |= 1 << i;
-<<<<<<< HEAD
-#if defined(NOSTALLS)
-=======
 #ifdef NOSTALLS
->>>>>>> 30b209d2322fff1a13256c1e4f734fe8a0d5b7c5
 	    serviceMemRequestNOSTALLS(system, findBank, ((SYS->DRAM_SHARED_CONFIG >> 24) & 0xff), (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000));
 #else
 	    serviceMemRequest(system, findBank, ((SYS->DRAM_SHARED_CONFIG >> 24) & 0xff), (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000));

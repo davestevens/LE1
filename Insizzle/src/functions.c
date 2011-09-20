@@ -865,10 +865,7 @@ void serviceMemRequestNOSTALLS(systemT *system, unsigned findBank, unsigned numB
   hyperContextT *hcnt;
 
   unsigned given = 0;
-<<<<<<< HEAD
-=======
   unsigned noStalls = 0;
->>>>>>> 30b209d2322fff1a13256c1e4f734fe8a0d5b7c5
 
   temp = system->memReq;
 
@@ -886,20 +883,14 @@ void serviceMemRequestNOSTALLS(systemT *system, unsigned findBank, unsigned numB
 	  printf("whichBank: %d\n", whichBank);
 #endif
 	  given = 0;
-<<<<<<< HEAD
-=======
 	  noStalls = 1;
->>>>>>> 30b209d2322fff1a13256c1e4f734fe8a0d5b7c5
 	  temp = system->memReq;
 	  if(temp == NULL) {
 	    break;
 	  }
 	  do {
-<<<<<<< HEAD
-=======
 	    /*printf("\tmemaddress: 0x%08x\n", temp->value);
 	      printf("\tbank: 0x%08x\n", ((temp->value >> 2) & findBank));*/
->>>>>>> 30b209d2322fff1a13256c1e4f734fe8a0d5b7c5
 	    if(((temp->value >> 2) & findBank) == whichBank)
 	      {
 #ifdef DEBUGmem
@@ -917,16 +908,6 @@ void serviceMemRequestNOSTALLS(systemT *system, unsigned findBank, unsigned numB
 		if(given)
 		  {
 #ifdef DEBUGmem
-<<<<<<< HEAD
-		    printf("need to stall this\n");
-#endif
-		    hcnt->memoryAccessCount++;
-#ifdef NOSTALLS
-		    hcnt->stallCount++;
-#else
-		    hcnt->stalled++;
-#endif
-=======
 		    printf("need to stall this (%d)\n", noStalls);
 #endif
 		    /*hcnt->memoryAccessCount++;*/
@@ -938,7 +919,6 @@ void serviceMemRequestNOSTALLS(systemT *system, unsigned findBank, unsigned numB
 		    hcnt->stalled++;
 #endif
 		    noStalls++;
->>>>>>> 30b209d2322fff1a13256c1e4f734fe8a0d5b7c5
 		  }
 
 #ifdef DEBUGmem
