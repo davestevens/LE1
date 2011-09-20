@@ -46,11 +46,8 @@ else
 	    $output_file = "$fil[$#fil]/$fil[$#fil].temp.s";
 	}
 	&first_pass($input_file);
-	print "RAH\n";
  	&check_calls();
-	print "RAH\n";
 	&check_returns();
-	print "RAH\n";
 	&print_output($output_file);
 	print "First Pass Completed
 $output_file contains data needed for second pass\n";
