@@ -46,8 +46,11 @@ else
 	    $output_file = "$fil[$#fil]/$fil[$#fil].temp.s";
 	}
 	&first_pass($input_file);
-	&check_calls();
+	print "RAH\n";
+ 	&check_calls();
+	print "RAH\n";
 	&check_returns();
+	print "RAH\n";
 	&print_output($output_file);
 	print "First Pass Completed
 $output_file contains data needed for second pass\n";
@@ -95,6 +98,8 @@ sub first_pass()
 				    ($data, $comment) = split(/##/, $file[$i]);
 				    $file[$i] = "c0    call \$l0.0 = exit ## $comment";
 				    splice(@file,$i,0,"\.call exit, caller, arg(\$r0.3:s32), ret(\$r0.3:s32)");
+				    $i++;
+				    $file[$i] = ';;';
 				    $i++;
 				}
 				$i++;
@@ -450,6 +455,8 @@ sub first_pass()
 			$file[$i] = "c0    call \$l0.0 = exit ## $comment";
 			splice(@file,$i,0,"\.call exit, caller, arg(\$r0.3:s32), ret(\$r0.3:s32)");
 			$i++;
+			$file[$i] = ';;';
+			$i++;
 		    }
 		    $i++;
 		}
@@ -782,6 +789,7 @@ sub check_calls()
     {
 	if(($Instructions[$calls_check] =~ /call \$l0\.0 =/) && ($Instructions[$calls_check+1] ne ";;"))
 	{
+	    print $Instructions[$calls_check] . "\n";
 	    $position_of_call = $calls_check;
 	    while($Instructions[$calls_check] ne ";;")
 	    {
