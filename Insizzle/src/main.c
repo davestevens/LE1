@@ -108,6 +108,7 @@ int main(int argc, char *argv[])
 
   int totalHC = 0;
 
+  printf("Stack Size / hypercontext set to %d KB\n", STACK_SIZE);
       /* loop through systems in the galaxy */
   for(i=0;i<(GALAXY_CONFIG & 0xff);i++)
     {
