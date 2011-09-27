@@ -1660,6 +1660,9 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		      /*ADD(*(S_GPR + (ret.target)), (cnt << 8), (hcnt << 16));
 		      ret.source1 = (cnt << 8) | (hcnt << 16);
 		      ret.data =  *(S_GPR + (ret.target));*/
+		      *(S_GPR + (ret.target)) = (hypercontext->VT_CTRL >> 12) & 0xfffff;
+		      ret.source1 = (hypercontext->VT_CTRL >> 12) & 0xfffff;
+		      ret.data = (hypercontext->VT_CTRL >> 12) & 0xfffff;
 		      ret.addr = _R_iss;
 		      break;
 		    }
