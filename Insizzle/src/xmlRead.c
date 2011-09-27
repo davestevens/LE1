@@ -117,7 +117,6 @@ int readConf(char *filename) {
 	    unsigned int dramSize = 0;
 	    sscanf(xmlR.value, "0x%x", &dramSize);
 	    SYS->DRAM_SHARED_CONFIG |= (dramSize << 8);
-	    printf("dramSize: %d\n", dramSize);
 	  }
 	  else {
 	    printf("trying to define DRAM_SIZE when not in a system\n");
