@@ -268,7 +268,9 @@ int readConf(char *filename) {
 	  if(CNT != NULL) {
 	    ret = xmlTextReaderRead(reader);
 	    processNode(reader, &xmlR);
-	    CNT->IFE_SIMPLE_IRAM_PRIV_CONFIG |= (atoi(xmlR.value) << 8);
+	    unsigned int iramSize = 0;
+	    sscanf(xmlR.value, "0x%x", &iramSize);
+	    CNT->IFE_SIMPLE_IRAM_PRIV_CONFIG |= (iramSize << 8);
 	  }
 	  else {
 	    printf("trying to define IRAM_SIZE when not in a context\n");
