@@ -58,15 +58,16 @@ else
     if(-e $input_file)
     {
 	($output_file) = split(/\./, $input_file);
+	mkdir('microblaze');
 
 	$output_file_inst = $output_file . ".s.bin";
 	$output_file_inst_readable = $output_file . ".inst.txt";
-	$output_header_file_inst = $output_file . ".inst.forXilinx.h";
+	$output_header_file_inst = 'microblaze/inst.h';#$output_file . ".inst.forXilinx.h";
 
 	$output_file_data = $output_file . ".data.bin";
 	$output_file_data_readable = $output_file . ".data.txt";
-	$output_header_file_data = $output_file . ".data.forXilinx.h";
-	$output_data_le1_vars = $output_file . "_le1_objects.h";
+	$output_header_file_data = 'microblaze/data.h';#$output_file . ".data.forXilinx.h";
+	$output_data_le1_vars = 'microblaze/le1_obj.h';#$output_file . "_le1_objects.h";
 
 	&grab_data($input_file);
 	&second_pass();
@@ -1613,7 +1614,7 @@ sub print_instructions()
     open IRAM_HEADER, "> @_[2]" or die
 	"Second Pass Failed\nCould not open file (@_[2]): $!\n";
     $_[2] =~ /^(\w+)/;
-    print IRAM_HEADER "/* inst area */\nchar $1\_i[] = {\n";
+    print IRAM_HEADER "/* inst area */\nchar le1_iram[] = {\n";
 
     open INST_TXT_FILE, "> @_[1]" or die
 	"Second Pass Failed\nCould not open file (@_[1] : $!)\n";
@@ -1753,7 +1754,7 @@ sub print_instructions()
     close BIG_ENDIAN_INSTRUCTION;
 #    close LITTLE_ENDIAN_INSTRUCTION;
     $_[3] =~ /^(\w+)/;
-    print IRAM_HEADER "};\n#define " . uc($1) . "_INST_SIZE $instruction_size\n";
+    print IRAM_HEADER "};\n#define LE1_INST_SIZE $instruction_size\n";
     close IRAM_HEADER;
 }
 
@@ -1768,7 +1769,8 @@ sub print_data()
     open DRAM_HEADER, "> @_[2]" or die
 	"Second Pass Failed\nCould not open file (@_[2]): $!\n";
     $_[2] =~ /^(\w+)/;
-    print DRAM_HEADER "/* data area */\n#define " . uc($1) . "_DATA_SIZE " . ($#Memory + 1) * 4 . "\nchar $1\_d[] = {\n";
+    #print DRAM_HEADER "/* data area */\n#define " . uc($1) . "_DATA_SIZE " . ($#Memory + 1) * 4 . "\nchar $1\_d[] = {\n";
+    print DRAM_HEADER "/* data area */\n#define LE1_DRAM_SIZE " . ($#Memory + 1) * 4 . "\nchar le1_dram[] = {\n";
 
     open DATA_TXT_FILE, "> @_[1]" or die
 	"Second Pass Failed\nCould not open file (@_[1]): $!\n";
