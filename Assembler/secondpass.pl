@@ -645,10 +645,11 @@ sub operation()
 
 	    $ops[3] =~ /$reg2/;
 	    $syllable |= $3 << 15; # rd
+	    $syllable |= ($custom_instid & 0x7) << 12;
 
 	    if($left_side == 1)
 	    {
-		$syllable |= 1 << 12; # casm2id
+		$syllable |= 1 << 25; # 1X2
 		$ops[4] =~ /$reg2/;
 		$syllable |= $3;
 		$ops[5] =~ /$reg2/;
@@ -656,7 +657,6 @@ sub operation()
 	    }
 	    else
 	    {
-		$syllable |= 2 << 12; # casm2id
 		$ops[4] =~ /$reg2/;
 		$syllable |= $3 << 6;
 		$ops[5] =~ /$reg2/;
