@@ -34,6 +34,7 @@
 unsigned memAlign;
 time_t start, end;
 unsigned char similarIRAM, suppressOOB;
+unsigned long long cycleCount;
 
 typedef struct {
   unsigned op;

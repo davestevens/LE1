@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
 
   /*unsigned curClustTemplate, curClustInstance;*/
   /*unsigned sGPROffset, sFPROffset, sVROffset, sPROffset;*/
-  unsigned long long cycleCount = 0;
+  cycleCount = 0;
   char *versionNumber = "Insizzle_Revision";
   similarIRAM = 0;
   suppressOOB = 0;
@@ -552,6 +552,7 @@ int main(int argc, char *argv[])
 				    /*printf("need to wait for it to finish\n");*/
 				  }
 				hypercontext->stallCount++;
+				hypercontext->cycleCount++;
 			      }
 #endif
 			    }
