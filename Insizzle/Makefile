@@ -1,7 +1,12 @@
 
 # Makefile for InsizzleV3
 
-# use -DVTHREADS in CFLAGS for running code with vthreads
+# CFLAGS extra options
+# -DVTHREAD - for running code with vthreads
+# -DPRINTOUT - print all instructions executed
+# -DDEBUG - print lots of information about everything
+# -DDEBUGmem - print information about memory accesses
+# -DNOSTALLS - count stall events but don't execute them
 
 CC = gcc
 CFLAGS = -c -Wall -pedantic -std=c99 -Wextra -m32 `xml2-config --cflags` -g -D_XOPEN_SOURCE
