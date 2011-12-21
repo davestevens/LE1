@@ -38,6 +38,7 @@ int main(int argc, char *argv[])
   unsigned long long cycleCount = 0;
   char *versionNumber = "Insizzle_Revision";
   similarIRAM = 0;
+  suppressOOB = 0;
 
 #ifdef VAJAZZLE
   printf("Vajazzle (%s)\n", versionNumber);
@@ -63,6 +64,9 @@ int main(int argc, char *argv[])
   for(i=2;i<(unsigned)argc;i++) {
     if(!strcmp(argv[i], "-similarIRAM")) {
       similarIRAM = 1;
+    }
+    else if(!strcmp(argv[i], "-suppressOOB")) {
+      suppressOOB = 1;
     }
     else {
       printf("Unknown argument: %s\n", argv[i]);
@@ -651,7 +655,7 @@ int main(int argc, char *argv[])
 				case mLDSB:
 				  if(temp->value >= (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000))
 				    {
-				      printf("ERROR: OOB\n");
+				      if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
 				      *(temp->pointer) = 0;
 				    }
 				  else
@@ -660,7 +664,7 @@ int main(int argc, char *argv[])
 				case mLDBs:
 				  if(temp->value >= (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000))
 				    {
-				      printf("ERROR: OOB\n");
+				      if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
 				      *(temp->pointer) = 0;
 				    }
 				  else
@@ -675,7 +679,7 @@ int main(int argc, char *argv[])
 #endif
 				  if(temp->value >= (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000))
 				    {
-				      printf("ERROR: OOB\n");
+				      if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
 				      *(temp->pointer) = 0;
 				    }
 				  else
@@ -687,7 +691,7 @@ int main(int argc, char *argv[])
 				case mLDSH:
 				  if(temp->value >= (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000))
 				    {
-				      printf("ERROR: OOB\n");
+				      if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
 				      *(temp->pointer) = 0;
 				    }
 				  else
@@ -696,7 +700,7 @@ int main(int argc, char *argv[])
 				case mLDUH:
 				  if(temp->value >= (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000))
 				    {
-				      printf("ERROR: OOB\n");
+				      if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
 				      *(temp->pointer) = 0;
 				    }
 				  else
@@ -711,7 +715,7 @@ int main(int argc, char *argv[])
 #endif
 				  if(temp->value >= (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000))
 				    {
-				      printf("ERROR: OOB\n");
+				      if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
 				      *(temp->pointer) = 0;
 				    }
 				  else
@@ -730,7 +734,7 @@ int main(int argc, char *argv[])
 				  if(temp->value >= (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000))
 				    {
 				      unsigned *fuckingZero;
-				      printf("ERROR: OOB\n");
+				      if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
 				      *fuckingZero = 0;
 				      _STB_iss((temp->value + (unsigned)(system->dram)), fuckingZero);
 				    }
@@ -748,7 +752,7 @@ int main(int argc, char *argv[])
 #endif
 				  if(temp->value >= (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000))
 				    {
-				      printf("ERROR: OOB\n");
+				      if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
 				      unsigned *fuckingZero;
 				      *fuckingZero = 0;
 				      _STB_iss((temp->value + (unsigned)(system->dram)), fuckingZero);
@@ -767,7 +771,7 @@ int main(int argc, char *argv[])
 #endif
 				  if(temp->value >= (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000))
 				    {
-				      printf("ERROR: OOB\n");
+				      if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
 				      unsigned *fuckingZero;
 				      *fuckingZero = 0;
 				      _STH_iss((temp->value + (unsigned)(system->dram)), fuckingZero);
@@ -787,7 +791,7 @@ int main(int argc, char *argv[])
 #endif
 				  if(temp->value >= (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000))
 				    {
-				      printf("ERROR: OOB\n");
+				      if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
 				      unsigned *fuckingZero;
 				      *fuckingZero = 0;
 				      _STW_iss((temp->value + (unsigned)(system->dram)), fuckingZero);

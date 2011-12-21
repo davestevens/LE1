@@ -651,7 +651,7 @@ void serviceMemRequest(systemT *system, unsigned findBank, unsigned numBanks, un
 		      case mLDSB:
 			if(temp->value >= dramSize)
 			  {
-			    printf("ERROR: OOB\n");
+			    if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
 			    *(temp->pointer) = 0;
 			  }
 			else
@@ -660,7 +660,7 @@ void serviceMemRequest(systemT *system, unsigned findBank, unsigned numBanks, un
 		      case mLDBs:
 			if(temp->value >= dramSize)
 			  {
-			    printf("ERROR: OOB\n");
+			    if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
 			    *(temp->pointer) = 0;
 			  }
 			else
@@ -675,7 +675,7 @@ void serviceMemRequest(systemT *system, unsigned findBank, unsigned numBanks, un
 #endif
 			if(temp->value >= dramSize)
 			  {
-			    printf("ERROR: OOB\n");
+			    if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
 			    *(temp->pointer) = 0;
 			  }
 			else
@@ -687,7 +687,7 @@ void serviceMemRequest(systemT *system, unsigned findBank, unsigned numBanks, un
 		      case mLDSH:
 			if(temp->value >= dramSize)
 			  {
-			    printf("ERROR: OOB\n");
+			    if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
 			    *(temp->pointer) = 0;
 			  }
 			else
@@ -699,7 +699,7 @@ void serviceMemRequest(systemT *system, unsigned findBank, unsigned numBanks, un
 		      case mLDUH:
 			if(temp->value >= dramSize)
 			  {
-			    printf("ERROR: OOB\n");
+			    if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
 			    *(temp->pointer) = 0;
 			  }
 			else
@@ -714,7 +714,7 @@ void serviceMemRequest(systemT *system, unsigned findBank, unsigned numBanks, un
 #endif
 			if(temp->value >= dramSize)
 			  {
-			    printf("ERROR: OOB\n");
+			    if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
 			    *(temp->pointer) = 0;
 			  }
 			else
@@ -733,7 +733,7 @@ void serviceMemRequest(systemT *system, unsigned findBank, unsigned numBanks, un
 			  {
 			    unsigned fZero = 0;
 			    unsigned *fuckingZero = &fZero;
-			    printf("ERROR: OOB\n");
+			    if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
 			    _STB_iss((temp->value + (unsigned)(system->dram)), fuckingZero);
 			  }
 			else {
@@ -754,7 +754,7 @@ void serviceMemRequest(systemT *system, unsigned findBank, unsigned numBanks, un
 #endif
 			if(temp->value >= dramSize)
 			  {
-			    printf("ERROR: OOB\n");
+			    if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
 			    unsigned fZero = 0;
 			    unsigned *fuckingZero = &fZero;
 			    _STB_iss((temp->value + (unsigned)(system->dram)), fuckingZero);
@@ -777,7 +777,7 @@ void serviceMemRequest(systemT *system, unsigned findBank, unsigned numBanks, un
 #endif
 			if(temp->value >= dramSize)
 			  {
-			    printf("ERROR: OOB\n");
+			    if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
 			    unsigned fZero = 0;
 			    unsigned *fuckingZero = &fZero;
 			    _STH_iss((temp->value + (unsigned)(system->dram)), fuckingZero);
@@ -802,7 +802,7 @@ void serviceMemRequest(systemT *system, unsigned findBank, unsigned numBanks, un
 #endif
 			  if(temp->value >= dramSize)
 			    {
-			      printf("ERROR: OOB\n");
+			      if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
 			      unsigned fZero = 0;
 			      unsigned *fuckingZero = &fZero;
 			      _STW_iss((temp->value + (unsigned)(system->dram)), fuckingZero);
@@ -929,7 +929,7 @@ void serviceMemRequestNOSTALLS(systemT *system, unsigned findBank, unsigned numB
 		      case mLDSB:
 			if(temp->value >= dramSize)
 			  {
-			    printf("ERROR: OOB\n");
+			    if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
 			    *(temp->pointer) = 0;
 			  }
 			else
@@ -938,7 +938,7 @@ void serviceMemRequestNOSTALLS(systemT *system, unsigned findBank, unsigned numB
 		      case mLDBs:
 			if(temp->value >= dramSize)
 			  {
-			    printf("ERROR: OOB\n");
+			    if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
 			    *(temp->pointer) = 0;
 			  }
 			else
@@ -953,7 +953,7 @@ void serviceMemRequestNOSTALLS(systemT *system, unsigned findBank, unsigned numB
 #endif
 			if(temp->value >= dramSize)
 			  {
-			    printf("ERROR: OOB\n");
+			    if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
 			    *(temp->pointer) = 0;
 			  }
 			else
@@ -965,7 +965,7 @@ void serviceMemRequestNOSTALLS(systemT *system, unsigned findBank, unsigned numB
 		      case mLDSH:
 			if(temp->value >= dramSize)
 			  {
-			    printf("ERROR: OOB\n");
+			    if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
 			    *(temp->pointer) = 0;
 			  }
 			else
@@ -977,7 +977,7 @@ void serviceMemRequestNOSTALLS(systemT *system, unsigned findBank, unsigned numB
 		      case mLDUH:
 			if(temp->value >= dramSize)
 			  {
-			    printf("ERROR: OOB\n");
+			    if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
 			    *(temp->pointer) = 0;
 			  }
 			else
@@ -992,7 +992,7 @@ void serviceMemRequestNOSTALLS(systemT *system, unsigned findBank, unsigned numB
 #endif
 			if(temp->value >= dramSize)
 			  {
-			    printf("ERROR: OOB\n");
+			    if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
 			    *(temp->pointer) = 0;
 			  }
 			else
@@ -1011,7 +1011,7 @@ void serviceMemRequestNOSTALLS(systemT *system, unsigned findBank, unsigned numB
 			  {
 			    unsigned fZero = 0;
 			    unsigned *fuckingZero = &fZero;
-			    printf("ERROR: OOB\n");
+			    if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
 			    _STB_iss((temp->value + (unsigned)(system->dram)), fuckingZero);
 			  }
 			else {
@@ -1032,7 +1032,7 @@ void serviceMemRequestNOSTALLS(systemT *system, unsigned findBank, unsigned numB
 #endif
 			if(temp->value >= dramSize)
 			  {
-			    printf("ERROR: OOB\n");
+			    if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
 			    unsigned fZero = 0;
 			    unsigned *fuckingZero = &fZero;
 			    _STB_iss((temp->value + (unsigned)(system->dram)), fuckingZero);
@@ -1055,7 +1055,7 @@ void serviceMemRequestNOSTALLS(systemT *system, unsigned findBank, unsigned numB
 #endif
 			if(temp->value >= dramSize)
 			  {
-			    printf("ERROR: OOB\n");
+			    if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
 			    unsigned fZero = 0;
 			    unsigned *fuckingZero = &fZero;
 			    _STH_iss((temp->value + (unsigned)(system->dram)), fuckingZero);
@@ -1080,7 +1080,7 @@ void serviceMemRequestNOSTALLS(systemT *system, unsigned findBank, unsigned numB
 #endif
 			  if(temp->value >= dramSize)
 			    {
-			      printf("ERROR: OOB\n");
+			      if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
 			      unsigned fZero = 0;
 			      unsigned *fuckingZero = &fZero;
 			      _STW_iss((temp->value + (unsigned)(system->dram)), fuckingZero);
@@ -1158,7 +1158,7 @@ void serviceMemRequestPERFECT(systemT *system, unsigned dramSize)
 	  case mLDSB:
 	    if(temp->value >= dramSize)
 	      {
-		/*printf("ERROR: OOB\n");*/
+		/*if(suppressOOB != 1) { printf("ERROR: OOB\n"); }*/
 		*(temp->pointer) = 0;
 	      }
 	    else
@@ -1172,7 +1172,7 @@ void serviceMemRequestPERFECT(systemT *system, unsigned dramSize)
 	  case mLDBs:
 	    if(temp->value >= dramSize)
 	      {
-		/*printf("ERROR: OOB\n");*/
+		/*if(suppressOOB != 1) { printf("ERROR: OOB\n"); }*/
 		*(temp->pointer) = 0;
 	      }
 	    else
@@ -1186,7 +1186,7 @@ void serviceMemRequestPERFECT(systemT *system, unsigned dramSize)
 	  case mLDUB:
 	    if(temp->value >= dramSize)
 	      {
-		/*printf("ERROR: OOB\n");*/
+		/*if(suppressOOB != 1) { printf("ERROR: OOB\n"); }*/
 		*(temp->pointer) = 0;
 	      }
 	    else
@@ -1200,7 +1200,7 @@ void serviceMemRequestPERFECT(systemT *system, unsigned dramSize)
 	  case mLDSH:
 	    if(temp->value >= dramSize)
 	      {
-		/*printf("ERROR: OOB\n");*/
+		/*if(suppressOOB != 1) { printf("ERROR: OOB\n"); }*/
 		*(temp->pointer) = 0;
 	      }
 	    else
@@ -1214,7 +1214,7 @@ void serviceMemRequestPERFECT(systemT *system, unsigned dramSize)
 	  case mLDUH:
 	    if(temp->value >= dramSize)
 	      {
-		/*printf("ERROR: OOB\n");*/
+		/*if(suppressOOB != 1) { printf("ERROR: OOB\n"); }*/
 		*(temp->pointer) = 0;
 	      }
 	    else
@@ -1228,7 +1228,7 @@ void serviceMemRequestPERFECT(systemT *system, unsigned dramSize)
 	  case mLDW:
 	    if(temp->value >= dramSize)
 	      {
-		/*printf("ERROR: OOB\n");*/
+		/*if(suppressOOB != 1) { printf("ERROR: OOB\n"); }*/
 		*(temp->pointer) = 0;
 	      }
 	    else
@@ -1244,7 +1244,7 @@ void serviceMemRequestPERFECT(systemT *system, unsigned dramSize)
 	      {
 		unsigned fZero = 0;
 		unsigned *fuckingZero = &fZero;
-		/*printf("ERROR: OOB\n");*/
+		/*if(suppressOOB != 1) { printf("ERROR: OOB\n"); }*/
 		_STB_iss((temp->value + (unsigned)(system->dram)), fuckingZero);
 	      }
 	    else
@@ -1261,7 +1261,7 @@ void serviceMemRequestPERFECT(systemT *system, unsigned dramSize)
 	  case mSTBs:
 	    if(temp->value >= dramSize)
 	      {
-		/*printf("ERROR: OOB\n");*/
+		/*if(suppressOOB != 1) { printf("ERROR: OOB\n"); }*/
 		unsigned fZero = 0;
 		unsigned *fuckingZero = &fZero;
 		_STB_iss((temp->value + (unsigned)(system->dram)), fuckingZero);
@@ -1280,7 +1280,7 @@ void serviceMemRequestPERFECT(systemT *system, unsigned dramSize)
 	  case mSTH:
 	    if(temp->value >= dramSize)
 	      {
-		/*printf("ERROR: OOB\n");*/
+		/*if(suppressOOB != 1) { printf("ERROR: OOB\n"); }*/
 		unsigned fZero = 0;
 		unsigned *fuckingZero = &fZero;
 		_STH_iss((temp->value + (unsigned)(system->dram)), fuckingZero);
@@ -1300,7 +1300,7 @@ void serviceMemRequestPERFECT(systemT *system, unsigned dramSize)
 	    {
 	      if(temp->value >= dramSize)
 		{
-		  /*printf("ERROR: OOB\n");*/
+		  /*if(suppressOOB != 1) { printf("ERROR: OOB\n"); }*/
 		  unsigned fZero = 0;
 		  unsigned *fuckingZero = &fZero;
 		  _STW_iss((temp->value + (unsigned)(system->dram)), fuckingZero);
