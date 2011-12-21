@@ -33,6 +33,7 @@
 
 unsigned memAlign;
 time_t start, end;
+unsigned char similarIRAM;
 
 typedef struct {
   unsigned op;

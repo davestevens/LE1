@@ -37,6 +37,7 @@ int main(int argc, char *argv[])
   /*unsigned sGPROffset, sFPROffset, sVROffset, sPROffset;*/
   unsigned long long cycleCount = 0;
   char *versionNumber = "Insizzle_Revision";
+  similarIRAM = 0;
 
 #ifdef VAJAZZLE
   printf("Vajazzle (%s)\n", versionNumber);
@@ -58,6 +59,15 @@ int main(int argc, char *argv[])
     }
 
   printf("readConf ok\n");
+  /* for each other argv */
+  for(i=2;i<(unsigned)argc;i++) {
+    if(!strcmp(argv[i], "-similarIRAM")) {
+      similarIRAM = 1;
+    }
+    else {
+      printf("Unknown argument: %s\n", argv[i]);
+    }
+  }
 
   /* call config to setup the galaxy */
   if(setupGalaxy() == -1)
@@ -1176,7 +1186,7 @@ int setupGalaxy(void)
 #else
       /* this now reads a separate binary per context */
       char tempFileName[256];
-      sprintf(tempFileName, "binaries/iram%d.bin", j);
+      sprintf(tempFileName, "binaries/iram%d.bin", (similarIRAM == 1) ? 0 : j);
       strcpy(binary, tempFileName);
 #endif
 	  printf("file: %s\n", binary);
