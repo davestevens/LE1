@@ -16,6 +16,7 @@ int readConf(char *filename) {
   unsigned currentClusterTemplate = 0;
   unsigned currentHyperContext = 0;
   int templ, inst;
+  int homogeneous = 0;
 
 #ifndef LIBXML_READER_ENABLED
   printf("XML support not enabled\n");
@@ -33,6 +34,14 @@ int readConf(char *filename) {
     while(ret == 1) {
       processNode(reader, &xmlR);
       if(xmlR.type == 1) {
+	if(!strcmp(xmlR.name, "type")) {
+	  ret = xmlTextReaderRead(reader);
+	  processNode(reader, &xmlR);
+	  if(!strcmp(xmlR.value, "homogeneous")) {
+	    printf("homogeneous system\n");
+	    homogeneous = 1;
+	  }
+	}
 	if(!strcmp(xmlR.name, "systems")) {
 	  ret = xmlTextReaderRead(reader);
 	  processNode(reader, &xmlR);
@@ -509,7 +518,68 @@ int readConf(char *filename) {
       return -1;
     }
   }
+  if(homogeneous) {
+    unsigned int i, j, k;
+  
+    systemConfig *SYS;
+    contextConfig *CNT;
+    contextConfig *CNT_homogeneous;
+    hyperContextConfig *HCNT;
+    hyperContextConfig *HCNT_homogeneous;
+    clusterTemplateConfig *CLUT;
+    clusterTemplateConfig *CLUT_homogeneous;
 
+    /* need to copy everything from context 0 to all available context */
+    /* loop through each available hypercontext */
+    for(i=0;i<(GALAXY_CONFIG & 0xff);i++)
+      {
+	SYS = (systemConfig *)((unsigned)SYSTEM + (i * sizeof(systemConfig)));
+	
+	if((SYS->SYSTEM_CONFIG & 0xff) > 1) {
+	  CNT = (contextConfig *)((unsigned)SYS->CONTEXT + (0 * sizeof(contextConfig)));
+
+	  /* need to copy context 0 to all of these */
+	  for(j=1;j<(SYS->SYSTEM_CONFIG & 0xff);j++) {
+	    CNT_homogeneous = (contextConfig *)((unsigned)SYS->CONTEXT + (j * sizeof(contextConfig)));
+	    CNT_homogeneous->CONTEXT_CONFIG = CNT->CONTEXT_CONFIG;
+	    CNT_homogeneous->CONTEXT_CTRL = CNT->CONTEXT_CTRL = 0;
+	    CNT_homogeneous->IFE_SIMPLE_IRAM_PRIV_CONFIG = CNT->IFE_SIMPLE_IRAM_PRIV_CONFIG;
+
+	    /* setup hypercontext */
+	    CNT_homogeneous->HCONTEXT = (hyperContextConfig *)malloc(sizeof(hyperContextConfig) *((CNT->CONTEXT_CONFIG >> 4) & 0xf));
+	    if(CNT_homogeneous->HCONTEXT == NULL)
+	      return -1;
+
+	    /* loop through hypercontexts and copy info */
+	    for(k=0;k<((CNT->CONTEXT_CONFIG >> 4) & 0xf);k++) {
+	      HCNT = (hyperContextConfig *)((unsigned)CNT->HCONTEXT + (k * sizeof(hyperContextConfig)));
+	      HCNT_homogeneous = (hyperContextConfig *)((unsigned)CNT_homogeneous->HCONTEXT + (k * sizeof(hyperContextConfig)));
+
+	      HCNT_homogeneous->HCONTEXT_CONFIG = HCNT->HCONTEXT_CONFIG;
+	      HCNT_homogeneous->HCONTEXT_CLUST_TEMPL0_1.hi = HCNT->HCONTEXT_CLUST_TEMPL0_1.hi;
+	      HCNT_homogeneous->HCONTEXT_CLUST_TEMPL0_1.lo = HCNT->HCONTEXT_CLUST_TEMPL0_1.lo;
+
+	      HCNT_homogeneous->HCONTEXT_CLUST_TEMPL_INST0_1.hi = HCNT->HCONTEXT_CLUST_TEMPL_INST0_1.hi;
+	      HCNT_homogeneous->HCONTEXT_CLUST_TEMPL_INST0_1.lo = HCNT->HCONTEXT_CLUST_TEMPL_INST0_1.lo;
+	    }
+
+	    /* setup clusterTemplates */
+	    CNT_homogeneous->CLUSTER_TEMPL = (clusterTemplateConfig *)malloc(sizeof(clusterTemplateConfig) * ((CNT_homogeneous->CONTEXT_CONFIG >> 8) & 0xf));
+	    if(CNT_homogeneous->CLUSTER_TEMPL == NULL)
+	      return -1;
+	    /* loop through clusterTemplates and copy info */
+	    for(k=0;k<((CNT->CONTEXT_CONFIG >> 8) & 0xf);k++) {
+	      CLUT = (clusterTemplateConfig *)((unsigned)CNT->CLUSTER_TEMPL + (k * sizeof(clusterTemplateConfig)));
+	      CLUT_homogeneous = (clusterTemplateConfig *)((unsigned)CNT_homogeneous->CLUSTER_TEMPL + (k * sizeof(clusterTemplateConfig)));
+
+	      CLUT_homogeneous->CLUST_TEMPL_CONFIG = CLUT->CLUST_TEMPL_CONFIG;
+	      CLUT_homogeneous->CLUST_TEMPL_STATIC_REGFILE_CONFIG = CLUT->CLUST_TEMPL_STATIC_REGFILE_CONFIG;
+	      CLUT_homogeneous->CLUST_TEMPL_SCORE_CONFIG = CLUT->CLUST_TEMPL_SCORE_CONFIG;
+	    }
+	  }
+	}
+      }
+  }
   return 0;
 }
 
