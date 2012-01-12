@@ -10,6 +10,7 @@
 #endif
 
 #ifdef DEBUG
+void my_bcopy(const void *, void *, size_t);
 void *my_memcpy(void *, void *, size_t);
 int my_memcmp(void *, void *, size_t);
 char *my_strcpy(char *, char *);
@@ -29,6 +30,7 @@ char *my_strerror(int);
 size_t my_strspn(char *, char*);
 size_t my_strcspn(char *, char*);
 #else
+void bcopy(const void *, void *, size_t);
 void *memcpy(void *, void *, size_t);
 int memcmp(void *, void *, size_t);
 char *strcpy(char *, char *);
