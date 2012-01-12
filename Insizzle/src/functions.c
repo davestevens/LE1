@@ -191,25 +191,22 @@ int printCounts(hyperContextT *hypercontext)
     unsigned c;
     unsigned long long *bundleCount;
 
-  printf("printCounts\n");
-
-  printf("\tcycleCount:       %lld\n", hypercontext->cycleCount);
-  printf("\tstallCount:       %lld\n", hypercontext->stallCount);
-  printf("\tnopCount:         %lld\n", hypercontext->nopCount);
-  printf("\tidleCount:        %lld\n", hypercontext->idleCount);
-
-  for(c=0;c<hypercontext->totalWidth+1;c++)
+  printf("\tCycle breakdown\n");
+  printf("\t\tcycleCount:       %lld\n", hypercontext->cycleCount);
+  printf("\t\tstallCount:       %lld\n", hypercontext->stallCount);
+  printf("\t\tnopCount:         %lld\n", hypercontext->nopCount);
+  printf("\t\tidleCount:        %lld\n", hypercontext->idleCount);
+   for(c=0;c<hypercontext->totalWidth+1;c++)
     {
       bundleCount = (unsigned long long *)((unsigned)hypercontext->bundleCount + (sizeof(unsigned long long) * c));
-      printf("\t\t[%d] = %lld\n", c, *bundleCount);
+      printf("\t\t\t[%d] = %lld\n", c, *bundleCount);
     }
 
-  printf("\tdecodeStallCount: %lld\n", hypercontext->decodeStallCount);
-  printf("\tbranchTaken:      %lld\n", hypercontext->branchTaken);
-  printf("\tbranchNotTaken:   %lld\n", hypercontext->branchNotTaken);
-  printf("\tcontrolFlowChange:%lld\n", hypercontext->controlFlowChange);
-  printf("\tmemoryAccessCount:%lld\n", hypercontext->memoryAccessCount);
-
+  printf("\t\tdecodeStallCount: %lld\n", hypercontext->decodeStallCount);
+  printf("\t\tbranchTaken:      %lld\n", hypercontext->branchTaken);
+  printf("\t\tbranchNotTaken:   %lld\n", hypercontext->branchNotTaken);
+  printf("\t\tcontrolFlowChange:%lld\n", hypercontext->controlFlowChange);
+  printf("\t\tmemoryAccessCount:%lld\n", hypercontext->memoryAccessCount);
 
   return 0;
 }

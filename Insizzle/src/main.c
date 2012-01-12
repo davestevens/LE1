@@ -1070,25 +1070,30 @@ int main(int argc, char *argv[])
     printf("End Time: %ld\n", end);
     printf("Total Time: %ld (seconds)\n", (end - start));
 
-  printf("galaxy: 0\n");
+
+
   /* loop through systems in the galaxy */
   for(i=0;i<(GALAXY_CONFIG & 0xff);i++)
     {
-      printf("\tsystem: %d\n", i);
+   
       SYS = (systemConfig *)((unsigned)SYSTEM + (i * sizeof(systemConfig)));
       system = (systemT *)((unsigned)galaxyT + (i * sizeof(systemT)));
 
       /* loop through contexts */
       for(j=0;j<(SYS->SYSTEM_CONFIG & 0xff);j++)
 	{
-	  printf("\t\tcontext: %d\n", j);
+	 
 	  CNT = (contextConfig *)((unsigned)SYS->CONTEXT + (j * sizeof(contextConfig)));
 	  context = (contextT *)((unsigned)system->context + (j * sizeof(contextT)));
 
 	  /* loop through hypercontexts */
 	  for(k=0;k<((CNT->CONTEXT_CONFIG >> 4) & 0xf);k++)
 	    {
-	      printf("\t\t\thypercontext: %d\n", k);
+              printf("performance statistics\n");
+              printf("\tgalaxy:         0\n");
+              printf("\tsystem:         %d\n", i);
+ 	      printf("\tcontext:        %d\n", j);
+	      printf("\thypercontext: %d\n", k);
 	      HCNT = (hyperContextConfig *)((unsigned)CNT->HCONTEXT + (k * sizeof(hyperContextConfig)));
 	      hypercontext = (hyperContextT *)((unsigned)context->hypercontext + (k * sizeof(hyperContextT)));
 
