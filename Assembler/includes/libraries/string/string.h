@@ -30,7 +30,7 @@ char *my_strerror(int);
 size_t my_strspn(char *, char*);
 size_t my_strcspn(char *, char*);
 #else
-void bcopy(const void *, void *, size_t);
+void _bcopy(const void *, void *, size_t);
 void *memcpy(void *, void *, size_t);
 int memcmp(void *, void *, size_t);
 char *strcpy(char *, char *);

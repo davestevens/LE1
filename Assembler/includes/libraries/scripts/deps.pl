@@ -71,7 +71,7 @@
 
 # STRING
 
-
+@_bcopy = ("string/_bcopy.c");
 @memchr = ("string/memchr.c");
 @memcmp = ("string/memcmp.c");
 @memcpy = ("string/memcpy.c");
