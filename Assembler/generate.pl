@@ -160,6 +160,17 @@ HELP
     {
 	print<<EOH;
 --------------------------------------------------------------------------------
+	Running FalconML Hack
+--------------------------------------------------------------------------------
+EOH
+	    if($debug == 1)
+	{
+	    print "Running Command: perl $falconml_hack $vex_location\n";
+	}
+	#@return = readpipe("perl $fml_hack_location");
+	system("perl $falconml_hack $vex_location");
+	print<<EOH;
+--------------------------------------------------------------------------------
 	Running VEX
 --------------------------------------------------------------------------------
 EOH
