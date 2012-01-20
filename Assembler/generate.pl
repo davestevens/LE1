@@ -514,26 +514,6 @@ EOH
 	}
     }
 
-# need to then compile source code with gcc and run objcopy with it
-print "Running GCC\n";
-
-$vajazzle_out = $file3;#$output_file . "/vajazzle.o" ;
-$vajazzle_out =~ s/temp\.s(\.new\.s)?/vajazzle\.o/;
-$datalabels = $file3;
-$datalabels =~ s/temp\.s(\.new\.s)?/datalabels/;
-
-print "gcc -o $vajazzle_out $cfiles -g\n";
-system("gcc -o $vajazzle_out $cfiles -g");
-
-print "$perl $vajazzle $vajazzle_out $datalabels\n";
-system("$perl $vajazzle $vajazzle_out $datalabels");
-
-print "Running OBJCOPY\n";
-$objcopy_file = $file3;
-$objcopy_file =~ s/temp\.s(\.new\.s)?$/OBJCOPY/;
-print "objcopy --redefine-syms $objcopy_file $vajazzle_out $vajazzle_out\n";
-system("objcopy --redefine-syms $objcopy_file $vajazzle_out $vajazzle_out");
-
 if($vex_sim)
 {
     print<<EOH;

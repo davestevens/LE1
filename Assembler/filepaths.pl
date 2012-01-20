@@ -18,7 +18,6 @@ $secondpass_name  = "secondpass.pl";
 $transform_name   = "trans.pl";
 $pullin_name      = "pullIn.pl";
 $deps_name        = "deps.pl";
-$vajazzle_name    = "vajazzle.pl";
 $falconml_hack_name = "FalconML_hack.pl";
 
 $libraries        = "includes/libraries/";
@@ -38,7 +37,6 @@ $transform  = $le1_folder . "/" . $assembler_folder . "/" . $transform_name;
 $pullin       = $le1_folder . "/" . $assembler_folder . "/" . $libraries . "scripts/" . $pullin_name;
 $deps       = $le1_folder . "/" . $assembler_folder . "/" . $libraries . "scripts/" . $deps_name;
 $libraries  = $le1_folder . "/" . $assembler_folder . "/" . $libraries;
-$vajazzle   = $le1_folder . "/" . $assembler_folder . "/" . $vajazzle_name;
 $falconml_hack   = $le1_folder . "/" . $assembler_folder . "/" . $falconml_hack_name;
 
 # these should be removed at some point soon

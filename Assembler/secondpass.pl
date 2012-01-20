@@ -80,26 +80,6 @@ else
 	    &print_instructions($output_file_inst, $output_file_inst_readable, $output_header_file_inst);
 	    &print_data($output_file_data, $output_file_data_readable, $output_header_file_data, $output_data_le1_vars);
 
-	    # need to create the objcopy static file of all functions and data objects
-	    open FILE, "> $output_file.OBJCOPY" or die;
-	    print FILE "# Functions\n";
-	    foreach $key (sort sortinstlabel (keys(%Inst_Label)))
-	    {
-		if($key =~ /^FUNC_(\w+)/)
-		{
-		    print FILE "$1 _vajazzle_$1\n";
-		}
-	    }
-	    print FILE "# Data Objects\n";
-	    foreach $key (sort sortdatalabel (keys(%Data_Label)))
-	    {
-		if($key ne "")
-		{
-		    print FILE "$key _vajazzle_$key\n";
-		}
-	    }
-	    close FILE;
-
 	    # need a flat file of data labels and addresses
 	    open FILE, "> $output_file.datalabels" or die;
 	    foreach $key (sort sortdatalabel (keys(%Data_Label)))
@@ -110,75 +90,6 @@ else
 		}
 	    }	    
 	    close FILE;
-
-#	    # need to create the arrayOfMem arrays file
-#	    #TODO: this won't work for FLOATLIB code at the moment
-#	    $output_file =~ /(.+)\//;
-#	    $filename = $1 . "/vajazzle.h";
-#	    open FILE, "> $filename" or die;
-#	    print FILE "/* auto gen vajazzle file */\n\n";
-#	    print FILE "typedef struct {\n";
-#	    print FILE "unsigned addr;\n";
-#	    print FILE "unsigned size;\n";
-#	    print FILE "char name[256];\n";
-#	    print FILE "void *P;\n";
-#	    print FILE "} mem;\n\n";
-#
-#	    $count = 0;
-#	    $string = '';
-#	    foreach $key (sort sortdatalabel (keys(%Data_Label)))
-#	    {
-#		if($key ne "")
-#		{
-#		    $string .= "extern void *_vajazzle_$key;\n";
-#		    $count++;
-#		}
-#	    }
-#	    print FILE "#define SIZE $count\n\n";
-#	    print FILE "mem arrayOfMem[SIZE];\n\n";
-#	    print FILE $string;
-#	    print FILE "\n";
-#	    print FILE "void setupArray(void);\n\n";
-#	    close FILE;
-#
-#	    open FILE, "> $output_file.vajazzle.c" or die;
-#	    print FILE "/* auto gen vajazzle file */\n";
-#	    print FILE "#include <string.h>\n";
-#	    print FILE "#include \"vajazzle.h\"\n";
-#
-#	    print FILE "void setupArray(void)\n{\n";
-#
-#	    $string = '';
-#	    $count = 0;
-#	    foreach $key (sort sortdatalabel (keys(%Data_Label)))
-#	    {
-#		if($key ne "")
-#		{
-#		    if($string ne '')
-#		    {
-#			$string .= "\tarrayOfMem[" . ($count - 1) . "].size = " . ($Data_Label{$key} - $this) . ";\n\n";
-#			print FILE $string;
-#			$string = '';
-#		    }
-#		    $this = $Data_Label{$key};
-#		    $string .= "\tarrayOfMem[$count].addr = $Data_Label{$key};\n";
-#		    $string .= "\tstrcpy(arrayOfMem[$count].name, \"_vajazzle_$key\");\n";
-#		    $string .= "\tarrayOfMem[$count].P = (void *)\&_vajazzle_$key;\n";
-#		    $count++;
-#		}
-#	    }	    
-#
-#	    if($string ne '')
-#	    {
-#		$string .= "\tarrayOfMem[" . ($count - 1) . "].size = " . ($total_data - $this) . ";\n\n";
-#		print FILE $string;
-#		$string = '';
-#	    }
-#
-#	    print FILE "\treturn;\n";
-#	    print FILE "}\n";
-#
-#	    close FILE;
 
 	    print "Second Pass Completed\n$output_file_inst created & $output_file_data created\n";
 	    exit(0);
