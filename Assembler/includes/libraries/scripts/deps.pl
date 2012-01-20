@@ -101,3 +101,6 @@
 # SOFTFLOAT
 
 
+# PTHREAD
+@vthread_create = ("pthread/pthread.c");
+@vthread_join = ("pthread/pthread.c");

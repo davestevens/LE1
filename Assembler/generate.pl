@@ -83,6 +83,9 @@ foreach $arg (@ARGV)
     {
 	$dram_base_offset = $1;
     }
+    elsif($arg =~ /-pthread/) {
+	$arguments .= '-I' . $le1_folder . '/' . $assembler_folder . '/includes/libraries/pthread/';
+    }
     elsif($arg =~ /-D(.+)=(.+)/)
     {
 	$arguments .= "-D$1=$2 ";

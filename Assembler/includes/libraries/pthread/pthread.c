@@ -1,5 +1,5 @@
 /* our own vthread functions */
-#include "vthread.h"
+#include "pthread.h"
 
 /* vthread_create
    calls custom instruction associated with creating new thread
