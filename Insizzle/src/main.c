@@ -10,11 +10,6 @@
    gcc -o Insizzle `xml2-config --cflags` main.c `xml2-config --libs` -m32 -Wall -Wextra -pedantic -std=c99
 */
 
-#ifdef VAJAZZLE
-#include "vajazzle.h"
-extern void *_vajazzle_main(void);
-#endif
-
 #ifndef API
 int main(int argc, char *argv[])
 {
@@ -40,11 +35,7 @@ int main(int argc, char *argv[])
   similarIRAM = 0;
   suppressOOB = 0;
 
-#ifdef VAJAZZLE
-  printf("Vajazzle (%s)\n", versionNumber);
-#else
   printf("Insizzle (%s)\n", versionNumber);
-#endif
 
 #ifndef API
   if(argc < 2)
@@ -87,9 +78,6 @@ int main(int argc, char *argv[])
 	  for each hypercontext
   */
 
-#ifdef VAJAZZLE
-  printf("Running Insizzle\n");
-#endif
 
   SYS = (systemConfig *)((unsigned)SYSTEM + (0 * sizeof(systemConfig)));
   system = (systemT *)((unsigned)galaxyT + (0 * sizeof(systemT)));
@@ -895,164 +883,6 @@ int main(int argc, char *argv[])
   end = time(NULL);
 
 #ifndef API
-#ifdef VAJAZZLE
-  printf("\tInsizzle run complete\n");
-
-  printf("Running GCC\n");
-  _vajazzle_main();
-  printf("\tGCC run complete\n");
-
-  printf("running setupMem()\n");
-  setupMem();
-
-  /* TODO: need to get a system pointer */
-  system = (systemT *)((unsigned)galaxyT);
-
-  printf("comparing global data variables\n");
-  {
-    struct mem *this;
-    unsigned c, temp;
-    this = _vajazzle_vars;
-    do {
-      /*    printf("le1Addr: 0x%x\n", this->addr);
-	    printf("size:    %d\n", this->size);
-	    printf("name:    %s\n", this->name);
-	    printf("point:   %p\n", this->P);*/
-      printf("checking: %s\n", this->name);
-
-      switch(this->type)
-	{
-	case charT:
-	  printf("\tcharT\n");
-	  unsigned char *charP;
-	  printf("SIZE: %d\n", this->size);
-	  for(c=0;c<this->size;c++)
-	    {
-	      if(this->pointer)
-		{
-		  _LDW_iss(&temp, ((unsigned)system->dram + (this->addr + c)));
-		  _LDUB_iss(&temp, ((unsigned)system->dram + temp));
-		  charP = (unsigned char*)(*(unsigned int*)((unsigned)this->P + c));
-		  printf("\t\t%d [0x%x] [0x%x]\n",
-			 c,
-			 *charP,
-			 temp);
-		  if(*charP != temp)
-		    printf("\t\tdifference: GCC 0x%02x INS: 0x%02x\n", *charP, temp);
-		}
-	      else
-		{
-		  _LDUB_iss(&temp, ((unsigned)system->dram + (this->addr + c)));
-		  printf("\t\t%d [0x%x] [0x%x]\n",
-			 c,
-			 *(unsigned char*)((unsigned)this->P + c),
-			 temp);
-		  if(*(unsigned char*)((unsigned)this->P + c) != temp)
-		    printf("\t\tdifference: GCC 0x%02x INS: 0x%02x\n", *(unsigned char*)((unsigned)this->P + c), temp);
-		}
-	    }
-	  break;
-	case shortT:
-	  printf("\tshortT\n");
-	  unsigned short *shortP;
-	  for(c=0;c<this->size;c++)
-	    {
-	      if(this->pointer)
-		{
-		  _LDW_iss(&temp, ((unsigned)system->dram + (this->addr + (c * 2))));
-		  _LDUH_iss(&temp, ((unsigned)system->dram + temp));
-		  shortP = (unsigned short *)(*(unsigned int*)((unsigned)this->P + (c * 2)));
-		  printf("\t\t%d [0x%x] [0x%x]\n",
-			 c,
-			 *shortP,
-			 temp);
-		  if(*shortP != temp)
-		    printf("\t\tdifference: GCC 0x%04x INS: 0x%04x\n", *shortP, temp);
-		}
-	      else
-		{
-		  _LDUH_iss(&temp, ((unsigned)system->dram + (this->addr + (c * 2))));
-		  printf("\t\t%d [0x%x] [0x%x]\n",
-			 c,
-			 *(unsigned short*)((unsigned)this->P + (c * 2)),
-			 temp);
-		  if(*(unsigned short*)((unsigned)this->P + (c * 2)) != temp)
-		    printf("\t\tdifference: GCC 0x%04x INS: 0x%04x\n", *(unsigned short*)((unsigned)this->P + (c * 2)), temp);
-		}
-	    }
-	  break;
-	case intT:
-	  printf("\tintT\n");
-	  unsigned *intP;
-	  for(c=0;c<this->size;c++)
-	    {
-	      if(this->pointer)
-		{
-		  _LDW_iss(&temp, ((unsigned)system->dram + (this->addr + (c * 4))));
-		  _LDW_iss(&temp, ((unsigned)system->dram + temp));
-		  intP = (unsigned *)(*(unsigned int*)((unsigned)this->P + (c * 4)));
-		  printf("\t\t%d [0x%x] [0x%x]\n",
-			 c,
-			 *intP,
-			 temp);
-		  if(*intP != temp)
-		    printf("\t\tdifference: GCC 0x%08x INS 0x%08x\n", *intP, temp);
-		}
-	      else
-		{
-		  _LDW_iss(&temp, ((unsigned)system->dram + (this->addr + (c * 4))));
-		  printf("\t\t%d [0x%x] [0x%x]\n",
-			 c,
-			 *(unsigned int*)((unsigned)this->P + (c * 4)),
-			 temp);
-		  if(*(unsigned int*)((unsigned)this->P + (c * 4)) != temp)
-		    printf("\t\tdifference: GCC 0x%08x INS 0x%08x\n", *(unsigned int*)((unsigned)this->P + (c * 4)), temp);
-		}
-	    }
-	  break;
-	case longT:
-	  printf("\tlongT\n");
-	  break;
-	case longlongT:
-	  printf("\tlonglongT\n");
-	  break;
-	case unkT:
-	  printf("\t i can't check this right now, its a struct or somthing\n");
-	  break;
-	default:
-	  printf("\terror\n");
-	  break;
-	}
-    this = this->next;
-    } while((this != NULL) && (this->valid));
-  }
-
-#if 0
-  printf("comparing global data variables\n");
-  /* TODO: need to get a system pointer */
-  system = (systemT *)((unsigned)galaxyT);
-  {
-    /*    unsigned *dram = system->dram;*/
-    unsigned c, count;
-    unsigned char temp;
-
-    for(c=0;c<SIZE;c++)
-      {
-	printf("\tvariable name: %s (size: %d)\n", arrayOfMem[c].name, arrayOfMem[c].size);
-	printf("sizeof = %d\n", sizeof((void *)arrayOfMem[c].P));
-	for(count=0;count<arrayOfMem[c].size;count++)
-	  {
-	    _LDUB_iss(&temp, ((unsigned)system->dram + (arrayOfMem[c].addr + count)));
-	    printf("GCC: 0x%x - INS: 0x%x\n",
-		   *(unsigned char *)((unsigned)arrayOfMem[c].P + count),
-		   temp);
-	  }
-      }
-  }
-#endif
-
-#endif
-
 #else
   int insizzleAPIoutputCounts(void) {
     unsigned i, j, k;
@@ -1532,46 +1362,3 @@ void returnOpcode(opT op)
 
   return;
 }
-
-#ifdef VAJAZZLE
-void push(unsigned le1Addr, void *gccAddr, typeT type, char *name, unsigned size, char pointer)
-{
-  struct mem *next;
-
-  if(_vajazzle_vars == NULL)
-    {
-      /* first time round */
-      _vajazzle_vars = calloc(sizeof(struct mem), 1);
-      _vajazzle_vars_next = calloc(sizeof(struct mem), 1);
-
-      _vajazzle_vars->addr = le1Addr;
-      _vajazzle_vars->size = size;
-      strcpy(_vajazzle_vars->name, name);
-      _vajazzle_vars->P = gccAddr;
-      _vajazzle_vars->type = type;
-      _vajazzle_vars->pointer = pointer;
-
-      _vajazzle_vars->valid = 1;
-
-      _vajazzle_vars->next = _vajazzle_vars_next;
-    }
-  else
-    {
-      next = _vajazzle_vars_next;
-      _vajazzle_vars_next = calloc(sizeof(struct mem), 1);
-
-      next->addr = le1Addr;
-      next->size = size;
-      strcpy(next->name, name);
-      next->P = gccAddr;
-      next->type = type;
-      next->pointer = pointer;
-
-      next->valid = 1;
-
-      next->next = _vajazzle_vars_next;
-    }
-
-  return;
-}
-#endif
