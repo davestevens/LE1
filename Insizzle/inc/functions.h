@@ -22,7 +22,6 @@
 #endif
 
 #define PIPELINE_REFILL       3
-#define STACK_SIZE            12 /* KB */
 
 #define MAX_GALAXIES          1
 #define MAX_SYSTEMS           16 /* per galaxy */
@@ -35,6 +34,7 @@ unsigned memAlign;
 time_t start, end;
 unsigned char similarIRAM, suppressOOB;
 unsigned long long cycleCount;
+unsigned int STACK_SIZE; /* stack size per hypercontext in KB */
 
 typedef struct {
   unsigned op;

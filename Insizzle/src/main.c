@@ -34,6 +34,7 @@ int main(int argc, char *argv[])
   char *versionNumber = "Insizzle_Revision";
   similarIRAM = 0;
   suppressOOB = 0;
+  STACK_SIZE = 12;
 
   printf("Insizzle (%s)\n", versionNumber);
 
@@ -58,6 +59,9 @@ int main(int argc, char *argv[])
     }
     else if(!strcmp(argv[i], "-suppressOOB")) {
       suppressOOB = 1;
+    }
+    else if(!strncmp(argv[i], "-stack=", 7)) {
+      sscanf(argv[i], "-stack=%d", (int *)&STACK_SIZE);
     }
     else {
       printf("Unknown argument: %s\n", argv[i]);
