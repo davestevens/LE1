@@ -503,13 +503,16 @@ void newThreadRequest(unsigned from, unsigned to, systemT *system)
 {
   /* get system */
   struct newThreadT *temp;
-
+#ifdef DEBUG
   printf("newThreadRequest: 0x%x, 0x%x\n", from, to);
+#endif
 
   if(system->threadReq == NULL)
     {
       /* this means there are no memory requests */
+#ifdef DEBUG
       printf("nothing in the list\n");
+#endif
       if((system->threadReq = calloc(sizeof(struct newThreadT), 1)) == NULL)
 	{
 	  printf("error allocating memory (newThreadT)\n");
@@ -548,9 +551,11 @@ int serviceThreadRequests(systemT *system)
     return 0;
 
   do {
+#ifdef DEBUG
       printf("there is a thread request\n");
       printf("\ttemp->from 0x%x\n", temp->from);
       printf("\ttemp->to 0x%x\n", temp->to);
+#endif
 
       /* start thread running */
       {
@@ -560,13 +565,16 @@ int serviceThreadRequests(systemT *system)
 	context = (temp->to >> 16) & 0xff;
 	hypercontext = (temp->to >> 12) & 0xf;
 
+#ifdef DEBUG
 	printf("context[%d] hypercontext[%d]\n", context, hypercontext);
+#endif
 	cnt = (contextT *)((unsigned)system->context + (context * sizeof(contextT)));
 	hcnt = (hyperContextT *)((unsigned)cnt->hypercontext + (hypercontext * sizeof(hyperContextT)));
 
 	hcnt->VT_CTRL |= RUNNING << 3;
+#ifdef DEBUG
 	printf("hcnt->VT_CTRL 0x%x\n", hcnt->VT_CTRL);
-
+#endif
       }
 
       /* remove from list */

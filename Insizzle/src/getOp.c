@@ -920,7 +920,9 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 			    }
 			  break;
 			case 1:
+#ifdef DEBUG
 			  printf("CASM32\n");
+#endif
 			  extra  = ((inst >> 9) & 0x3f);
 			  ret.target = ((inst >> 15) & 0x3f);
 			  ret.target2 = (inst & 0x3f);
@@ -933,6 +935,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 			    {
 			    case 0:
 			      /* vthread_create_local */
+#ifdef DEBUG
 			      printf("vthread_create_local\n");
 			      printf("target1: %d\n", ret.target);
 			      printf("\t0x%x\n", *(pS_GPR + ret.target));
@@ -945,6 +948,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 			      printf("\t0x%x\n", *(pS_GPR + ret.source2));
 			      printf("source3: %d\n", ret.source3);
 			      printf("\t0x%x\n", *(pS_GPR + ret.source3));
+#endif
 			      /* TODO: find free thread here
 				 setup r7 (thread_id)
 				 put in list to start at end of current cycle
@@ -956,23 +960,30 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 				unsigned *GPR;
 				for(i=0;i<context->numHyperContext;i++)
 				  {
+#ifdef DEBUG
 				    printf("\thypercontext: %d\n", i);
+#endif
 				    hcnt = (hyperContextT *)((unsigned)context->hypercontext + (i * sizeof(hyperContextT)));
+#ifdef DEBUG
 				    printf("\t0x%08x\n", hcnt->VT_CTRL);
+#endif
 				    deepstate = (hcnt->VT_CTRL >> 3) & 0xff;
 				    debug = (hcnt->VT_CTRL >> 1) & 0x1;
 
 				    if((deepstate == READY) && (!debug))
 				      {
+#ifdef DEBUG
 					printf("need to set this thread up!\n");
+#endif
 					found = 1;
 
 					hcnt->programCounter = *(pS_GPR + ret.source2);
 					GPR = hcnt->S_GPR;
 					*(GPR + 3) = *(pS_GPR + ret.source3);
-
+#ifdef DEBUG
 					printf("\t\tset PC: 0x%x\n", hcnt->programCounter);
 					printf("\t\tset args: 0x%x\n", *(GPR + 3));
+#endif
 
 					/* then need to set r7 to id */
 					*(S_GPR + ret.target2) = hcnt->VT_CTRL >> 12;
@@ -981,10 +992,10 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 
 					break;
 				      }
-				    else
+				    /*else
 				      {
 					printf("\tnot available\n");
-				      }
+					}*/
 				  }
 
 				if(!found)
@@ -998,6 +1009,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 			      break;
 			    case 1:
 			      /* vthread_create_remote */
+#ifdef DEBUG
 			      printf("vthread_create_remote\n");
 			      printf("target1: %d\n", ret.target);
 			      printf("\t0x%x\n", *(pS_GPR + ret.target));
@@ -1010,6 +1022,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 			      printf("\t0x%x\n", *(pS_GPR + ret.source2));
 			      printf("source3: %d\n", ret.source3);
 			      printf("\t0x%x\n", *(pS_GPR + ret.source3));
+#endif
 			      /* TODO: find free thread here
 				 setup r7 (thread_id)
 				 put in list to start at end of current cycle
@@ -1023,29 +1036,37 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 				unsigned *GPR;
 				for(i=0;i<system->numContext;i++)
 				  {
+#ifdef DEBUG
 				    printf("\tcontext: %d\n", i);
+#endif
 				    cnt = (contextT *)((unsigned)system->context + (i * sizeof(contextT)));
 
 				    for(j=0;j<cnt->numHyperContext;j++)
 				      {
+#ifdef DEBUG
 					printf("\thypercontext: %d\n", j);
+#endif
 					hcnt = (hyperContextT *)((unsigned)cnt->hypercontext + (j * sizeof(hyperContextT)));
+#ifdef DEBUG
 					printf("\t0x%08x\n", hcnt->VT_CTRL);
+#endif
 					deepstate = (hcnt->VT_CTRL >> 3) & 0xff;
 					debug = (hcnt->VT_CTRL >> 1) & 0x1;
 
 					if((deepstate == READY) && (!debug))
 					  {
+#ifdef DEBUG
 					    printf("need to set this thread up!\n");
+#endif
 					    found = 1;
 
 					    hcnt->programCounter = *(pS_GPR + ret.source2);
 					    GPR = hcnt->S_GPR;
 					    *(GPR + 3) = *(pS_GPR + ret.source3);
-
+#ifdef DEBUG
 					    printf("\t\tset PC: 0x%x\n", hcnt->programCounter);
 					    printf("\t\tset args: 0x%x\n", *(GPR + 3));
-
+#endif
 					    /* then need to set r7 to id */
 					    *(S_GPR + ret.target2) = hcnt->VT_CTRL >> 12;
 
@@ -1053,10 +1074,10 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 
 					    break;
 					  }
-					else
+					/*else
 					  {
 					    printf("\tnot available\n");
-					  }
+					    }*/
 				      }
 				    if(found)
 				      break;
@@ -1065,7 +1086,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 				if(!found)
 				  {
 				    /* TODO: error out, need to allow to carry on */
-				    printf("ERROR: There was a problem allocating a new thread (vthread_create_local)\n");
+				    printf("ERROR: There was a problem allocating a new thread (vthread_create_remote)\n");
 				  }
 			      }
 			      break;
@@ -1467,8 +1488,14 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 #ifdef DEBUG
 			  printf("This is possibly the end? LINK_REG = 0x0\n");
 #endif
+#ifdef VTHREAD
+			  /* put the context back in the ready state so it can be used again */
+			  hypercontext->VT_CTRL &= 0xfffff807;
+			  hypercontext->VT_CTRL |= READY << 3;
+#else
 			  /* set ctrl register into debug state */
 			  hypercontext->VT_CTRL |= 1 << 1;
+#endif
 			}
 		      /* set PC to link register */
 		      ret.newPCValid = 1;
@@ -1918,12 +1945,20 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 			  /*ret.opcode = XXX;
 			    XXX(*(S_GPR + (ret.target)), ret.source1, ret.source2);*/
 			  printf("Unknown CASM3 -> CASM21 custom instruction\n");
+#if 0
+			  /* using this for clock */
+			  printf("get time: %llu\n", cycleCount);
+			  ret.target = 2;
+			  *(S_GPR + (ret.target)) = cycleCount;
+#endif
 			  break;
 			case 2:
 			  ret.source1 = (inst & 0x3f);
 			  ret.target = ((inst >> 15) & 0x3f);
 			  ret.target2 = ((inst >> 6) & 0x3f);
+#ifdef DEBUG
 			  printf("vthread_join\n");
+#endif
 			  /*printf("source: %d\n", *(pS_GPR + ret.source1));
 			    printf("ret.target: %d\n", *(pS_GPR + ret.target));
 			    printf("ret.target2: %d\n", *(pS_GPR + ret.target2));*/
