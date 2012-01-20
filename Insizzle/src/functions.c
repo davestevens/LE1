@@ -247,10 +247,15 @@ unsigned checkActive(void)
 	      /*printf("\t\t\t\thypercontext totalWidth: %d\n", hypercontext->totalWidth);*/
 
 	      /* TODO: need to check for other states */
-	      /*if(((hypercontext->VT_CTRL >> 3) & 0xff) == 1)*/
-	      /*return 1;*/
+#if VTHREAD
+	      /* Check thread which are running or waiting on a join (TERMINATED_ASYNC_HOST) */
+	      if(((((hypercontext->VT_CTRL >> 1) & 0x1) == 0) && ((((hypercontext->VT_CTRL >> 3) & 0xff) == RUNNING))) || ((((hypercontext->VT_CTRL >> 3) & 0xff) == TERMINATED_ASYNC_HOST))) {
+		return 1;
+	      }
+#else
 	      if(((hypercontext->VT_CTRL >> 1) & 0x1) == 0)
 		return 1;
+#endif
 	    }
 	}
     }
