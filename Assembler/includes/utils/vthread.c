@@ -21,9 +21,7 @@ int vthread_create(pthread_t *thread, pthread_attr_t *atts, void *func, void *ar
 int vthread_join(pthread_t thread, void **status)
 {
   __vexasm2 ret;
-  ret = _asm2(0x0, thread);
-  if(status != 0)
+  ret = _asm2(0x2, thread);
   *status = (void**)ret.thread_id;
   return ret.vthread_return;
 }
-
