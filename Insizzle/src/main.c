@@ -33,8 +33,9 @@ int main(int argc, char *argv[])
   cycleCount = 0;
   char *versionNumber = "Insizzle_Revision";
   similarIRAM = 0;
-  suppressOOB = 0;
+  suppressOOB = 1;
   STACK_SIZE = 12;
+  PRINT_OUT = 0;
 
   printf("Insizzle (%s)\n", versionNumber);
 
@@ -51,7 +52,7 @@ int main(int argc, char *argv[])
       return -1;
     }
 
-  printf("readConf ok\n");
+  printf("Galaxy setup completed.\n");
   /* for each other argv */
   for(i=2;i<(unsigned)argc;i++) {
     if(!strcmp(argv[i], "-similarIRAM")) {
@@ -62,6 +63,9 @@ int main(int argc, char *argv[])
     }
     else if(!strncmp(argv[i], "-stack=", 7)) {
       sscanf(argv[i], "-stack=%d", (int *)&STACK_SIZE);
+    }
+    else if(!strcmp(argv[i], "-printout")) {
+      PRINT_OUT = 1;
     }
     else {
       printf("Unknown argument: %s\n", argv[i]);
@@ -133,11 +137,11 @@ int main(int argc, char *argv[])
 	      HCNT = (hyperContextConfig *)((unsigned)CNT->HCONTEXT + (k * sizeof(hyperContextConfig)));
 	      hypercontext = (hyperContextT *)((unsigned)context->hypercontext + (k * sizeof(hyperContextT)));
 
-	      printf("hypercontext: %d\n", k);
+	      /*printf("hypercontext: %d\n", k);*/
 	      *(hypercontext->S_GPR + (unsigned)1) = (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000) - ((STACK_SIZE * 1000) * totalHC);
 	      *(hypercontext->pS_GPR + (unsigned)1) = (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000) - ((STACK_SIZE * 1000) * totalHC);
-	      printf("\tr1: 0x%x\n", *(hypercontext->S_GPR + (unsigned)1));
-	      printf("\tr1: 0x%x\n", *(hypercontext->pS_GPR + (unsigned)1));
+	      /*printf("\tr1: 0x%x\n", *(hypercontext->S_GPR + (unsigned)1));
+		printf("\tr1: 0x%x\n", *(hypercontext->pS_GPR + (unsigned)1));*/
 	      totalHC++;
 	    }
 
@@ -167,10 +171,10 @@ int main(int argc, char *argv[])
   while(checkActive())
     {
 #endif
-#ifdef PRINTOUT
 #ifndef API
-      printf("------------------------------------------------------------ end of cycle %lld\n", cycleCount);
-#endif
+      if(PRINT_OUT) {
+	printf("------------------------------------------------------------ end of cycle %lld\n", cycleCount);
+      }
 #endif
 
 #ifdef DEBUG
@@ -375,13 +379,13 @@ int main(int argc, char *argv[])
 				    inst = instructionDecode(this.op, this.imm, /*system->dram,*/ hypercontext, system, context, hypercontext->VT_CTRL, (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000));
 
 				    /*printf("%d : %d : ", *(hypercontext->S_GPR + 60), *(hypercontext->pS_GPR + 60));*/
-#ifdef PRINTOUT
+				    if(PRINT_OUT) {
 #ifndef API
-				    printOut(inst, this, hypercontext, cycleCount);
+				      printOut(inst, this, hypercontext, cycleCount);
 #else
-				    printOut(inst, this, hypercontext, 0);
+				      printOut(inst, this, hypercontext, 0);
 #endif
-#endif
+				    }
 
 #ifdef API
 				    /* populate the gTracePacketT here */
@@ -1014,7 +1018,7 @@ int setupGalaxy(void)
       if(system->dram == NULL)
 	return -1;
 
-      printf("system->dram: %p\n", (void *)system->dram);
+      /*printf("system->dram: %p\n", (void *)system->dram);*/
 
       system->numContext = (SYS->SYSTEM_CONFIG & 0xff);
 
@@ -1043,7 +1047,7 @@ int setupGalaxy(void)
 	  if(context->iram == NULL)
 	    return -1;
 
-	  printf("context->iram: %p\n", (void *)context->iram);
+	  /*printf("context->iram: %p\n", (void *)context->iram);*/
 
 	  context->hypercontext = (hyperContextT *)calloc(sizeof(hyperContextT) * ((CNT->CONTEXT_CONFIG >> 4) & 0xf), 1);
 	  if(context->hypercontext == NULL)
@@ -1199,7 +1203,7 @@ int setupGalaxy(void)
 		  cluster->S_GPR = (unsigned *)((unsigned)hypercontext->S_GPR + sGPRCount);
 		  /**(cluster->S_GPR + (unsigned)1) = (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000) -
 		     (MAX_CONTEXTS * (STACK_SIZE * 1000) * j) - ((STACK_SIZE * 1000) * k);*/
-		  printf("[%d][%d][%d] = 0x%x\n", i, j, k, *(cluster->S_GPR + (unsigned)1));
+		  /*printf("[%d][%d][%d] = 0x%x\n", i, j, k, *(cluster->S_GPR + (unsigned)1));*/
 		  cluster->S_FPR = (unsigned *)((unsigned)hypercontext->S_FPR + sFPRCount);
 		  cluster->S_VR = (unsigned *)((unsigned)hypercontext->S_VR + sVRCount);
 		  cluster->S_PR = (unsigned char*)((unsigned)hypercontext->S_PR + sPRCount);
@@ -1211,7 +1215,7 @@ int setupGalaxy(void)
 		  cluster->pS_VR = (unsigned *)((unsigned)hypercontext->pS_VR + sVRCount);
 		  cluster->pS_PR = (unsigned char*)((unsigned)hypercontext->pS_PR + sPRCount);
 
-		  printf("cluster: %d, sGPR 0x%x\n", l, (unsigned)cluster->S_GPR);
+		  /*printf("cluster: %d, sGPR 0x%x\n", l, (unsigned)cluster->S_GPR);*/
 
 		  if(l < 8)
 		    curClustTemplate = ((HCNT->HCONTEXT_CLUST_TEMPL0_1.lo >> (l * 4)) & 0xf);
