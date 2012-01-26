@@ -1536,7 +1536,11 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 			  break;
 			case 1:
 			  ret.opcode = HALT;
-			  printf("HALT! WHO GOES THERE!\n");
+			  /*printf("HALT! WHO GOES THERE!\n");*/
+			  int system_id = (((hypercontext->VT_CTRL) >> 24) & 0xff);
+			  int context_id = (((hypercontext->VT_CTRL) >> 16) & 0xff);
+			  int hypercontext_id = (((hypercontext->VT_CTRL) >> 12) & 0xf);
+			  printf("HALT operation received from [%d][%d][%d]\n", system_id, context_id, hypercontext_id);
 			  /* set ctrl reg to terminated */
 			  /* TODO: THIS */
 			  /*printOutDataPerThread(data, cnt, hcnt);*/
@@ -1687,9 +1691,15 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		      /*ADD(*(S_GPR + (ret.target)), (cnt << 8), (hcnt << 16));
 		      ret.source1 = (cnt << 8) | (hcnt << 16);
 		      ret.data =  *(S_GPR + (ret.target));*/
-		      *(S_GPR + (ret.target)) = (hypercontext->VT_CTRL >> 12) & 0xfffff;
+		      int system_id = (((hypercontext->VT_CTRL) >> 24) & 0xff);
+		      int context_id = (((hypercontext->VT_CTRL) >> 16) & 0xff);
+		      int hypercontext_id = (((hypercontext->VT_CTRL) >> 12) & 0xf);
+		      *(S_GPR + (ret.target)) = (system_id | (context_id << 8) | (hypercontext_id << 16));
+		      ret.data = (system_id | (context_id << 8) | (hypercontext_id << 16));
+		      /* This is a new way which should be used now? */
+		      /**(S_GPR + (ret.target)) = (hypercontext->VT_CTRL >> 12) & 0xfffff;
 		      ret.source1 = (hypercontext->VT_CTRL >> 12) & 0xfffff;
-		      ret.data = (hypercontext->VT_CTRL >> 12) & 0xfffff;
+		      ret.data = (hypercontext->VT_CTRL >> 12) & 0xfffff;*/
 		      ret.addr = _R_iss;
 		      break;
 		    }
