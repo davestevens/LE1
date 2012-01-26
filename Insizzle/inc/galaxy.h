@@ -22,6 +22,8 @@ typedef struct {
 
 /* per hyperContext */
 typedef struct {
+  unsigned initialStackPointer; /* initial stack pointer */
+
   unsigned *S_GPR; /* general purpose */
   unsigned *S_FPR; /* floating point */
   unsigned *S_VR; /* vector/rotating */

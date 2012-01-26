@@ -124,6 +124,7 @@ int main(int argc, char *argv[])
     {
       SYS = (systemConfig *)((unsigned)SYSTEM + (i * sizeof(systemConfig)));
       system = (systemT *)((unsigned)galaxyT + (i * sizeof(systemT)));
+      printf("dram_size: 0x%x\n", (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000));
 
       /* loop through contexts */
       for(j=0;j<(SYS->SYSTEM_CONFIG & 0xff);j++)
@@ -138,10 +139,11 @@ int main(int argc, char *argv[])
 	      hypercontext = (hyperContextT *)((unsigned)context->hypercontext + (k * sizeof(hyperContextT)));
 
 	      /*printf("hypercontext: %d\n", k);*/
+	      hypercontext->initialStackPointer = (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000) - ((STACK_SIZE * 1000) * totalHC);
 	      *(hypercontext->S_GPR + (unsigned)1) = (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000) - ((STACK_SIZE * 1000) * totalHC);
 	      *(hypercontext->pS_GPR + (unsigned)1) = (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000) - ((STACK_SIZE * 1000) * totalHC);
-	      /*printf("\tr1: 0x%x\n", *(hypercontext->S_GPR + (unsigned)1));
-		printf("\tr1: 0x%x\n", *(hypercontext->pS_GPR + (unsigned)1));*/
+	      printf("\tr1: 0x%x\n", *(hypercontext->S_GPR + (unsigned)1));
+	      /*printf("\tr1: 0x%x\n", *(hypercontext->pS_GPR + (unsigned)1));*/
 	      totalHC++;
 	    }
 
@@ -379,6 +381,26 @@ int main(int argc, char *argv[])
 				    inst = instructionDecode(this.op, this.imm, /*system->dram,*/ hypercontext, system, context, hypercontext->VT_CTRL, (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000));
 
 				    /*printf("%d : %d : ", *(hypercontext->S_GPR + 60), *(hypercontext->pS_GPR + 60));*/
+  if((inst.packet.addr == 0) && (inst.packet.target == 1)) {
+    /*    printf("\nsetting stack register\n");
+    printf("initialStackPointer: 0x%x\n", hypercontext->initialStackPointer);
+    printf("stackSize: %d\n", STACK_SIZE);
+    printf("diff: %d\n", (hypercontext->initialStackPointer - inst.packet.data));*/
+    if((hypercontext->initialStackPointer - inst.packet.data) >= (STACK_SIZE * 1000)) {
+      /*
+      printf("POSSIBLY OUT OF STACK?\n");
+      printf("diff: %d\n", (hypercontext->initialStackPointer - inst.packet.data));*/
+      int system_id = (((hypercontext->VT_CTRL) >> 24) & 0xff);
+      int context_id = (((hypercontext->VT_CTRL) >> 16) & 0xff);
+      int hypercontext_id = (((hypercontext->VT_CTRL) >> 12) & 0xf);
+      printf("\tStack Overflow detected in [%d][%d][%d]:\n", system_id, context_id, hypercontext_id);
+      printf("\t\tStack Pointer initially: 0x%x (%d)\n", hypercontext->initialStackPointer, hypercontext->initialStackPointer);
+      printf("\t\tStack Size: 0x%x (%d)\n", (STACK_SIZE * 1000), (STACK_SIZE * 1000));
+      printf("\t\tStack Pointer now: 0x%x (%d)\n", inst.packet.data, inst.packet.data);
+      printf("\t\tTry setting stack pointer to %d K ( -stack=%d )\n", (hypercontext->initialStackPointer - inst.packet.data),
+	     ((int)ceil((hypercontext->initialStackPointer - inst.packet.data) / 1000) + 1));
+    }
+  }
 				    if(PRINT_OUT) {
 #ifndef API
 				      printOut(inst, this, hypercontext, cycleCount);
@@ -1304,7 +1326,6 @@ void printOut(instruction inst, instructionPacket this, hyperContextT *hypercont
          inst.packet.addr,
          inst.packet.data
          );
-
   returnOpcode(inst.packet.opcode);
   printf(" - PC:0x%x - LR:0x%x - SP:0x%x - SYLL:0x%08x - S1:%d - S2:%d - S3:%d - T2:%d - A2:%d - D2:%d\n",
          /**(programCounter + (cnt * HCNT) + hcnt),*/
