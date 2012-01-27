@@ -1540,7 +1540,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 			  int system_id = (((hypercontext->VT_CTRL) >> 24) & 0xff);
 			  int context_id = (((hypercontext->VT_CTRL) >> 16) & 0xff);
 			  int hypercontext_id = (((hypercontext->VT_CTRL) >> 12) & 0xf);
-			  printf("HALT operation received from [%d][%d][%d]\n", system_id, context_id, hypercontext_id);
+			  printf("HALT operation received from [%d][%d][%d] at cycle %llu\n", system_id, context_id, hypercontext_id, cycleCount);
 			  /* set ctrl reg to terminated */
 			  /* TODO: THIS */
 			  /*printOutDataPerThread(data, cnt, hcnt);*/
