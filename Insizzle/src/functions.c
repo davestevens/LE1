@@ -681,6 +681,7 @@ void serviceMemRequest(systemT *system, unsigned findBank, unsigned numBanks, un
 #else
 		    hcnt->stalled++;
 #endif
+		    temp = temp->next;
 		  }
 		else
 		  {
@@ -869,17 +870,17 @@ void serviceMemRequest(systemT *system, unsigned findBank, unsigned numBanks, un
 		    struct memReqT *p = NULL;
 		    do {
 		      if(t == temp) {
-			/* here is where the problem is */
-			temp = system->memReq;
 			if(t != system->memReq) {
 			  p->next = t->next;
 			  free(t);
+			  temp = p->next;
 			  break;
 			}
 			else {
 			  struct memReqT *u = t->next;
 			  free(t);
 			  system->memReq = u;
+			  temp = u;
 			  break;
 			}
 		      }
@@ -887,13 +888,10 @@ void serviceMemRequest(systemT *system, unsigned findBank, unsigned numBanks, un
 		      t = t->next;
 		    } while(t != NULL);
 		  }
-		if(temp == NULL) {
-		  /* at this point if NULL then there are no more to check */
-		  break;
-		}
 	      }
-
-	    temp = temp->next;
+	    else {
+	      temp = temp->next;
+	    }
 
 	  } while(temp != NULL);
 	}
