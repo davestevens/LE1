@@ -426,6 +426,7 @@ instruction instructionDecode(unsigned inst, unsigned immediate, /*unsigned *dra
   return this;
 }
 
+#if 0
 void memRequest(systemT *system, unsigned *t, unsigned s1, unsigned ctrlReg, memOpT memOp, unsigned tV)
 {
 
@@ -467,6 +468,36 @@ void memRequest(systemT *system, unsigned *t, unsigned s1, unsigned ctrlReg, mem
 
   return;
 }
+#else
+void memRequest(systemT *system, unsigned *t, unsigned s1, unsigned ctrlReg, memOpT memOp, unsigned tV)
+{
+  struct memReqT *temp = (struct memReqT *)calloc(sizeof(struct memReqT), 1);
+  if(temp == NULL) {
+    printf("error allocating memmory (memReqT)\n");
+    return;
+  }
+  /* set values */
+  temp->pointer = t;
+  temp->value = s1;
+  temp->ctrlReg = ctrlReg;
+  temp->memOp = memOp;
+  temp->pointerV = tV;
+
+  temp->next = NULL;
+
+  if(system->memReq == NULL) {
+    system->memReq = temp;
+  }
+  else {
+    struct memReqT *t = system->memReq;
+    while(t->next != NULL) {
+      t = t->next;
+    }
+    t->next = temp;
+  }
+  return;
+}
+#endif
 
 int memoryDump(unsigned size, unsigned system, unsigned *dram)
 {
@@ -834,29 +865,32 @@ void serviceMemRequest(systemT *system, unsigned findBank, unsigned numBanks, un
 		      }
 
 		    given = 1;
-
-		    /* then remove from list */
-		    if(temp == system->memReq)
-		      {
-			system->memReq = temp->next;
-			free(temp);
-		      }
-		    else
-		      {
-			/* TODO: TEST THIS!!!! */
-			struct memReqT *remove = temp;
+		    struct memReqT *t = system->memReq;
+		    struct memReqT *p = NULL;
+		    do {
+		      if(t == temp) {
+			/* here is where the problem is */
 			temp = system->memReq;
-			do {
-			  if(temp->next == remove)
-			    {
-			      temp->next = remove->next;
-			      free(remove);
-			      break;
-			    }
-			  temp = temp->next;
-			} while(temp != NULL);
+			if(t != system->memReq) {
+			  p->next = t->next;
+			  free(t);
+			  break;
+			}
+			else {
+			  struct memReqT *u = t->next;
+			  free(t);
+			  system->memReq = u;
+			  break;
+			}
 		      }
+		      p = t;
+		      t = t->next;
+		    } while(t != NULL);
 		  }
+		if(temp == NULL) {
+		  /* at this point if NULL then there are no more to check */
+		  break;
+		}
 	      }
 
 	    temp = temp->next;
