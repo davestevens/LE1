@@ -3,6 +3,7 @@
 use strict;
 
 my @tests = (
+    {'dir_name', 'test', 'ass_args', '-DSIZE=10 -O0', 'sim_args', ''}
     );
 
 my $d = 1;
