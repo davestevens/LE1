@@ -672,6 +672,10 @@ int main(int argc, char *argv[])
     contextT *context;
     hyperContextT *hypercontext;
 #endif
+
+    /* clock through all memory ops left */
+    serviceMemRequestPERFECT(system, ((SYSTEM->DRAM_SHARED_CONFIG >> 8) & 0xffff));
+
   /* print out details */
     printf("Start Time: %ld\n", start);
     printf("End Time: %ld\n", end);
