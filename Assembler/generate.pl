@@ -182,7 +182,7 @@ EOH
 		exit(-1);
 	    }
 	    # copy xml to machinemodel dir
-	    $command = 'cp ' . $xmlmm . ' ' . $cur_dir . '/machinemodel/';
+	    $command = 'cp ' . $xmlmm . ' ' . $cur_dir . '/machinemodel/model.xml';
 	    system($command);
 	}
 	print<<EOH;
