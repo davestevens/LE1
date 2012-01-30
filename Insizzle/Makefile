@@ -9,7 +9,7 @@
 # -DNOSTALLS - count stall events but don't execute them
 
 CC = gcc
-CFLAGS = -c -Wall -pedantic -std=c99 -Wextra -m32 `xml2-config --cflags` -g -D_XOPEN_SOURCE
+CFLAGS = -c -Wall -pedantic -std=c99 -Wextra -m32 `xml2-config --cflags` -D_XOPEN_SOURCE
 LDFLAGS = -lm -m32 `xml2-config --libs`
 
 INCDIR = inc
@@ -24,17 +24,20 @@ TARGETAPI = INSIZZLEAPI
 
 REV_PERL = `perl scripts/revision.pl ${TARGET} ${TARGET}`
 
+debug:		CFLAGS += -g
+release:	CFLAGS += -O3
 API:		CFLAGS += -DAPI
-DEBUG:		CFLAGS += -DDEBUG -DPRINTOUT
 NOSTALLS:	CFLAGS += -DNOSTALLS
 VTHREAD:	CFLAGS += -DVTHREAD
-
+VTHREAD_NOSTALLS: CFLAGS += -DVTHREAD -DNOSTALLS
 all: $(SRC) $(TARGET)
 
+debug:	$(SRC) $(TARGET)
+release: $(SRC) $(TARGET)
 API:	$(SRC) $(TARGETAPI)
-DEBUG:	$(SRC) $(TARGET)
 NOSTALLS: $(SRC) $(TARGET)
 VTHREAD: $(SRC) $(TARGET)
+VTHREAD_NOSTALLS: $(SRC) $(TARGET)
 
 $(TARGET): $(OBJ)
 	   $(CC) $(OBJ) $(LDFLAGS) -o $@
