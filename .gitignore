@@ -1,1 +1,8 @@
 bench/
+Insizzle/INSIZZLE
+Insizzle/INSIZZLEAPI
+test/INSIZZLE*
+test/*/binaries/
+test/*/machinemodel/
+test/*/microblaze/
+test/*/memoryDump_0.dat
