@@ -18,6 +18,7 @@ $keep = 0;
 $softfloat = 0;
 $assembly = 0;
 $fmm = "";
+$xmlmm = "";
 $sim_threads = 2;
 $sim_mem_blocks = 1;
 $sim_width = 4;
@@ -25,102 +26,84 @@ $mem_align = 0;
 $vex_sim = 0;
 $malloc_size = 0;
 $dram_base_offset = '0x0';
-foreach $arg (@ARGV)
-{
-    if($arg eq "-d")
-    {
+foreach $arg (@ARGV) {
+    if($arg eq "-d") {
 	$debug = 1;
     }
-    elsif($arg eq "-k")
-    {
+    elsif($arg eq "-k") {
 	$keep = 1;
     }
-    elsif($arg eq "-skipvex")
-    {
+    elsif($arg eq "-skipvex") {
 	$assembly = 1;
     }
-    elsif($arg eq "-vexsim")
-    {
+    elsif($arg eq "-vexsim") {
 	$vex_sim = 1;
     }
-    elsif($arg =~ /-s=(0x\w+)?/)
-    {
+    elsif($arg =~ /-s=(0x\w+)?/) {
 	$stack_size = $1;
     }
-    elsif($arg =~ /-o(\w+)/)
-    {
+    elsif($arg =~ /-o(\w+)/) {
 	$output_file = $1;
     }
-    elsif($arg eq "-mem_align")
-    {
+    elsif($arg eq "-mem_align") {
 	$mem_align = 1;
     }
-    elsif($arg =~ /-fmm=(.+)/)
-    {
+    elsif($arg =~ /-fmm=(.+)/) {
 	$fmm = $1;
     }
-    elsif($arg =~ /-width=(\d+)/)
-    {
+    elsif($arg =~ /-xmlMM=(.+)/) {
+	$xmlmm = $1;
+    }
+    elsif($arg =~ /-width=(\d+)/) {
 	$arguments .= "-width $1 ";
     }
-    elsif($arg =~ /-SIM_THREADS=(\d+)/)
-    {
+    elsif($arg =~ /-SIM_THREADS=(\d+)/) {
 	$sim_threads = $1;
     }
-    elsif($arg =~ /-SIM_MEM_BLOCKS=(\d+)/)
-    {
+    elsif($arg =~ /-SIM_MEM_BLOCKS=(\d+)/) {
 	$sim_mem_blocks = $1;
     }
-    elsif($arg =~ /-SIM_WIDTH=(\d+)/)
-    {
+    elsif($arg =~ /-SIM_WIDTH=(\d+)/) {
 	$sim_width = $1;
     }
-    elsif($arg =~ /-MALLOC_SIZE=(\d+)/)
-    {
+    elsif($arg =~ /-MALLOC_SIZE=(\d+)/) {
 	$malloc_size = $1;
     }
-    elsif($arg =~ /-DRAM_OFFSET=(0x\w+)/)
-    {
+    elsif($arg =~ /-DRAM_OFFSET=(0x\w+)/) {
 	$dram_base_offset = $1;
     }
     elsif($arg =~ /-pthread/) {
 	$arguments .= '-I' . $le1_folder . '/' . $assembler_folder . '/includes/libraries/pthread/';
     }
-    elsif($arg =~ /-D(.+)=(.+)/)
-    {
+    elsif($arg =~ /-D(.+)=(.+)/) {
 	$arguments .= "-D$1=$2 ";
     }
     elsif($arg =~ /-cpuid/) {
 	# insert macro for getCPUID at compile time
 	$arguments .= ' -DgetCPUID\(x\)=_asm1\(0x0,x\) ';
     }
-    elsif($arg =~ /-+h(elp)?/)
-    {
+    elsif($arg =~ /-+h(elp)?/) {
 	print<<HELP;
-This has 2 sections, there is an Assembler (VEX .s files to binary outputs) and
-a Q maker (Edits VEX .cs.c files to output to a Q).
-To run all together use the following command:
-perl generate.pl <dir> -d -k -s=0x0 -oNAME <args> -mem_align
-<dir>        - Directory including .c files
--d           - Debug, will output more information
--k           - Keep intermediate files (at the moment you need to use this for single-
-               files, else the output will be deleted)
--s=0x0       - Stack size, give it a value in HEX, if not set it will not be inserted into code
--oNAME       - Output name, if none is given it will use the dircetory name
-<args>       - Will be passed to gcc/VEX
--mem_align   - output load/store ops to use char/short/word aligned offsets
-
-See readme.txt for more info
+usage: perl generate.pl <ARGS>
+Args:
+    <dir>        - Directory including .c files
+    -d           - Debug, will output more information
+    -xmlMM=%s    - Machine model in LE1 xml format (absolute path)
+    -fmm=%s      - Machine model in VEX MM format (absolute path)
+    -cpuid       - Includes getCPUID operation
+    -pthread     - Include pthread library
+    -MALLOC_SIZE=%d - Set size for dynamic memory (default is 100 Chunks)
+    -oNAME       - Output name, if none is given it will use the dircetory name
+    <args>       - Will be passed to gcc/VEX
+    (all unknown arguments will be passed to compiler)
 HELP
 	exit(0);
       }
-    elsif($arg =~ /(^-\w+)/)
-	{
+    elsif($arg =~ /(^-\w+)/) {
 	    print $1, "\n";
 	    $arguments .= "$1 ";
 	}
-	else
-	{
+	else {
 	    $dir = $arg;
 	}
     }
@@ -165,6 +148,43 @@ HELP
     }
     if($assembly == 0)
     {
+	if($xmlmm ne '') {
+	print<<EOH;
+--------------------------------------------------------------------------------
+	Creating machine model from XML file
+--------------------------------------------------------------------------------
+EOH
+	    if(!(-d 'machinemodel')) {
+		system("mkdir machinemodel");
+	    }
+	else {
+	    print "\t" . 'machinemodel directory already exists' . "\n";
+	}
+	    my $command = 'perl ' . $xml_to_mm . ' ' . $xmlmm . ' machinemodel';
+	    if($debug == 1) {
+		print "Running Command: " . $command . "\n";
+	    }
+	    @return = readpipe($command);
+	    if(($? >> 8) != 0) {
+		print "Error creating vex machine model from LE1 XML machine model\n";
+		exit(-1);
+	    }
+	    if(-e("machinemodel/model.mm")) {
+		$fmm = $cur_dir . "/machinemodel/model.mm";
+	    }
+	    elsif(-e("machinemodel/0_0_0.mm")) {
+		#TODO: does not work with heterogeneous systems at the moment
+		$fmm = $cur_dir . "/machinemodel/0_0_0.mm";
+	    }
+	    else {
+		print "Could not find created machine model\n";
+		print "Should be in <dir>/machinemodel/\n";
+		exit(-1);
+	    }
+	    # copy xml to machinemodel dir
+	    $command = 'cp ' . $xmlmm . ' ' . $cur_dir . '/machinemodel/';
+	    system($command);
+	}
 	print<<EOH;
 --------------------------------------------------------------------------------
 	Running FalconML Hack

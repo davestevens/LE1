@@ -5,7 +5,7 @@ use Getopt::Long;  # Switch option Handling
 
 # default switch options
 my $help;
-$vex_location    = "/home/elds2/vex-3.41/bin/cc";
+$vex_location    = "/home/elds2/vex-3.43/bin/cc";
 $le1_folder      = "/home/elds2/LE1";
 
 # name of the folder containing assembler
@@ -19,6 +19,7 @@ $transform_name   = "trans.pl";
 $pullin_name      = "pullIn.pl";
 $deps_name        = "deps.pl";
 $falconml_hack_name = "FalconML_hack.pl";
+$xml_to_mm_name   = "xml_to_mm.pl";
 
 $libraries        = "includes/libraries/";
 
@@ -38,6 +39,7 @@ $pullin       = $le1_folder . "/" . $assembler_folder . "/" . $libraries . "scri
 $deps       = $le1_folder . "/" . $assembler_folder . "/" . $libraries . "scripts/" . $deps_name;
 $libraries  = $le1_folder . "/" . $assembler_folder . "/" . $libraries;
 $falconml_hack   = $le1_folder . "/" . $assembler_folder . "/" . $falconml_hack_name;
+$xml_to_mm   = $le1_folder . "/" . $assembler_folder . "/" . $xml_to_mm_name;
 
 # these should be removed at some point soon
 $floatlib   = $le1_folder . "/" . $assembler_folder . "/" . $floatlib;
