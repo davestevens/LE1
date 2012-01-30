@@ -1364,29 +1364,27 @@ void serviceMemRequestPERFECT(systemT *system, unsigned dramSize)
 	    break;
 	  }
 
-	/* then remove from list */
-	if(temp == system->memReq)
-	  {
-	    system->memReq = temp->next;
-	    free(temp);
+	struct memReqT *t = system->memReq;
+	struct memReqT *p = NULL;
+	do {
+	  if(t == temp) {
+	    if(t != system->memReq) {
+	      p->next = t->next;
+	      free(t);
+	      temp = p->next;
+	      break;
+	    }
+	    else {
+	      struct memReqT *u = t->next;
+	      free(t);
+	      system->memReq = u;
+	      temp = u;
+	      break;
+	    }
 	  }
-	else
-	  {
-	    /* TODO: TEST THIS!!!! */
-	    struct memReqT *remove = temp;
-	    temp = system->memReq;
-	    do {
-	      if(temp->next == remove)
-		{
-		  temp->next = remove->next;
-		  free(remove);
-		  break;
-		}
-	      temp = temp->next;
-	    } while(temp != NULL);
-	  }
-
-	temp = temp->next;
+	  p = t;
+	  t = t->next;
+	} while(t != NULL);
       } while(temp != NULL);
     }
 }
