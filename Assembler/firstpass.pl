@@ -114,7 +114,7 @@ sub first_pass()
 			{
 			    $file[$i] = $fil[$#fil] . $file[$i];
 			}
-			    $Data_Label{$file[$i]} = $data_start;
+			$Data_Label{$file[$i]} = $data_start;
 		    }
 		    elsif($file[$i] =~ /\.data(\d+) -?\d+:(\d+)/)
 		    {
@@ -497,6 +497,7 @@ sub first_pass()
 	    $inst_label_temp = $1;
 	    if($file[$i-1] =~ /\.entry/)
 	    {
+		push(@static_functions, $inst_label_temp);
 		$inst_label_temp = "FUNC_$inst_label_temp";
 	    }
 	    $Inst_Label{$inst_label_temp} = ($instruction_start);
@@ -664,6 +665,12 @@ ENDOFHEADER
 		# need to switch for CPUID instruction
 		$inst = $1 . "cpuid  " . $2;
 	    }
+	    # Prefix static function call names with the filename
+	    foreach (@static_functions) {
+		if($inst =~ /FUNC\_$_/) {
+		    $inst =~ s/FUNC\_$_/$filename_\_FUNC\_$_/;
+		}
+	    }
 	    printf(OUTPUT "%s\n", $inst);
 	}
     print OUTPUT "ENDOFFILE: $filename_\n";
@@ -688,7 +695,12 @@ ENDOFHEADER
     {
 	if($Inst_Label{$key} ne "")
 	{
-		$key_temp = "$key";
+	    $key_temp = "$key";
+	    foreach (@static_functions) {
+		if($key_temp =~ /FUNC\_$_/) {
+		    $key_temp =~ s/FUNC\_$_/$filename_\_FUNC\_$_/;
+		}
+	    }
 	    printf(OUTPUT "%04x - %s\n",($Inst_Label{$key}*4),$key_temp);
 	}
     }
