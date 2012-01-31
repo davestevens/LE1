@@ -149,7 +149,7 @@ unsigned *loadBinaryD(char *, unsigned);
 int cycle(contextT *, hyperContextT *, unsigned);
 int printCounts(hyperContextT *);
 unsigned checkActive(void);
-instructionPacket fetchInstruction(contextT *, unsigned);
+instructionPacket fetchInstruction(contextT *, unsigned, contextConfig *);
 unsigned checkBundle(hyperContextT *, unsigned, unsigned);
 instruction instructionDecode(unsigned, unsigned, /*unsigned *,*/ hyperContextT *, systemT *, contextT *, unsigned, unsigned);
 packetT getOp(unsigned, unsigned, unsigned, unsigned, /*unsigned *,*/ hyperContextT *, systemT *, contextT *, unsigned, unsigned);
