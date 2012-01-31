@@ -15,6 +15,7 @@ do('filepaths.pl');
 $debug = 0;
 $stack_size = "0x0";
 $keep = 0;
+$move_folder = '';
 $softfloat = 0;
 $assembly = 0;
 $fmm = "";
@@ -135,6 +136,10 @@ HELP
     # remove all temp_* files (simulator files)
     system("rm -f temp_*");
     @cfiles = <*.c>;
+if($#cfiles <= -1) {
+    print "The directory you specified contains no .c files\n";
+    exit(-1);
+}
     foreach $file (@cfiles)
     {
 	if($file !~ /\.cs\.c/)
@@ -270,7 +275,8 @@ EOH
     }
     if($#cfiles < 1)
     {
-	$keep_folder = 1;
+	$move_folder = $cfiles[0];
+	$move_folder =~ /^(\w+)/;
     }
     else
     {
@@ -283,6 +289,10 @@ EOH
 --------------------------------------------------------------------------------
 EOH
 	@files = <*.s>;
+if($#files <= -1) {
+    print "The directory you specified contains no .s files\n";
+    exit(-1);
+}
     print "Files:\n";
     foreach $file (@files)
     {
@@ -393,11 +403,10 @@ if($DONE == 0)
 
     print "$perl $pullin $deps @required\n";
     @toImport = readpipe("$perl $pullin $deps @required");
-
-    if(($#toImport + $#cfiles) >= 1)
-    {
-	$keep_folder = $keep;
-    }
+	#if(($#toImport + $#cfiles) >= 0)
+	#{
+	#$keep_folder = $keep;
+	#}
 
     foreach $toImport (@toImport)
     {
@@ -445,7 +454,6 @@ if($DONE == 0)
 
 	    ($filename, $rest) = split(/ contains /, $return[$#return]);
 	    push @files2, $filename;
-
 	}
     }
 
@@ -532,6 +540,11 @@ EOH
     }
     &check_return();
     print "Secondpass completed\n";
+    if($move_folder ne '') {
+	$move_folder =~ /^(\w+)/;
+	$move_folder = $1;
+	readpipe("mv -f $move_folder $output_file");
+    }
     if($keep_folder != 1)
     {
 	foreach $file (@files2)
@@ -540,7 +553,6 @@ EOH
 	    rmtree($direct) or warn "Couldn't remove $direct\n";
 	}
     }
-
 if($vex_sim)
 {
     print<<EOH;

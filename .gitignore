@@ -1,6 +1,7 @@
 bench/
 Insizzle/INSIZZLE
 Insizzle/INSIZZLEAPI
+Insizzle/obj/
 test/INSIZZLE*
 test/*/binaries/
 test/*/machinemodel/

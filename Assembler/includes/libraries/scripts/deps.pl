@@ -16,7 +16,7 @@
 @log = ("lm/s_lib_version.c", "lm/k_standard.c", "lm/s_copysign.c", "lm/s_rint.c", "lm/s_matherr.c", "lm/e_log.c", "lm/w_log.c", "lm/s_isnan.c"); # DONE
 @log10 = ("lm/s_lib_version.c", "lm/k_standard.c", "lm/s_copysign.c", "lm/s_rint.c", "lm/s_matherr.c", "lm/e_log10.c", "lm/w_log10.c", "lm/s_isnan.c", "lm/e_log.c", "lm/w_log.c"); # DONE
 @modf = ("lm/s_modf.c"); # DONE
-@pow = ("lm/s_lib_version.c", "lm/k_standard.c", "lm/s_copysign.c", "lm/s_rint.c", "lm/s_matherr.c", "lm/e_pow.c", "lm/w_pow.c", "lm/s_fabs.c", "lm/s_finite.c", "lm/s_isnan.c", "lm/s_scabln.c", "lm/s_copysign.c", "lm/e_sqrt.c", "lm/w_sqrt.c"); # DONE
+@pow = ("lm/s_lib_version.c", "lm/k_standard.c", "lm/s_copysign.c", "lm/s_rint.c", "lm/s_matherr.c", "lm/e_pow.c", "lm/w_pow.c", "lm/s_fabs.c", "lm/s_finite.c", "lm/s_isnan.c", "lm/s_scalbn.c", "lm/s_copysign.c", "lm/e_sqrt.c", "lm/w_sqrt.c"); # DONE
 @sin = ("lm/s_lib_version.c", "lm/k_standard.c", "lm/s_copysign.c", "lm/s_rint.c", "lm/s_matherr.c", "lm/k_sin.c", "lm/s_sin.c", "lm/e_rem_pio2.c", "lm/k_rem_pio2.c", "lm/s_fabs.c", "lm/s_scalbn.c", "lm/s_copysign.c", "lm/s_floor.c", "lm/k_cos.c"); # DONE
 @sinh = ("lm/s_lib_version.c", "lm/k_standard.c", "lm/s_copysign.c", "lm/s_rint.c", "lm/s_matherr.c", "lm/e_sinh.c", "lm/w_sinh.c", "lm/s_fabs.c", "lm/e_exp.c", "lm/w_exp.c", "lm/s_expm1.c", "lm/s_finite.c"); # DONE
 @sqrt = ("lm/s_lib_version.c", "lm/k_standard.c", "lm/s_copysign.c", "lm/s_rint.c", "lm/s_matherr.c", "lm/w_sqrt.c", "lm/e_sqrt.c", "lm/s_isnan.c"); # DONE
