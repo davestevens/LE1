@@ -1,2 +1,8 @@
 # List of test run outcomes
 # outcome, git_revision, test_name, time, system_info
+PASS, 499e674, test, Wed Feb  1 15:06:53 GMT 2012, Linux version 2.6.32-37-generic (buildd@allspice) (gcc version 4.4.3 (Ubuntu 4.4.3-4ubuntu5) ) #81-Ubuntu SMP Fri Dec 2 20:32:42 UTC 2011
+PASS, 499e674, sha, Wed Feb  1 15:07:05 GMT 2012, Linux version 2.6.32-37-generic (buildd@allspice) (gcc version 4.4.3 (Ubuntu 4.4.3-4ubuntu5) ) #81-Ubuntu SMP Fri Dec 2 20:32:42 UTC 2011
+PASS, 499e674, dijkstra, Wed Feb  1 15:36:32 GMT 2012, Linux version 2.6.32-37-generic (buildd@allspice) (gcc version 4.4.3 (Ubuntu 4.4.3-4ubuntu5) ) #81-Ubuntu SMP Fri Dec 2 20:32:42 UTC 2011
+PASS, 499e674, stringsearch, Wed Feb  1 15:36:38 GMT 2012, Linux version 2.6.32-37-generic (buildd@allspice) (gcc version 4.4.3 (Ubuntu 4.4.3-4ubuntu5) ) #81-Ubuntu SMP Fri Dec 2 20:32:42 UTC 2011
+PASS, 499e674, adpcm, Wed Feb  1 15:36:44 GMT 2012, Linux version 2.6.32-37-generic (buildd@allspice) (gcc version 4.4.3 (Ubuntu 4.4.3-4ubuntu5) ) #81-Ubuntu SMP Fri Dec 2 20:32:42 UTC 2011
+FAIL, 499e674, basicmath (INSIZZLE_DBG memcheck), Wed Feb  1 15:44:58 GMT 2012, Linux version 2.6.32-37-generic (buildd@allspice) (gcc version 4.4.3 (Ubuntu 4.4.3-4ubuntu5) ) #81-Ubuntu SMP Fri Dec 2 20:32:42 UTC 2011

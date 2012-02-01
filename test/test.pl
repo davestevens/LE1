@@ -8,10 +8,19 @@ my @tests = (
     {'dir_name', 'dijkstra', 'ass_args', '-MALLOC_SIZE=1000', 'sim_args', ''},
     {'dir_name', 'stringsearch', 'ass_args', '', 'sim_args', ''},
     {'dir_name', 'adpcm', 'ass_args', '', 'sim_args', ''},
+    {'dir_name', 'hanoi', 'ass_args', '', 'sim_args', ''},
+    {'dir_name', 'paranoia', 'ass_args', '', 'sim_args', ''},
     {'dir_name', 'basicmath', 'ass_args', '', 'sim_args', ''},
     );
 
-my $d = 1;
+my $type = 'quick';
+my $d = 0;
+if($ARGV[0] eq 'full') {
+    $type = 'full';
+}
+if($ARGV[1] eq 'debug') {
+    $d = 1;
+}
 my $LE1_DIR = '../';
 my $ASSEMBLER_DIR = $LE1_DIR . 'Assembler/';
 my $INSIZZLE_DIR = $LE1_DIR . 'Insizzle/';
@@ -48,11 +57,14 @@ foreach (@tests) {
     if(cmd('perl generate.pl -d ../test/' . $_->{'dir_name'} . ' ' . $_->{'ass_args'} . ' -oTEST -xmlMM=' . $TEST_DIR . '/' . $_->{'dir_name'} . '/check/machinemodel.xml', 0) == 1) { next; }
 
     chdir($TEST_DIR . '/' . $_->{'dir_name'});
-    # run with INSIZZLE_DBG and check memory dump
-    $st = 'INSIZZLE_DBG';
-    if(cmd('../INSIZZLE_DBG machinemodel/model.xml', 0) == 1) { next; }
-    $st = 'INSIZZLE_DBG memcheck';
-    if(cmd('diff memoryDump_0.dat check/memout', 0) == 1) { next; }
+
+    if($type eq 'full') {
+	# run with INSIZZLE_DBG and check memory dump
+	$st = 'INSIZZLE_DBG';
+	if(cmd('../INSIZZLE_DBG machinemodel/model.xml', 0) == 1) { next; }
+	$st = 'INSIZZLE_DBG memcheck';
+	if(cmd('diff memoryDump_0.dat check/memout', 0) == 1) { next; }
+    }
 
     # run with INSIZZLE_REL and check memory dump
     $st = 'INSIZZLE_REL';
@@ -60,9 +72,11 @@ foreach (@tests) {
     $st = 'INSIZZLE_REL memcheck';
     if(cmd('diff memoryDump_0.dat check/memout', 0) == 1) { next; }
 
-    # run INSIZZLE_DBG though valgrind
-    $st = 'Valgrind';
-    if(cmd('valgrind ../INSIZZLE_REL machinemodel/model.xml --error-exitcode=1', 0) == 1) { next; }
+    if($type eq 'full') {
+	# run INSIZZLE_DBG though valgrind
+	$st = 'Valgrind';
+	if(cmd('valgrind ../INSIZZLE_REL machinemodel/model.xml --error-exitcode=1', 0) == 1) { next; }
+    }
     print 'Completed test for: ' . $_->{'dir_name'} . "\n";
     print '--------------------------------------------------------------------------------' . "\n";
 
@@ -73,7 +87,7 @@ foreach (@tests) {
     chomp($version);
     my $rev = readpipe('git rev-parse --short HEAD');
     chomp($rev);
-    print FILE 'PASS, ' . $rev . ', ' . $_->{'dir_name'} . ', ' . $date . ', ' . $version . "\n";
+    print FILE 'PASS, ' . $rev . ', ' . $_->{'dir_name'} . ' (' . $type . '), ' . $date . ', ' . $version . "\n";
     close FILE;
 }
 
