@@ -1,0 +1,2 @@
+# List of test run outcomes
+# outcome, git_revision, test_name, time, system_info

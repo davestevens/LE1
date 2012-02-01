@@ -8,7 +8,7 @@ my @tests = (
     {'dir_name', 'dijkstra', 'ass_args', '-MALLOC_SIZE=1000', 'sim_args', ''},
     {'dir_name', 'stringsearch', 'ass_args', '', 'sim_args', ''},
     {'dir_name', 'adpcm', 'ass_args', '', 'sim_args', ''},
-#    {'dir_name', 'basicmath', 'ass_args', '', 'sim_args', ''},
+    {'dir_name', 'basicmath', 'ass_args', '', 'sim_args', ''},
     );
 
 my $d = 1;
@@ -17,6 +17,7 @@ my $ASSEMBLER_DIR = $LE1_DIR . 'Assembler/';
 my $INSIZZLE_DIR = $LE1_DIR . 'Insizzle/';
 my $TEST_DIR = readpipe('pwd');
 chomp($TEST_DIR);
+my $st;
 
 print "Test suite for INSIZZLE and the LE1 Tool Chain\n";
 print "git revision: ";
@@ -43,21 +44,37 @@ foreach (@tests) {
 
     # move to Assembler
     chdir('../' . $ASSEMBLER_DIR);
-    cmd('perl generate.pl -d ../test/' . $_->{'dir_name'} . ' ' . $_->{'ass_args'} . ' -oTEST -xmlMM=' . $TEST_DIR . '/' . $_->{'dir_name'} . '/check/machinemodel.xml', 0);
+    $st = 'generate';
+    if(cmd('perl generate.pl -d ../test/' . $_->{'dir_name'} . ' ' . $_->{'ass_args'} . ' -oTEST -xmlMM=' . $TEST_DIR . '/' . $_->{'dir_name'} . '/check/machinemodel.xml', 0) == 1) { next; }
 
     chdir($TEST_DIR . '/' . $_->{'dir_name'});
     # run with INSIZZLE_DBG and check memory dump
-    cmd('../INSIZZLE_DBG machinemodel/model.xml', 0);
-    cmd('diff memoryDump_0.dat check/memout', 0);
+    $st = 'INSIZZLE_DBG';
+    if(cmd('../INSIZZLE_DBG machinemodel/model.xml', 0) == 1) { next; }
+    $st = 'INSIZZLE_DBG memcheck';
+    if(cmd('diff memoryDump_0.dat check/memout', 0) == 1) { next; }
 
     # run with INSIZZLE_REL and check memory dump
-    cmd('../INSIZZLE_REL machinemodel/model.xml', 0);
-    cmd('diff memoryDump_0.dat check/memout', 0);
+    $st = 'INSIZZLE_REL';
+    if(cmd('../INSIZZLE_REL machinemodel/model.xml', 0) == 1) { next; }
+    $st = 'INSIZZLE_REL memcheck';
+    if(cmd('diff memoryDump_0.dat check/memout', 0) == 1) { next; }
 
     # run INSIZZLE_DBG though valgrind
-    cmd('valgrind ../INSIZZLE_REL machinemodel/model.xml --error-exitcode=1', 0);
+    $st = 'Valgrind';
+    if(cmd('valgrind ../INSIZZLE_REL machinemodel/model.xml --error-exitcode=1', 0) == 1) { next; }
     print 'Completed test for: ' . $_->{'dir_name'} . "\n";
     print '--------------------------------------------------------------------------------' . "\n";
+
+    open FILE, ">>", $TEST_DIR . '/outcome.txt' or die 'Could not open outcome.txt: ' . "$!\n";
+    my $date = readpipe('date');
+    chomp($date);
+    my $version = readpipe('cat /proc/version');
+    chomp($version);
+    my $rev = readpipe('git rev-parse --short HEAD');
+    chomp($rev);
+    print FILE 'PASS, ' . $rev . ', ' . $_->{'dir_name'} . ', ' . $date . ', ' . $version . "\n";
+    close FILE;
 }
 
 exit(0);
@@ -76,12 +93,17 @@ sub cmd {
 	print "\t" . 'return code: ';
 	print ($? >> 8);
 	print "\n";
-	exit(-1);
+	#exit(-1);
+	open FILE, ">>", $TEST_DIR . '/outcome.txt' or die 'Could not open outcome.txt: ' . "$!\n";
+	my $date = readpipe('date');
+	chomp($date);
+	my $version = readpipe('cat /proc/version');
+	chomp($version);
+	my $rev = readpipe('git rev-parse --short HEAD');
+	chomp($rev);
+	print FILE 'FAIL, ' . $rev . ', ' . $_->{'dir_name'} . ' (' . $st . '), ' . $date . ', ' . $version . "\n";
+	close FILE;
+	return 1;
     }
-#    else {
-#	if($d) { print "\t" . 'return code: ';
-#		 print ($? >> 8);
-#		 print "\n";
-#	}
-#    }
+    return 0;
 }
