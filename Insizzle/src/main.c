@@ -326,7 +326,7 @@ int main(int argc, char *argv[])
 				      unsigned endPC = hypercontext->programCounter;
 
 				      do {
-					this = fetchInstruction(context, endPC);
+					this = fetchInstruction(context, endPC, CNT);
 					if((this.op >> 31) & 0x1)
 					  {
 					    if(this.immValid)
@@ -370,7 +370,7 @@ int main(int argc, char *argv[])
 				  /* TODO: possibly zero these out */
 				  do {
 				    bundleCount++;
-				    this = fetchInstruction(context, hypercontext->programCounter);
+				    this = fetchInstruction(context, hypercontext->programCounter, CNT);
 
 #ifdef DEBUG
 				    printf("PC: 0x%x, this.op: 0x%08x\n", hypercontext->programCounter, this.op);
@@ -812,7 +812,7 @@ int setupGalaxy(void)
 #endif
 	  printf("file: %s\n", binary);
 
-	  context->iram = loadBinary(binary, 0);
+	  context->iram = loadBinary(binary, ((CNT->IFE_SIMPLE_IRAM_PRIV_CONFIG >> 8) & 0xffff));
 	  /*(unsigned *)malloc(sizeof(unsigned) * ((CNT->IFE_SIMPLE_IRAM_PRIV_CONFIG >> 8) & 0xffff));*/
 #else
 	  context->iram = (unsigned *)calloc((((CNT->IFE_SIMPLE_IRAM_PRIV_CONFIG >> 8) & 0xffff) * 1000), 1);
