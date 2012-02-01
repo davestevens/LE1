@@ -13,6 +13,132 @@
 #include "xmlRead.h"
 #endif
 
+/* catch segFaults */
+void sigsegv_debug(int sig) {
+  fprintf(stderr, "--------------------------------------------------------------------------------\n");
+  fprintf(stderr, "Out of bounds Memory Access (0x%x)\n", sig);
+  fprintf(stderr, "Insizzle exiting\n");
+  fflush(stderr);
+  stateDump();
+  fprintf(stderr, "Created stateDump.dat file\n");
+  fprintf(stderr, "--------------------------------------------------------------------------------\n");
+  fflush(stderr);
+  exit(-1);
+  return;
+}
+
+/* stateDump */
+void sigusr1_debug(int sig) {
+  fprintf(stderr, "--------------------------------------------------------------------------------\n");
+  fflush(stderr);
+  stateDump();
+  fprintf(stderr, "Created stateDump.dat file (0x%x)\n", sig);
+  fprintf(stderr, "--------------------------------------------------------------------------------\n");
+  fflush(stderr);
+  return;
+}
+
+/* Dump all the state, used in segFault situations */
+void stateDump(void) {
+  unsigned i, j, k;
+  systemConfig *SYS;
+  contextConfig *CNT;
+  hyperContextConfig *HCNT;
+
+  systemT *system;
+  contextT *context;
+  hyperContextT *hypercontext;
+  FILE *fp;
+  if((fp = fopen("stateDump.dat", "w")) == NULL) {
+    printf("Could no open stateDump.dat file to write to\n");
+    return;
+  }
+  fprintf(fp, "State Dump\n");
+  fprintf(fp, "CycleCount: %lld\n", cycleCount);
+  for(i=0;i<(GALAXY_CONFIG & 0xff);i++)
+    {
+      SYS = (systemConfig *)((unsigned)SYSTEM + (i * sizeof(systemConfig)));
+      system = (systemT *)((unsigned)galaxyT + (i * sizeof(systemT)));
+      fprintf(fp, "System: %d\n", i);
+      for(j=0;j<(SYS->SYSTEM_CONFIG & 0xff);j++)
+	{
+	  CNT = (contextConfig *)((unsigned)SYS->CONTEXT + (j * sizeof(contextConfig)));
+	  context = (contextT *)((unsigned)system->context + (j * sizeof(contextT)));
+	  fprintf(fp, "\tContext: %d\n", j);
+
+	  for(k=0;k<((CNT->CONTEXT_CONFIG >> 4) & 0xf);k++)
+	    {
+	      HCNT = (hyperContextConfig *)((unsigned)CNT->HCONTEXT + (k * sizeof(hyperContextConfig)));
+	      hypercontext = (hyperContextT *)((unsigned)context->hypercontext + (k * sizeof(hyperContextT)));
+	      fprintf(fp, "\t\tHypercontext: %d\n", k);
+	      /* print VT_CTRL */
+	      fprintf(fp, "\t\t\tVT_CTRL: 0x%08x\n", hypercontext->VT_CTRL);
+	      unsigned int deepstate = (hypercontext->VT_CTRL >> 3) & 0xff;
+	      unsigned int sstep = (hypercontext->VT_CTRL >> 2) & 0x1;
+	      unsigned int debug = (hypercontext->VT_CTRL >> 1) & 0x1;
+	      fprintf(fp, "\t\t\tSTATE: ");
+	      if(debug) {
+		fprintf(fp, "Debug\n");
+	      }
+	      else {
+		if(sstep) {
+		  fprintf(fp, "Single Step\n\t\t\t");
+		}
+		else {
+		  switch(deepstate) {
+		  case READY:
+		    fprintf(fp, "Ready\n");
+		    break;
+		  case RUNNING:
+		    fprintf(fp, "Running\n");
+		    break;
+		  case BLOCKED_MUTEX_LOCK:
+		    fprintf(fp, "Blocked_Mutex_Lock\n");
+		    break;
+		  case TERMINATED_ASYNC_HOST:
+		    fprintf(fp, "Terminated_Async_Host\n");
+		    break;
+		  case TERMINATED_ASYNC:
+		    fprintf(fp, "Terminated_Async\n");
+		    break;
+		  case TERMINATED_SYNC:
+		    fprintf(fp, "Terminated_Sync\n");
+		    break;
+		  default:
+		    fprintf(fp, "Undefined\n");
+		    break;
+		  }
+		}
+	      }
+	      fprintf(fp, "\t\t\tprogramCounter: 0x%08x\n", hypercontext->programCounter);
+	      /* print registers */
+	      {
+		unsigned regCount;
+		fprintf(fp, "\t\t\tGPR:\n");
+		for(regCount=0;regCount<hypercontext->sGPRCount;regCount++) {
+		  fprintf(fp, "\t\t\t\t%02d: 0x%08x\n", regCount, *(hypercontext->S_GPR + (unsigned)regCount));
+		}
+		fprintf(fp, "\t\t\tPR:\n");
+		for(regCount=0;regCount<hypercontext->sPRCount;regCount++) {
+		  fprintf(fp, "\t\t\t\t%02d: 0x%02x\n", regCount, *(hypercontext->S_PR + (unsigned)regCount));
+		}
+	      }
+	    }
+	}
+      /* print dram */
+      fprintf(fp, "\tDRAM:\n");
+      fprintf(fp, "dramsize: 0x%x Bytes\n", (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000));
+      {
+	unsigned count;
+	for(count=0;count<((((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000) >> 2);count++) {
+	  fprintf(fp, "0x%08x: 0x%08x\n", (count << 2), *((unsigned *)system->dram + count));
+	}
+      }
+    }
+  fclose(fp);
+  return;
+}
+
 unsigned *loadBinary(char *fileName, unsigned size)
 {
   unsigned fileSize;
@@ -757,6 +883,7 @@ void serviceMemRequest(systemT *system, unsigned findBank, unsigned numBanks, un
 			printf("LDW!!!\n");
 #endif
 #ifdef DEBUGmem
+			printf("loading from: 0x%x\n", (temp->value));
 			printf("loading from: 0x%x\n", (temp->value + (unsigned)(system->dram)));
 #endif
 			if(temp->value >= dramSize)

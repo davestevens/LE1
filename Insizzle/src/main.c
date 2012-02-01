@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
+#include <signal.h>
+#include <unistd.h>
 
 #include "xmlRead.h"
 #include "functions.h"
@@ -30,14 +32,30 @@ int main(int argc, char *argv[])
 
   /*unsigned curClustTemplate, curClustInstance;*/
   /*unsigned sGPROffset, sFPROffset, sVROffset, sPROffset;*/
+  /* signal catch (SIGSEGV and SIGUSR1) */
+  pid_t pid;
+  struct sigaction sigusr1_action;
+  sigset_t block_mask;
+
   cycleCount = 0;
   char *versionNumber = "Insizzle_Revision";
   similarIRAM = 0;
   suppressOOB = 1;
   STACK_SIZE = 12;
   PRINT_OUT = 0;
-
   printf("Insizzle (%s)\n", versionNumber);
+
+  /* signal catch (SIGSEGV and SIGUSR1) */
+  if((pid = getpid()) >= 0) {
+    printf("PID: %d\n", pid);
+    printf("(send SIGUSR1 signal to produce state dump)\n");
+  }
+  signal(SIGSEGV, sigsegv_debug);
+  sigfillset(&block_mask);
+  sigusr1_action.sa_handler = sigusr1_debug;
+  sigusr1_action.sa_mask = block_mask;
+  sigusr1_action.sa_flags = 0;
+  sigaction(SIGUSR1, &sigusr1_action, NULL);
 
 #ifndef API
   if(argc < 2)

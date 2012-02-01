@@ -142,6 +142,9 @@ struct newThreadT {
   struct newThreadT *next;
 };
 
+void sigsegv_debug(int);
+void sigusr1_debug(int);
+void stateDump(void);
 unsigned *loadBinary(char *, unsigned);
 #ifdef SHM
 unsigned *loadBinaryD(char *, unsigned);
