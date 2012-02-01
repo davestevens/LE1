@@ -3,7 +3,12 @@
 use strict;
 
 my @tests = (
-    {'dir_name', 'test', 'ass_args', '-DSIZE=10 -O0', 'sim_args', ''}
+    {'dir_name', 'test', 'ass_args', '-DSIZE=10 -O0', 'sim_args', ''},
+    {'dir_name', 'sha', 'ass_args', '', 'sim_args', ''},
+    {'dir_name', 'dijkstra', 'ass_args', '-MALLOC_SIZE=1000', 'sim_args', ''},
+    {'dir_name', 'stringsearch', 'ass_args', '', 'sim_args', ''},
+    {'dir_name', 'adpcm', 'ass_args', '', 'sim_args', ''},
+#    {'dir_name', 'basicmath', 'ass_args', '', 'sim_args', ''},
     );
 
 my $d = 1;
@@ -50,7 +55,7 @@ foreach (@tests) {
     cmd('diff memoryDump_0.dat check/memout', 0);
 
     # run INSIZZLE_DBG though valgrind
-    cmd('valgrind ../INSIZZLE_DBG machinemodel/model.xml --error-exitcode=1', 0);
+    cmd('valgrind ../INSIZZLE_REL machinemodel/model.xml --error-exitcode=1', 0);
     print 'Completed test for: ' . $_->{'dir_name'} . "\n";
     print '--------------------------------------------------------------------------------' . "\n";
 }
