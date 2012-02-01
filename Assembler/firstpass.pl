@@ -709,7 +709,8 @@ ENDOFHEADER
     {
 	if($Data_Label{$key} ne "")
 	{
-	    printf(OUTPUT "%04x - %s\n",$Data_Label{$key},$key);
+	    $key_temp = $key;
+	    printf(OUTPUT "%04x - %s\n",$Data_Label{$key},$key_temp);
 	}
     }
     $ds = $data_start;
@@ -719,6 +720,14 @@ ENDOFHEADER
     {
 	if($bit !~ /[A-Fa-f0-9]{8}/)
 	{
+	    foreach (@static_functions) {
+		if($bit =~ /$_/) {
+		    $bit =~ s/$_/$filename_\_FUNC\_$_/;
+		}
+	    }
+	    if(($bit =~ /LABEL:/) && ($bit !~ /FUNC\_/)) {
+		$bit =~ s/LABEL:\s+(.+)/LABEL: FUNC\_$1/;
+	    }
 	    printf(OUTPUT "%04x - %s\n", $start, $bit);
 	    $start += 4;
 	}
