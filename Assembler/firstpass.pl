@@ -496,7 +496,9 @@ sub first_pass()
         {
 	    $inst_label_temp = $1;
 	    if($inst_label_temp !~ /L\d+\?\d+/) {
-		#push(@static_functions, $inst_label_temp);
+		if($file[$i-1] =~ /\.entry/) {
+		    push(@static_functions, $inst_label_temp);
+		}
 		$inst_label_temp = "FUNC_$inst_label_temp";
 	    }
 	    $Inst_Label{$inst_label_temp} = ($instruction_start);
