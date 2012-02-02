@@ -633,6 +633,9 @@ void memRequest(systemT *system, unsigned *t, unsigned s1, unsigned ctrlReg, mem
 int memoryDump(unsigned size, unsigned system, unsigned *dram)
 {
   FILE *filePoint;
+#ifdef microblazeMemDump
+  FILE *mbMD;
+#endif
   char filename[256];
   unsigned count;
 
@@ -646,6 +649,16 @@ int memoryDump(unsigned size, unsigned system, unsigned *dram)
       printf("could not open file: %s\n", filename);
       return -1;
     }
+#ifdef microblazeMemDump
+  mbMD = fopen("microblaze/data_after.h", "w");
+  if(mbMD == NULL) {
+    printf("could not open file: microblaze/data_after.h\n");
+    return -1;
+  }
+  fprintf(mbMD, "/* data area after run on INSIZZLE */\n");
+  fprintf(mbMD, "#define LE1_DRAM_SIZE_AFTER %d\n", (size << 2));
+  fprintf(mbMD, "char le1_dram_after[] = {\n");
+#endif
 
   fprintf(filePoint, "Cache dump size of 0x%x\n", (size << 2));
 
@@ -654,8 +667,24 @@ int memoryDump(unsigned size, unsigned system, unsigned *dram)
       fprintf(filePoint, "Location\t");
       fprintf(filePoint, "0x%08x (%d)\t-\t", (count << 2), (count << 2));
       fprintf(filePoint, "0x%08x\n", *((unsigned *)dram + count));
+#ifdef microblazeMemDump
+      {
+	unsigned dramWord = *((unsigned *)dram + count);
+	fprintf(mbMD, "0x%02x,0x%02x,0x%02x,0x%02x,\n",
+		((dramWord >> 24) & 0xff),
+		((dramWord >> 16) & 0xff),
+		((dramWord >> 8) & 0xff),
+		((dramWord >> 0) & 0xff)
+		);
+      }
+#endif
     }
   fclose(filePoint);
+
+#ifdef microblazeMemDump
+  fprintf(mbMD, "}\n");
+  fclose(mbMD);
+#endif
 
   return 0;
 }

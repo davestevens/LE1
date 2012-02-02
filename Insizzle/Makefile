@@ -9,7 +9,7 @@
 # -DNOSTALLS - count stall events but don't execute them
 
 CC = gcc
-CFLAGS = -c -Wall -pedantic -std=c99 -Wextra -m32 `xml2-config --cflags` -D_XOPEN_SOURCE
+CFLAGS = -c -Wall -pedantic -std=c99 -Wextra -m32 `xml2-config --cflags` -D_XOPEN_SOURCE -DmicroblazeMemDump
 LDFLAGS = -lm -m32 `xml2-config --libs`
 
 INCDIR = inc
