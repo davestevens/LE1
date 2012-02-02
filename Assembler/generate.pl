@@ -136,7 +136,7 @@ HELP
     # remove all temp_* files (simulator files)
     system("rm -f temp_*");
     @cfiles = <*.c>;
-if($#cfiles <= -1) {
+if(($#cfiles <= -1) && ($assembly ==0)) {
     print "The directory you specified contains no .c files\n";
     exit(-1);
 }
