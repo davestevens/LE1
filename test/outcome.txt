@@ -6,3 +6,11 @@ PASS, 499e674, dijkstra, Wed Feb  1 15:36:32 GMT 2012, Linux version 2.6.32-37-g
 PASS, 499e674, stringsearch, Wed Feb  1 15:36:38 GMT 2012, Linux version 2.6.32-37-generic (buildd@allspice) (gcc version 4.4.3 (Ubuntu 4.4.3-4ubuntu5) ) #81-Ubuntu SMP Fri Dec 2 20:32:42 UTC 2011
 PASS, 499e674, adpcm, Wed Feb  1 15:36:44 GMT 2012, Linux version 2.6.32-37-generic (buildd@allspice) (gcc version 4.4.3 (Ubuntu 4.4.3-4ubuntu5) ) #81-Ubuntu SMP Fri Dec 2 20:32:42 UTC 2011
 FAIL, 499e674, basicmath (INSIZZLE_DBG memcheck), Wed Feb  1 15:44:58 GMT 2012, Linux version 2.6.32-37-generic (buildd@allspice) (gcc version 4.4.3 (Ubuntu 4.4.3-4ubuntu5) ) #81-Ubuntu SMP Fri Dec 2 20:32:42 UTC 2011
+PASS, 497a670, test (full), Wed Feb  1 18:41:13 GMT 2012, Linux version 2.6.18-274.3.1.el5 (mockbuild@builder10.centos.org) (gcc version 4.1.2 20080704 (Red Hat 4.1.2-51)) #1 SMP Tue Sep 6 20:14:03 EDT 2011
+PASS, 497a670, sha (full), Wed Feb  1 18:41:39 GMT 2012, Linux version 2.6.18-274.3.1.el5 (mockbuild@builder10.centos.org) (gcc version 4.1.2 20080704 (Red Hat 4.1.2-51)) #1 SMP Tue Sep 6 20:14:03 EDT 2011
+PASS, 497a670, dijkstra (full), Wed Feb  1 19:41:45 GMT 2012, Linux version 2.6.18-274.3.1.el5 (mockbuild@builder10.centos.org) (gcc version 4.1.2 20080704 (Red Hat 4.1.2-51)) #1 SMP Tue Sep 6 20:14:03 EDT 2011
+PASS, 497a670, stringsearch (full), Wed Feb  1 19:41:57 GMT 2012, Linux version 2.6.18-274.3.1.el5 (mockbuild@builder10.centos.org) (gcc version 4.1.2 20080704 (Red Hat 4.1.2-51)) #1 SMP Tue Sep 6 20:14:03 EDT 2011
+PASS, 497a670, adpcm (full), Wed Feb  1 19:42:08 GMT 2012, Linux version 2.6.18-274.3.1.el5 (mockbuild@builder10.centos.org) (gcc version 4.1.2 20080704 (Red Hat 4.1.2-51)) #1 SMP Tue Sep 6 20:14:03 EDT 2011
+PASS, 497a670, hanoi (full), Wed Feb  1 19:42:16 GMT 2012, Linux version 2.6.18-274.3.1.el5 (mockbuild@builder10.centos.org) (gcc version 4.1.2 20080704 (Red Hat 4.1.2-51)) #1 SMP Tue Sep 6 20:14:03 EDT 2011
+PASS, 497a670, paranoia (full), Wed Feb  1 19:51:00 GMT 2012, Linux version 2.6.18-274.3.1.el5 (mockbuild@builder10.centos.org) (gcc version 4.1.2 20080704 (Red Hat 4.1.2-51)) #1 SMP Tue Sep 6 20:14:03 EDT 2011
+PASS, 497a670, basicmath (full), Thu Feb  2 06:01:51 GMT 2012, Linux version 2.6.18-274.3.1.el5 (mockbuild@builder10.centos.org) (gcc version 4.1.2 20080704 (Red Hat 4.1.2-51)) #1 SMP Tue Sep 6 20:14:03 EDT 2011
