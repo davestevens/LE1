@@ -4,6 +4,7 @@ use strict;
 
 my @tests = (
     {'dir_name', 'test', 'ass_args', '-DSIZE=10 -O0', 'sim_args', ''},
+    {'dir_name', 'staticFunction', 'ass_args', '-cpuid', 'sim_args', '-similarIRAM'},
     {'dir_name', 'sha', 'ass_args', '', 'sim_args', ''},
     {'dir_name', 'dijkstra', 'ass_args', '-MALLOC_SIZE=1000', 'sim_args', ''},
     {'dir_name', 'stringsearch', 'ass_args', '', 'sim_args', ''},
@@ -61,21 +62,21 @@ foreach (@tests) {
     if($type eq 'full') {
 	# run with INSIZZLE_DBG and check memory dump
 	$st = 'INSIZZLE_DBG';
-	if(cmd('../INSIZZLE_DBG machinemodel/model.xml', 0) == 1) { next; }
+	if(cmd('../INSIZZLE_DBG machinemodel/model.xml ' . $_->{'sim_args'}, 0) == 1) { next; }
 	$st = 'INSIZZLE_DBG memcheck';
 	if(cmd('diff memoryDump_0.dat check/memout', 0) == 1) { next; }
     }
 
     # run with INSIZZLE_REL and check memory dump
     $st = 'INSIZZLE_REL';
-    if(cmd('../INSIZZLE_REL machinemodel/model.xml', 0) == 1) { next; }
+    if(cmd('../INSIZZLE_REL machinemodel/model.xml ' . $_->{'sim_args'}, 0) == 1) { next; }
     $st = 'INSIZZLE_REL memcheck';
     if(cmd('diff memoryDump_0.dat check/memout', 0) == 1) { next; }
 
     if($type eq 'full') {
 	# run INSIZZLE_DBG though valgrind
 	$st = 'Valgrind';
-	if(cmd('valgrind ../INSIZZLE_REL machinemodel/model.xml --error-exitcode=1', 0) == 1) { next; }
+	if(cmd('valgrind ../INSIZZLE_REL machinemodel/model.xml  ' . $_->{'sim_args'} . ' --error-exitcode=1', 0) == 1) { next; }
     }
     print 'Completed test for: ' . $_->{'dir_name'} . "\n";
     print '--------------------------------------------------------------------------------' . "\n";

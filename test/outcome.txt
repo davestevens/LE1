@@ -14,3 +14,5 @@ PASS, 497a670, adpcm (full), Wed Feb  1 19:42:08 GMT 2012, Linux version 2.6.18-
 PASS, 497a670, hanoi (full), Wed Feb  1 19:42:16 GMT 2012, Linux version 2.6.18-274.3.1.el5 (mockbuild@builder10.centos.org) (gcc version 4.1.2 20080704 (Red Hat 4.1.2-51)) #1 SMP Tue Sep 6 20:14:03 EDT 2011
 PASS, 497a670, paranoia (full), Wed Feb  1 19:51:00 GMT 2012, Linux version 2.6.18-274.3.1.el5 (mockbuild@builder10.centos.org) (gcc version 4.1.2 20080704 (Red Hat 4.1.2-51)) #1 SMP Tue Sep 6 20:14:03 EDT 2011
 PASS, 497a670, basicmath (full), Thu Feb  2 06:01:51 GMT 2012, Linux version 2.6.18-274.3.1.el5 (mockbuild@builder10.centos.org) (gcc version 4.1.2 20080704 (Red Hat 4.1.2-51)) #1 SMP Tue Sep 6 20:14:03 EDT 2011
+FAIL, ebda44b, staticFunction (INSIZZLE_REL), Thu Feb  2 10:38:22 GMT 2012, Linux version 2.6.18-274.3.1.el5 (mockbuild@builder10.centos.org) (gcc version 4.1.2 20080704 (Red Hat 4.1.2-51)) #1 SMP Tue Sep 6 20:14:03 EDT 2011
+PASS, ebda44b, staticFunction (quick), Thu Feb  2 10:39:37 GMT 2012, Linux version 2.6.18-274.3.1.el5 (mockbuild@builder10.centos.org) (gcc version 4.1.2 20080704 (Red Hat 4.1.2-51)) #1 SMP Tue Sep 6 20:14:03 EDT 2011
