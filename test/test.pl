@@ -3,15 +3,21 @@
 use strict;
 
 my @tests = (
-    {'dir_name', 'test', 'ass_args', '-DSIZE=10 -O0', 'sim_args', ''},
-    {'dir_name', 'staticFunction', 'ass_args', '-cpuid', 'sim_args', '-similarIRAM'},
-    {'dir_name', 'sha', 'ass_args', '', 'sim_args', ''},
-    {'dir_name', 'dijkstra', 'ass_args', '-MALLOC_SIZE=1000', 'sim_args', ''},
-    {'dir_name', 'stringsearch', 'ass_args', '', 'sim_args', ''},
-    {'dir_name', 'adpcm', 'ass_args', '', 'sim_args', ''},
-    {'dir_name', 'hanoi', 'ass_args', '', 'sim_args', ''},
-    {'dir_name', 'paranoia', 'ass_args', '', 'sim_args', ''},
-    {'dir_name', 'basicmath', 'ass_args', '', 'sim_args', ''},
+    {'dir_name', 'test', 'ass_args', '-DSIZE=10 -O0', 'sim_args', 'machinemodel/model.xml'},
+    {'dir_name', 'staticFunction', 'ass_args', '-cpuid', 'sim_args', 'machinemodel/model.xml -similarIRAM'},
+    {'dir_name', 'alu_ops', 'ass_args', '-skipvex -k', 'sim_args', 'check/machinemodel.xml'},
+    {'dir_name', 'stress1', 'ass_args', '-skipvex -k', 'sim_args', 'check/machinemodel.xml'},
+    {'dir_name', 'stress2', 'ass_args', '-skipvex -k', 'sim_args', 'check/machinemodel.xml'},
+    {'dir_name', 'stress3', 'ass_args', '-skipvex -k', 'sim_args', 'check/machinemodel.xml'},
+    {'dir_name', 'stress4', 'ass_args', '-skipvex -k', 'sim_args', 'check/machinemodel.xml'},
+    {'dir_name', 'stress_lsu', 'ass_args', '-skipvex -k', 'sim_args', 'check/machinemodel.xml'},
+    {'dir_name', 'sha', 'ass_args', '', 'sim_args', 'machinemodel/model.xml'},
+    {'dir_name', 'dijkstra', 'ass_args', '-MALLOC_SIZE=1000', 'sim_args', 'machinemodel/model.xml'},
+    {'dir_name', 'stringsearch', 'ass_args', '', 'sim_args', 'machinemodel/model.xml'},
+    {'dir_name', 'adpcm', 'ass_args', '', 'sim_args', 'machinemodel/model.xml'},
+    {'dir_name', 'hanoi', 'ass_args', '', 'sim_args', 'machinemodel/model.xml'},
+    {'dir_name', 'paranoia', 'ass_args', '', 'sim_args', 'machinemodel/model.xml'},
+    {'dir_name', 'basicmath', 'ass_args', '', 'sim_args', 'machinemodel/model.xml'},
     );
 
 my $type = 'quick';
@@ -62,21 +68,21 @@ foreach (@tests) {
     if($type eq 'full') {
 	# run with INSIZZLE_DBG and check memory dump
 	$st = 'INSIZZLE_DBG';
-	if(cmd('../INSIZZLE_DBG machinemodel/model.xml ' . $_->{'sim_args'}, 0) == 1) { next; }
+	if(cmd('../INSIZZLE_DBG ' . $_->{'sim_args'}, 0) == 1) { next; }
 	$st = 'INSIZZLE_DBG memcheck';
 	if(cmd('diff memoryDump_0.dat check/memout', 0) == 1) { next; }
     }
 
     # run with INSIZZLE_REL and check memory dump
     $st = 'INSIZZLE_REL';
-    if(cmd('../INSIZZLE_REL machinemodel/model.xml ' . $_->{'sim_args'}, 0) == 1) { next; }
+    if(cmd('../INSIZZLE_REL ' . $_->{'sim_args'}, 0) == 1) { next; }
     $st = 'INSIZZLE_REL memcheck';
     if(cmd('diff memoryDump_0.dat check/memout', 0) == 1) { next; }
 
     if($type eq 'full') {
 	# run INSIZZLE_DBG though valgrind
 	$st = 'Valgrind';
-	if(cmd('valgrind ../INSIZZLE_REL machinemodel/model.xml  ' . $_->{'sim_args'} . ' --error-exitcode=1', 0) == 1) { next; }
+	if(cmd('valgrind ../INSIZZLE_REL ' . $_->{'sim_args'} . ' --error-exitcode=1', 0) == 1) { next; }
     }
     print 'Completed test for: ' . $_->{'dir_name'} . "\n";
     print '--------------------------------------------------------------------------------' . "\n";
