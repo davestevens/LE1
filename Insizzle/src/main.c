@@ -142,7 +142,7 @@ int main(int argc, char *argv[])
     {
       SYS = (systemConfig *)((unsigned)SYSTEM + (i * sizeof(systemConfig)));
       system = (systemT *)((unsigned)galaxyT + (i * sizeof(systemT)));
-      printf("dram_size: 0x%x\n", (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000));
+      printf("dram_size: 0x%x\n", (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1024));
 
       /* loop through contexts */
       for(j=0;j<(SYS->SYSTEM_CONFIG & 0xff);j++)
@@ -157,9 +157,9 @@ int main(int argc, char *argv[])
 	      hypercontext = (hyperContextT *)((unsigned)context->hypercontext + (k * sizeof(hyperContextT)));
 
 	      /*printf("hypercontext: %d\n", k);*/
-	      hypercontext->initialStackPointer = (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000) - ((STACK_SIZE * 1000) * totalHC);
-	      *(hypercontext->S_GPR + (unsigned)1) = (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000) - ((STACK_SIZE * 1000) * totalHC);
-	      *(hypercontext->pS_GPR + (unsigned)1) = (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000) - ((STACK_SIZE * 1000) * totalHC);
+	      hypercontext->initialStackPointer = (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1024) - ((STACK_SIZE * 1024) * totalHC);
+	      *(hypercontext->S_GPR + (unsigned)1) = ((((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1024) - 256) - ((STACK_SIZE * 1024) * totalHC);
+	      *(hypercontext->pS_GPR + (unsigned)1) = ((((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1024) - 256) - ((STACK_SIZE * 1024) * totalHC);
 	      printf("\tr1: 0x%x\n", *(hypercontext->S_GPR + (unsigned)1));
 	      /*printf("\tr1: 0x%x\n", *(hypercontext->pS_GPR + (unsigned)1));*/
 	      totalHC++;
@@ -396,7 +396,7 @@ int main(int argc, char *argv[])
 				      printf("PC: 0x%x, this.imm: 0x%08x\n", (hypercontext->programCounter + 4), this.imm);
 #endif
 
-				    inst = instructionDecode(this.op, this.imm, /*system->dram,*/ hypercontext, system, context, hypercontext->VT_CTRL, (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000));
+				    inst = instructionDecode(this.op, this.imm, /*system->dram,*/ hypercontext, system, context, hypercontext->VT_CTRL, (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1024));
 
 				    /*printf("%d : %d : ", *(hypercontext->S_GPR + 60), *(hypercontext->pS_GPR + 60));*/
   if((inst.packet.addr == 0) && (inst.packet.target == 1)) {
@@ -404,7 +404,7 @@ int main(int argc, char *argv[])
     printf("initialStackPointer: 0x%x\n", hypercontext->initialStackPointer);
     printf("stackSize: %d\n", STACK_SIZE);
     printf("diff: %d\n", (hypercontext->initialStackPointer - inst.packet.data));*/
-    if((hypercontext->initialStackPointer - inst.packet.data) >= (STACK_SIZE * 1000)) {
+    if((hypercontext->initialStackPointer - inst.packet.data) >= (STACK_SIZE * 1024)) {
       /*
       printf("POSSIBLY OUT OF STACK?\n");
       printf("diff: %d\n", (hypercontext->initialStackPointer - inst.packet.data));*/
@@ -413,10 +413,10 @@ int main(int argc, char *argv[])
       int hypercontext_id = (((hypercontext->VT_CTRL) >> 12) & 0xf);
       printf("\tStack Overflow detected in [%d][%d][%d]:\n", system_id, context_id, hypercontext_id);
       printf("\t\tStack Pointer initially: 0x%x (%d)\n", hypercontext->initialStackPointer, hypercontext->initialStackPointer);
-      printf("\t\tStack Size: 0x%x (%d)\n", (STACK_SIZE * 1000), (STACK_SIZE * 1000));
+      printf("\t\tStack Size: 0x%x (%d)\n", (STACK_SIZE * 1024), (STACK_SIZE * 1024));
       printf("\t\tStack Pointer now: 0x%x (%d)\n", inst.packet.data, inst.packet.data);
       printf("\t\tTry setting stack pointer to %d K ( -stack=%d )\n", (hypercontext->initialStackPointer - inst.packet.data),
-	     ((int)ceil((hypercontext->initialStackPointer - inst.packet.data) / 1000) + 1));
+	     ((int)ceil((hypercontext->initialStackPointer - inst.packet.data) / 1024) + 1));
     }
   }
 				    if(PRINT_OUT) {
@@ -616,13 +616,13 @@ int main(int argc, char *argv[])
 	    for(i=0;i<findBankT;i++)
 	      findBank |= 1 << i;
 #ifdef NOSTALLS
-	    serviceMemRequestNOSTALLS(system, findBank, ((SYS->DRAM_SHARED_CONFIG >> 24) & 0xff), (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000));
+	    serviceMemRequestNOSTALLS(system, findBank, ((SYS->DRAM_SHARED_CONFIG >> 24) & 0xff), (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1024));
 #else
-	    serviceMemRequest(system, findBank, ((SYS->DRAM_SHARED_CONFIG >> 24) & 0xff), (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000));
+	    serviceMemRequest(system, findBank, ((SYS->DRAM_SHARED_CONFIG >> 24) & 0xff), (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1024));
 #endif
 	  }
 #else
-	  serviceMemRequestPERFECT(system, (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000));
+	  serviceMemRequestPERFECT(system, (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1024));
 #endif
 
 	  serviceThreadRequests(system);
@@ -732,7 +732,7 @@ int main(int argc, char *argv[])
 	}
 
       /* print each dram to file */
-      if(memoryDump(((((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000) >> 2), i, system->dram) == -1)
+      if(memoryDump(((((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1024) >> 2), i, system->dram) == -1)
 	return -1;
     }
 
@@ -804,7 +804,7 @@ int setupGalaxy(void)
 #endif
 
 #else
-      system->dram = (unsigned *)calloc((((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000), 1);
+      system->dram = (unsigned *)calloc((((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1024), 1);
 #endif
       if(system->dram == NULL)
 	return -1;
@@ -833,7 +833,7 @@ int setupGalaxy(void)
 	  context->iram = loadBinary(binary, ((CNT->IFE_SIMPLE_IRAM_PRIV_CONFIG >> 8) & 0xffff));
 	  /*(unsigned *)malloc(sizeof(unsigned) * ((CNT->IFE_SIMPLE_IRAM_PRIV_CONFIG >> 8) & 0xffff));*/
 #else
-	  context->iram = (unsigned *)calloc((((CNT->IFE_SIMPLE_IRAM_PRIV_CONFIG >> 8) & 0xffff) * 1000), 1);
+	  context->iram = (unsigned *)calloc((((CNT->IFE_SIMPLE_IRAM_PRIV_CONFIG >> 8) & 0xffff) * 1024), 1);
 #endif
 	  if(context->iram == NULL)
 	    return -1;
@@ -992,16 +992,16 @@ int setupGalaxy(void)
 		  cluster = (clusterT *)((unsigned)hypercontext->registers + (l * sizeof(clusterT)));
 
 		  cluster->S_GPR = (unsigned *)((unsigned)hypercontext->S_GPR + sGPRCount);
-		  /**(cluster->S_GPR + (unsigned)1) = (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000) -
-		     (MAX_CONTEXTS * (STACK_SIZE * 1000) * j) - ((STACK_SIZE * 1000) * k);*/
+		  /**(cluster->S_GPR + (unsigned)1) = (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1024) -
+		     (MAX_CONTEXTS * (STACK_SIZE * 1024) * j) - ((STACK_SIZE * 1024) * k);*/
 		  /*printf("[%d][%d][%d] = 0x%x\n", i, j, k, *(cluster->S_GPR + (unsigned)1));*/
 		  cluster->S_FPR = (unsigned *)((unsigned)hypercontext->S_FPR + sFPRCount);
 		  cluster->S_VR = (unsigned *)((unsigned)hypercontext->S_VR + sVRCount);
 		  cluster->S_PR = (unsigned char*)((unsigned)hypercontext->S_PR + sPRCount);
 
 		  cluster->pS_GPR = (unsigned *)((unsigned)hypercontext->pS_GPR + sGPRCount);
-		  /**(cluster->pS_GPR + (unsigned)1) = (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000) -
-		     (MAX_CONTEXTS * (STACK_SIZE * 1000) * j) - ((STACK_SIZE * 1000) * k);*/
+		  /**(cluster->pS_GPR + (unsigned)1) = (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1024) -
+		     (MAX_CONTEXTS * (STACK_SIZE * 1024) * j) - ((STACK_SIZE * 1024) * k);*/
 		  cluster->pS_FPR = (unsigned *)((unsigned)hypercontext->pS_FPR + sFPRCount);
 		  cluster->pS_VR = (unsigned *)((unsigned)hypercontext->pS_VR + sVRCount);
 		  cluster->pS_PR = (unsigned char*)((unsigned)hypercontext->pS_PR + sPRCount);

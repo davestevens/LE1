@@ -127,10 +127,10 @@ void stateDump(void) {
 	}
       /* print dram */
       fprintf(fp, "\tDRAM:\n");
-      fprintf(fp, "dramsize: 0x%x Bytes\n", (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000));
+      fprintf(fp, "dramsize: 0x%x Bytes\n", (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1024));
       {
 	unsigned count;
-	for(count=0;count<((((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1000) >> 2);count++) {
+	for(count=0;count<((((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1024) >> 2);count++) {
 	  fprintf(fp, "0x%08x: 0x%08x\n", (count << 2), *((unsigned *)system->dram + count));
 	}
       }
@@ -157,20 +157,20 @@ unsigned *loadBinary(char *fileName, unsigned size)
   fseek(filePoint, 0L, SEEK_END);
   fileSize = ftell(filePoint);
   printf("\tSize of %s is 0x%x\n", fileName, fileSize);
-  printf("\trequired size is: %d bytes\n", (size * 1000));
+  printf("\trequired size is: %d bytes\n", (size * 1024));
   fseek(filePoint, 0L, SEEK_SET);
 
   if(size)
     {
-      if((unsigned)((size * 1000) < fileSize))
+      if((unsigned)((size * 1024) < fileSize))
 	{
 	  printf("\tYou haven't given allocated enough space for the stack!\n");
-	  printf("\t\tsize:     %d (bytes)\n", (size * 1000));
+	  printf("\t\tsize:     %d (bytes)\n", (size * 1024));
 	  printf("\t\tfileSize: %d (bytes)\n", fileSize);
 	  return NULL;
 	}
 
-      point = (char *)calloc((size * 1000), 1);
+      point = (char *)calloc((size * 1024), 1);
     }
   else
     {
@@ -216,26 +216,26 @@ unsigned *loadBinaryD(char *fileName, unsigned size)
   fseek(filePoint, 0L, SEEK_END);
   fileSize = ftell(filePoint);
   printf("\tSize of %s is 0x%x\n", fileName, fileSize);
-  printf("\trequired size is: %d bytes\n", (size * 1000));
+  printf("\trequired size is: %d bytes\n", (size * 1024));
   fseek(filePoint, 0L, SEEK_SET);
 
   if(size)
     {
-      if((unsigned)((size * 1000) < fileSize))
+      if((unsigned)((size * 1024) < fileSize))
 	{
 	  printf("\tYou haven't given allocated enough space for the stack!\n");
-	  printf("\t\tsize:     %d (bytes)\n", (size * 1000));
+	  printf("\t\tsize:     %d (bytes)\n", (size * 1024));
 	  printf("\t\tfileSize: %d (bytes)\n", fileSize);
 	  return NULL;
 	}
 
       /* create the segment */
-      if((shmid = shmget(key, (size * 1000), IPC_CREAT | 0666)) < 0) {
+      if((shmid = shmget(key, (size * 1024), IPC_CREAT | 0666)) < 0) {
 	perror("shmget");
 	return NULL;
       }
       printf("to connect to the shared memory you will need to use the size:\n");
-      printf("%d bytes\n", size * 1000);
+      printf("%d bytes\n", size * 1024);
       printf("and key:\n");
       printf("%d\n", key);
     }
@@ -396,10 +396,10 @@ instructionPacket fetchInstruction(contextT *context, unsigned programCounter, c
   /*printf("fetchInstruction\n");
   printf("\tprogramCounter: 0x%x\n", programCounter);
   printf("\tiram: 0x%x\n", *context->iram);*/
-  if(programCounter >= (((CNT->IFE_SIMPLE_IRAM_PRIV_CONFIG >> 8) & 0xffff) * 1000)) {
+  if(programCounter >= (((CNT->IFE_SIMPLE_IRAM_PRIV_CONFIG >> 8) & 0xffff) * 1024)) {
     printf("Warning: programCounter out of range\n");
     printf("\tProgramCounter: 0x%08x\n", programCounter);
-    printf("\tIRAM Size: 0x%08x\n", (((CNT->IFE_SIMPLE_IRAM_PRIV_CONFIG >> 8) & 0xffff) * 1000));
+    printf("\tIRAM Size: 0x%08x\n", (((CNT->IFE_SIMPLE_IRAM_PRIV_CONFIG >> 8) & 0xffff) * 1024));
   }
 
   inst.op = (unsigned)*(context->iram + (programCounter >> 2));
