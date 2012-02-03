@@ -82,3 +82,19 @@ PASS, dbca24e, adpcm (full), Thu Feb  2 17:38:49 GMT 2012, Linux version 2.6.32-
 PASS, dbca24e, hanoi (full), Thu Feb  2 17:38:55 GMT 2012, Linux version 2.6.32-37-generic (buildd@allspice) (gcc version 4.4.3 (Ubuntu 4.4.3-4ubuntu5) ) #81-Ubuntu SMP Fri Dec 2 20:32:42 UTC 2011
 PASS, dbca24e, paranoia (full), Thu Feb  2 17:43:09 GMT 2012, Linux version 2.6.32-37-generic (buildd@allspice) (gcc version 4.4.3 (Ubuntu 4.4.3-4ubuntu5) ) #81-Ubuntu SMP Fri Dec 2 20:32:42 UTC 2011
 PASS, dbca24e, basicmath (full), Thu Feb  2 22:39:15 GMT 2012, Linux version 2.6.32-37-generic (buildd@allspice) (gcc version 4.4.3 (Ubuntu 4.4.3-4ubuntu5) ) #81-Ubuntu SMP Fri Dec 2 20:32:42 UTC 2011
+PASS, dbca24e, test (full), Thu Feb  2 17:05:28 GMT 2012, Linux version 2.6.18-274.3.1.el5 (mockbuild@builder10.centos.org) (gcc version 4.1.2 20080704 (Red Hat 4.1.2-51)) #1 SMP Tue Sep 6 20:14:03 EDT 2011
+PASS, dbca24e, staticFunction (full), Thu Feb  2 17:05:39 GMT 2012, Linux version 2.6.18-274.3.1.el5 (mockbuild@builder10.centos.org) (gcc version 4.1.2 20080704 (Red Hat 4.1.2-51)) #1 SMP Tue Sep 6 20:14:03 EDT 2011
+PASS, dbca24e, alu_ops (full), Thu Feb  2 17:05:50 GMT 2012, Linux version 2.6.18-274.3.1.el5 (mockbuild@builder10.centos.org) (gcc version 4.1.2 20080704 (Red Hat 4.1.2-51)) #1 SMP Tue Sep 6 20:14:03 EDT 2011
+PASS, dbca24e, stress1 (full), Thu Feb  2 17:05:59 GMT 2012, Linux version 2.6.18-274.3.1.el5 (mockbuild@builder10.centos.org) (gcc version 4.1.2 20080704 (Red Hat 4.1.2-51)) #1 SMP Tue Sep 6 20:14:03 EDT 2011
+PASS, dbca24e, stress2 (full), Thu Feb  2 17:06:12 GMT 2012, Linux version 2.6.18-274.3.1.el5 (mockbuild@builder10.centos.org) (gcc version 4.1.2 20080704 (Red Hat 4.1.2-51)) #1 SMP Tue Sep 6 20:14:03 EDT 2011
+PASS, dbca24e, stress3 (full), Thu Feb  2 17:06:21 GMT 2012, Linux version 2.6.18-274.3.1.el5 (mockbuild@builder10.centos.org) (gcc version 4.1.2 20080704 (Red Hat 4.1.2-51)) #1 SMP Tue Sep 6 20:14:03 EDT 2011
+PASS, dbca24e, stress4 (full), Thu Feb  2 17:06:31 GMT 2012, Linux version 2.6.18-274.3.1.el5 (mockbuild@builder10.centos.org) (gcc version 4.1.2 20080704 (Red Hat 4.1.2-51)) #1 SMP Tue Sep 6 20:14:03 EDT 2011
+PASS, dbca24e, stress_lsu (full), Thu Feb  2 17:06:56 GMT 2012, Linux version 2.6.18-274.3.1.el5 (mockbuild@builder10.centos.org) (gcc version 4.1.2 20080704 (Red Hat 4.1.2-51)) #1 SMP Tue Sep 6 20:14:03 EDT 2011
+PASS, dbca24e, sha (full), Thu Feb  2 17:07:23 GMT 2012, Linux version 2.6.18-274.3.1.el5 (mockbuild@builder10.centos.org) (gcc version 4.1.2 20080704 (Red Hat 4.1.2-51)) #1 SMP Tue Sep 6 20:14:03 EDT 2011
+PASS, dbca24e, dijkstra (full), Thu Feb  2 18:07:33 GMT 2012, Linux version 2.6.18-274.3.1.el5 (mockbuild@builder10.centos.org) (gcc version 4.1.2 20080704 (Red Hat 4.1.2-51)) #1 SMP Tue Sep 6 20:14:03 EDT 2011
+PASS, dbca24e, stringsearch (full), Thu Feb  2 18:07:48 GMT 2012, Linux version 2.6.18-274.3.1.el5 (mockbuild@builder10.centos.org) (gcc version 4.1.2 20080704 (Red Hat 4.1.2-51)) #1 SMP Tue Sep 6 20:14:03 EDT 2011
+PASS, dbca24e, adpcm (full), Thu Feb  2 18:08:02 GMT 2012, Linux version 2.6.18-274.3.1.el5 (mockbuild@builder10.centos.org) (gcc version 4.1.2 20080704 (Red Hat 4.1.2-51)) #1 SMP Tue Sep 6 20:14:03 EDT 2011
+PASS, dbca24e, hanoi (full), Thu Feb  2 18:08:14 GMT 2012, Linux version 2.6.18-274.3.1.el5 (mockbuild@builder10.centos.org) (gcc version 4.1.2 20080704 (Red Hat 4.1.2-51)) #1 SMP Tue Sep 6 20:14:03 EDT 2011
+PASS, dbca24e, paranoia (full), Thu Feb  2 18:16:59 GMT 2012, Linux version 2.6.18-274.3.1.el5 (mockbuild@builder10.centos.org) (gcc version 4.1.2 20080704 (Red Hat 4.1.2-51)) #1 SMP Tue Sep 6 20:14:03 EDT 2011
+PASS, dbca24e, basicmath (full), Fri Feb  3 04:28:44 GMT 2012, Linux version 2.6.18-274.3.1.el5 (mockbuild@builder10.centos.org) (gcc version 4.1.2 20080704 (Red Hat 4.1.2-51)) #1 SMP Tue Sep 6 20:14:03 EDT 2011
+
