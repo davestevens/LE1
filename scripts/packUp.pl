@@ -21,7 +21,7 @@ cmd('make clean && make release', 0);
 chdir('../LE1_' . $rev);
 
 # remove test and script dir
-cmd('rm -rf test/ script/', 0);
+cmd('rm -rf test/ scripts/', 0);
 
 # remove insizzle direcories
 cmd('rm -rf Insizzle/obj Insizzle/inc Insizzle/src Insizzle/scripts Insizzle/Makefile', 0);

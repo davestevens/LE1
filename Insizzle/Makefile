@@ -9,7 +9,7 @@
 # -DNOSTALLS - count stall events but don't execute them
 
 CC = gcc
-CFLAGS = -c -Wall -pedantic -std=c99 -Wextra -m32 `xml2-config --cflags` -D_XOPEN_SOURCE -DmicroblazeMemDump
+CFLAGS = -c -Wall -pedantic -std=c99 -Wextra -m32 `xml2-config --cflags` -D_XOPEN_SOURCE
 LDFLAGS = -lm -m32 `xml2-config --libs`
 
 INCDIR = inc
@@ -26,6 +26,7 @@ REV_PERL = `perl scripts/revision.pl ${TARGET} ${TARGET}`
 
 debug:		CFLAGS += -g
 release:	CFLAGS += -O3
+mbMem:		CFLAGS += -DmicroblazeMemDump
 API:		CFLAGS += -DAPI
 NOSTALLS:	CFLAGS += -DNOSTALLS
 VTHREAD:	CFLAGS += -DVTHREAD
@@ -34,6 +35,7 @@ all: $(SRC) $(TARGET)
 
 debug:	$(SRC) $(TARGET)
 release: $(SRC) $(TARGET)
+mbMem:	$(SRC) $(TARGET)
 API:	$(SRC) $(TARGETAPI)
 NOSTALLS: $(SRC) $(TARGET)
 VTHREAD: $(SRC) $(TARGET)
