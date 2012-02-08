@@ -682,7 +682,7 @@ int memoryDump(unsigned size, unsigned system, unsigned *dram)
   fclose(filePoint);
 
 #ifdef microblazeMemDump
-  fprintf(mbMD, "}\n");
+  fprintf(mbMD, "};\n");
   fclose(mbMD);
 #endif
 
