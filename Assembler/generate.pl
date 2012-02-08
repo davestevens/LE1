@@ -12,6 +12,8 @@ use File::Path;
 # include the filepaths.pl script
 do('filepaths.pl');
 
+$sSize = 8; # default stack size
+$dramSize = 256; # default dram size
 $debug = 0;
 $stack_size = "0x0";
 $keep = 0;
@@ -169,7 +171,13 @@ EOH
 	    if($debug == 1) {
 		print "Running Command: " . $command . "\n";
 	    }
-	    @return = readpipe($command);
+	(my $_dramSize, my $_sSize) = split(/,/, readpipe($command));
+	if($_dramSize != 0) {
+	    $dramSize = $_dramSize;
+	}
+	if($_sSize != 0) {
+	    $sSize = $_sSize;
+	}
 	    if(($? >> 8) != 0) {
 		print "Error creating vex machine model from LE1 XML machine model\n";
 		exit(-1);
@@ -521,22 +529,24 @@ EOH
 	if($debug == 1)
     {
 	print "Running secondpass on: $file3\n";
+	$stack_size = sprintf("0x%x", $sSize);
+	$dramSize = sprintf("0x%x", $dramSize);
 	if($mem_align)
 	{
-	    print "Running Command: $perl $secondpass -s=$stack_size -d=0 -mem_align $file3 -OPC=$opcodes -DRAM_OFFSET=$dram_base_offset 2>&1\n";
+	    print "Running Command: $perl $secondpass -s=$stack_size -dram=$dramSize -d=0 -mem_align $file3 -OPC=$opcodes -DRAM_OFFSET=$dram_base_offset 2>&1\n";
 	}
 	else
 	{
-	    print "Running Command: $perl $secondpass -s=$stack_size -d=0 $file3 -OPC=$opcodes -DRAM_OFFSET=$dram_base_offset 2>&1\n";
+	    print "Running Command: $perl $secondpass -s=$stack_size -dram=$dramSize -d=0 $file3 -OPC=$opcodes -DRAM_OFFSET=$dram_base_offset 2>&1\n";
 	}
     }
     if($mem_align)
     {
-	@return = readpipe("$perl $secondpass -s=$stack_size -d=0 -mem_align $file3 -OPC=$opcodes -DRAM_OFFSET=$dram_base_offset 2>&1");
+	@return = readpipe("$perl $secondpass -s=$stack_size -dram=$dramSize -d=0 -mem_align $file3 -OPC=$opcodes -DRAM_OFFSET=$dram_base_offset 2>&1");
     }
     else
     {
-	@return = readpipe("$perl $secondpass -s=$stack_size -d=0 $file3 -OPC=$opcodes -DRAM_OFFSET=$dram_base_offset 2>&1");
+	@return = readpipe("$perl $secondpass -s=$stack_size -dram=$dramSize -d=0 $file3 -OPC=$opcodes -DRAM_OFFSET=$dram_base_offset 2>&1");
     }
     &check_return();
     print "Secondpass completed\n";

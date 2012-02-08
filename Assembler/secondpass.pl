@@ -36,6 +36,10 @@ else
 	{
 	    $sp = hex($1);
 	}
+	elsif($arg =~ /-dram=0x(\w+)/)
+	{
+	    $dram = hex($1);
+	}
 	elsif($arg =~ /-mem_align/)
 	{
 	    $mem_align = 1;
@@ -1681,7 +1685,10 @@ sub print_data()
 	"Second Pass Failed\nCould not open file (@_[2]): $!\n";
     $_[2] =~ /^(\w+)/;
     #print DRAM_HEADER "/* data area */\n#define " . uc($1) . "_DATA_SIZE " . ($#Memory + 1) * 4 . "\nchar $1\_d[] = {\n";
-    print DRAM_HEADER "/* data area */\n#define LE1_DRAM_SIZE " . ($#Memory + 1) * 4 . "\nchar le1_dram[] = {\n";
+    print DRAM_HEADER "/* data area */\n#define LE1_DRAM_SIZE " . ($#Memory + 1) * 4 . "\n";
+    print DRAM_HEADER '#define LE1_TOTAL_DRAM_SIZE ' . ($dram*1024) . "\n";
+    print DRAM_HEADER '#define LE1_STACK_SIZE ' . ($sp*1024) . "\n\n";
+    print DRAM_HEADER "char le1_dram[] = {\n";
 
     open DATA_TXT_FILE, "> @_[1]" or die
 	"Second Pass Failed\nCould not open file (@_[1]): $!\n";

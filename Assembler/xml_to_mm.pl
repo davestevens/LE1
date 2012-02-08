@@ -6,6 +6,8 @@ use XML::Simple;
 
 my $machine_name = $ARGV[0];
 my $outdir = $ARGV[1];
+my $stack_size = 0;
+my $dram_size = 0;
 if(!(-e $machine_name)) {
     print "Machine model does not exist: $machine_name\n";
     exit(-1);
@@ -21,6 +23,15 @@ my $galaxy = XMLin("$machine_name", ForceArray => 1); # contains LE1 configurati
 if($galaxy->{type}[0] eq "homogeneous") { # for when dealing with hetrogeneous or homogeneous le1 systems
     for(my $tempS=0;$tempS<$galaxy->{systems}[0];$tempS++) {
 	my $system = $galaxy->{system}[0];
+
+	$stack_size = $system->{'STACK_SIZE'}[0];
+	$stack_size =~ /0x(\w+)/;
+	$stack_size = hex($1);
+
+	$dram_size = $system->{'DRAM_SIZE'}[0];
+	$dram_size =~ /0x(\w+)/;
+	$dram_size = hex($1);
+
 	my $context = $system->{context}[0];
 	for(my $tempHC=0;$tempHC<$context->{HYPERCONTEXTS}[0];$tempHC++) {
 	    my $hypercontext = $context->{hypercontext}[0];
@@ -101,6 +112,15 @@ VEX
 else {
     my $tempS = -1;
     while(my $system = $galaxy->{system}[++$tempS]) {
+
+	$stack_size = $system->{'STACK_SIZE'}[0];
+	$stack_size =~ /0x(\w+)/;
+	$stack_size = hex($1);
+
+	$dram_size = $system->{'DRAM_SIZE'}[0];
+	$dram_size =~ /0x(\w+)/;
+	$dram_size = hex($1);
+
 	my $tempC = -1;
 	while(my $context = $system->{context}[++$tempC]) {
 	    my $tempHC = -1;
@@ -179,6 +199,6 @@ VEX
 	}
     }
 }
-
+print $dram_size . ',' . $stack_size . "\n";
 exit(0);
 
