@@ -132,6 +132,13 @@ int readConf(char *filename) {
 	    return -1;
 	  }
 	}
+	else if(!strcmp(xmlR.name, "STACK_SIZE")) {
+	  ret = xmlTextReaderRead(reader);
+	  processNode(reader, &xmlR);
+	  unsigned int STACK_SIZE;
+	  sscanf(xmlR.value, "0x%x", &STACK_SIZE);
+	  SYS->STACK_SIZE = STACK_SIZE;
+	}
 	else if(!strcmp(xmlR.name, "DRAM_BANKS")) {
 	  if(SYS != NULL) {
 	    ret = xmlTextReaderRead(reader);

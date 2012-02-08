@@ -36,12 +36,13 @@ int main(int argc, char *argv[])
   pid_t pid;
   struct sigaction sigusr1_action;
   sigset_t block_mask;
+  unsigned int STACK_SIZE_ARG = 0;
 
   cycleCount = 0;
   char *versionNumber = "Insizzle_Revision";
   similarIRAM = 0;
   suppressOOB = 1;
-  STACK_SIZE = 12;
+  STACK_SIZE = 8; /* Default stack size to 8 KiB */
   PRINT_OUT = 0;
   printf("Insizzle (%s)\n", versionNumber);
 
@@ -58,17 +59,15 @@ int main(int argc, char *argv[])
   sigaction(SIGUSR1, &sigusr1_action, NULL);
 
 #ifndef API
-  if(argc < 2)
-    {
-      printf("you need to specify an xml machine model file\n");
-      return -1;
-    }
+  if(argc < 2) {
+    printf("you need to specify an xml machine model file\n");
+    return -1;
+  }
 
-  if(readConf(argv[1]) == -1)
-    {
-      printf("error reading config\n");
-      return -1;
-    }
+  if(readConf(argv[1]) == -1) {
+    printf("error reading config\n");
+    return -1;
+  }
 
   printf("Galaxy setup completed.\n");
   /* for each other argv */
@@ -80,7 +79,7 @@ int main(int argc, char *argv[])
       suppressOOB = 1;
     }
     else if(!strncmp(argv[i], "-stack=", 7)) {
-      sscanf(argv[i], "-stack=%d", (int *)&STACK_SIZE);
+      sscanf(argv[i], "-stack=%d", (int *)&STACK_SIZE_ARG);
     }
     else if(!strcmp(argv[i], "-printout")) {
       PRINT_OUT = 1;
@@ -91,11 +90,10 @@ int main(int argc, char *argv[])
   }
 
   /* call config to setup the galaxy */
-  if(setupGalaxy() == -1)
-    {
-      printf("error setting up galaxy\n");
-      return -1;
-    }
+  if(setupGalaxy() == -1) {
+    printf("error setting up galaxy\n");
+    return -1;
+  }
 
   /* then run through like we do */
 
@@ -108,6 +106,25 @@ int main(int argc, char *argv[])
   SYS = (systemConfig *)((unsigned)SYSTEM + (0 * sizeof(systemConfig)));
   system = (systemT *)((unsigned)galaxyT + (0 * sizeof(systemT)));
   context = (contextT *)((unsigned)system->context + (0 * sizeof(contextT)));
+
+  /* check stack size */
+  if((SYS->STACK_SIZE == 0) && (STACK_SIZE_ARG == 0)) {
+    /* this means it isn't set in the XML file or command line */
+    printf("Using default Stack Size / hypercontext of %d KiB\n", STACK_SIZE);
+  }
+  else if(STACK_SIZE_ARG != 0){
+    /* set at command line, this overrides others */
+    printf("Using Stack Size / hypercontext of %d KiB\n", STACK_SIZE_ARG);
+    if(STACK_SIZE_ARG != SYS->STACK_SIZE) {
+      printf("\tThis is different from Stack Size set in XML config file\n");
+    }
+    STACK_SIZE = STACK_SIZE_ARG;
+  }
+  else if(SYS->STACK_SIZE != 0) {
+    /* set in XML */
+    printf("Using Stack Size / hypercontext of %d KiB\n", SYS->STACK_SIZE);
+    STACK_SIZE = SYS->STACK_SIZE;
+  }
 
 #ifdef VTHREAD
   /* need to set single hypercontext to active
@@ -136,13 +153,12 @@ int main(int argc, char *argv[])
 
   int totalHC = 0;
 
-  printf("Stack Size / hypercontext set to %d KB\n", STACK_SIZE);
-      /* loop through systems in the galaxy */
+  /* loop through systems in the galaxy */
   for(i=0;i<(GALAXY_CONFIG & 0xff);i++)
     {
       SYS = (systemConfig *)((unsigned)SYSTEM + (i * sizeof(systemConfig)));
       system = (systemT *)((unsigned)galaxyT + (i * sizeof(systemT)));
-      printf("dram_size: 0x%x\n", (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1024));
+      /*printf("dram_size: 0x%x\n", (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1024));*/
 
       /* loop through contexts */
       for(j=0;j<(SYS->SYSTEM_CONFIG & 0xff);j++)
@@ -160,7 +176,7 @@ int main(int argc, char *argv[])
 	      hypercontext->initialStackPointer = (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1024) - ((STACK_SIZE * 1024) * totalHC);
 	      *(hypercontext->S_GPR + (unsigned)1) = ((((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1024) - 256) - ((STACK_SIZE * 1024) * totalHC);
 	      *(hypercontext->pS_GPR + (unsigned)1) = ((((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1024) - 256) - ((STACK_SIZE * 1024) * totalHC);
-	      printf("\tr1: 0x%x\n", *(hypercontext->S_GPR + (unsigned)1));
+	      /*printf("\tr1: 0x%x\n", *(hypercontext->S_GPR + (unsigned)1));*/
 	      /*printf("\tr1: 0x%x\n", *(hypercontext->pS_GPR + (unsigned)1));*/
 	      totalHC++;
 	    }

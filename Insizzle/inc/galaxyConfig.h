@@ -48,6 +48,7 @@ typedef struct {
   unsigned PERIPH_WRAP_CONFIG;
   unsigned DRAM_SHARED_CONFIG;
   unsigned DRAM_SHARED_CTRL;
+  unsigned STACK_SIZE;
 
   /* for each context need to allocate memory */
   contextConfig *CONTEXT;
