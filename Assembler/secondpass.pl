@@ -664,9 +664,10 @@ sub operation()
 	    $syllable |= 1 << 6;
 	}
     }
-    if(($layout eq "oL") || ($layout eq "Lo") || ($layout eq "OL") || ($layout eq "LO"))
+    if(($layout eq "oL") || ($layout eq "Lo") || ($layout eq "OL") || ($layout eq "LO") || ($layout eq "aL") || ($layout eq "La"))
     {
 	$layout =~ s/o/O/;
+	$layout =~ s/a/A/;
 	if($opcode_name =~ s/LD\w(\.\w)?/LDL$1/)
 	{
 	    $syllable |= 1 << 7;
@@ -1559,7 +1560,7 @@ sub print_instructions()
 	    # need to remove this part.
 	    ($operation, $pthread_thing) = split(/\s+:STOP:\s+/, $operation);
 
-	    if($type eq "CALL")
+	    if(($type eq "CALL") && ($operation ne 'CALLTOLINKREG'))
 	    {
 		if($operation !~ /\.call/)
 		{
