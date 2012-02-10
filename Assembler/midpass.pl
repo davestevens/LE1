@@ -158,9 +158,13 @@ for($i=0;$i<=$#current_file;$i++)
 	  ($address, $label) = split(/ - /, $current_file[$i]);
 	  $test = hex($address) + $data_total;
 	  $test2 = sprintf("%04x", $test);
-	  push @data_labels, "$test2 - $label";#$current_file[$i];
+	  # need to check if it already exists
 	  chomp($label);
-	  $Data_Labels{$label} = $test;
+	  if($Data_Labels{$label} eq '') {
+	      push @data_labels, "$test2 - $label\n";#$current_file[$i];
+	      $Data_Labels{$label} = $test;
+	  }
+	  else {} # already exists, could be duplicate symbol (code error) or compilation issue
 	  $i++;
 	}
     }
