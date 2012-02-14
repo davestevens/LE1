@@ -205,10 +205,9 @@ EOH
 EOH
 	    if($debug == 1)
 	{
-#	    print "Running Command: perl $falconml_hack $vex_location\n";
+	    print "Running Command: perl $falconml_hack $vex_location\n";
 	}
-	#@return = readpipe("perl $fml_hack_location");
-#	system("perl $falconml_hack $vex_location");
+	system("perl $falconml_hack $vex_location");
 	print<<EOH;
 --------------------------------------------------------------------------------
 	Running VEX
