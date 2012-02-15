@@ -425,59 +425,10 @@ instructionPacket fetchInstruction(contextT *context, unsigned programCounter, c
   return inst;
 }
 
-unsigned checkBundle(hyperContextT *hypercontext, unsigned startPC, unsigned endPC)
-{
-  unsigned long long *bundleCount;
-  unsigned totalWidth = hypercontext->totalWidth;
-  unsigned numOfWords = ((endPC >> 2) + 1) - (startPC >> 2);
-
-  /*printf("numOfWords: %d\n", numOfWords);
-    printf("totalWidth: %d\n", totalWidth);*/
-
-  if(numOfWords > totalWidth)
-    {
-      /*printf("numOfWorks > totalWidth\n");*/
-      hypercontext->decodeStallCount++;
-#ifdef NOSTALLS
-      hypercontext->stallCount++;
-#else
-      hypercontext->stalled++;
-#endif
-      if((numOfWords == (totalWidth * 2)) && ((startPC >> 2) % totalWidth))
-	{
-	  hypercontext->decodeStallCount++;
-#ifndef API
-#ifdef NOSTALLS
-	  hypercontext->stallCount++;
-#else
-	  hypercontext->stalled++;
-#endif
-#else
-	  hypercontext->stallCount++;
-#endif
-	}
-      bundleCount = (unsigned long long *)((unsigned)hypercontext->bundleCount);
-      *bundleCount = *bundleCount + 1;
-      return 1;
-    }
-  else if(numOfWords == totalWidth)
-    {
-      if((startPC >> 2) % totalWidth)
-	{
-	  /*printf("numOfWorks ==  totalWidth\n");*/
-	  hypercontext->decodeStallCount++;
-#ifdef NOSTALLS
-	  hypercontext->stallCount++;
-#else
-	  hypercontext->stalled++;
-#endif
-	  bundleCount = (unsigned long long *)((unsigned)hypercontext->bundleCount);
-	  *bundleCount = *bundleCount + 1;
-	  return 1;
-	}
-    }
-
-  return 0;
+/* return the number of packets the operations span */
+unsigned checkBundle(hyperContextT *hypercontext, unsigned s, unsigned e) {
+  unsigned w = hypercontext->totalWidth;
+  return (((e / w) >> 2) - ((s / w) >> 2));
 }
 
 instruction instructionDecode(unsigned inst, unsigned immediate, /*unsigned *dram,*/ hyperContextT *hypercontext, systemT *system, contextT *context, unsigned VT_CTRL, unsigned dramSize)

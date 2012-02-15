@@ -371,7 +371,6 @@ int main(int argc, char *argv[])
 					  }
 					endPC  = this.nextPC;
 				      } while(!(this.op >> 31) & 0x1);
-
 #ifdef DEBUG
 				      printf("startPC: 0x%x\n", startPC);
 #endif
@@ -379,16 +378,22 @@ int main(int argc, char *argv[])
 				      printf("endPC: 0x%x\n", endPC);
 #endif
 
-				      /* need to then work out if it needs stalling */
-				      if(checkBundle(hypercontext, startPC, endPC))
-					{
-					  /* this hypercontext needs stalling for x cycles */
-					  /*printf("needs to be stalled for a bit\n");*/
-#ifndef NOSTALLS
-					  hypercontext->cycleCount++;
-					  continue;
-#endif
-					}
+				      unsigned cB = checkBundle(hypercontext, startPC, endPC);
+				      if(cB > 0) {
+					/*printf("This needs to be stalled: %d\n", cB);*/
+					hypercontext->decodeStallCount += cB;
+#ifdef NOSTALLS
+					hypercontext->stallCount += cB;
+#else
+					unsigned long long *bundleCount;
+					bundleCount = (unsigned long long *)((unsigned)hypercontext->bundleCount);
+					*bundleCount = *bundleCount + 1;
+
+					hypercontext->stalled += cB;
+					hypercontext->cycleCount++;
+					continue;
+#endif					
+				      }
 				    }
 
 #ifdef DEBUG
