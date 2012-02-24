@@ -1768,7 +1768,7 @@ sub print_data()
 		}
 		else
 		{
-		    print "Could not find instruciton label\n";
+		    print "Could not find instruction label ($data)\n";
 		    $data = "00000000";
 		}
 	    }
