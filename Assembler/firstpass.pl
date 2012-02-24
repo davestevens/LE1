@@ -238,10 +238,11 @@ sub first_pass()
 		    {
 			$size = $1;
 			$val = $2;
+                        $tot = &check_total($tot);
 			if($size == 4)
 			{
 			    # need to put a label to be checked in the second pass
-			    $data_line .= "LABEL: $val";
+			    $data_line = "LABEL: $val";
 			    $tot += $size;
 			    $tot = &check_total($tot);
 			}
