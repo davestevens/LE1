@@ -235,7 +235,7 @@ sub first_pass()
                         $tot += $size;
 			$tot = &check_total($tot);
 		    }
-		    elsif($file[$i] =~ /\.data(\d+) (\w+)/)
+		    elsif($file[$i] =~ /\.data(\d+) (\w+([\?\.]?\w+)?)/)
 		    {
 			$size = $1;
 			$val = $2;
