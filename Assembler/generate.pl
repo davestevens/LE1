@@ -217,20 +217,20 @@ EOH
 	{
 	    if($fmm eq "")
 	    {
-		print "Running Command: $vex_location -S $cfiles $arguments -fexpand-div -fno-xnop -w 2>&1\n";
+		print "Running Command: $vex_location -S $cfiles $arguments -fexpand-div -fno-xnop -w -c99inline 2>&1\n";
 	    }
 	    else
 	    {
-		print "Running Command: $vex_location -S $cfiles $arguments -fexpand-div -fno-xnop -w -fmm=$fmm 2>&1\n";
+		print "Running Command: $vex_location -S $cfiles $arguments -fexpand-div -fno-xnop -w -fmm=$fmm -c99inline 2>&1\n";
 	    }
 	}
 	if($fmm eq "")
 	{
-	    @return = readpipe("$vex_location -S $cfiles $arguments -fexpand-div -fno-xnop -w 2>&1");
+	    @return = readpipe("$vex_location -S $cfiles $arguments -fexpand-div -fno-xnop -w -c99inline 2>&1");
 	}
 	else
 	{
-	    @return = readpipe("$vex_location -S $cfiles $arguments -fexpand-div -fno-xnop -w -fmm=$fmm 2>&1");
+	    @return = readpipe("$vex_location -S $cfiles $arguments -fexpand-div -fno-xnop -w -fmm=$fmm -c99inline 2>&1");
 	}
 	&check_return();
 	print "VEX run completed, created all .s and .cs.c files\n";
