@@ -81,7 +81,8 @@ sub first_pass()
 	    {
 		while($file[$i] !~ /\.section/)
 		{
-		    if($file[$i] =~ /\#\# Begin (\w+\s*)+\n/)
+		    chomp($file[$i]);
+		    if($file[$i] =~ /\#\# Begin ((\w+\.?)+)/)
 		    {
 			$functions{"FUNC_$1"} = $#Instructions + 1;
 			$current = $1;
@@ -435,7 +436,7 @@ sub first_pass()
 	    $comment =~ /line\s+(\d+)/;
 	    push (@Instructions, $data);
 	}
-	elsif($file[$i] =~ /\s*\#\# Begin (\w+\s*)+/)
+	elsif($file[$i] =~ /\#\# Begin ((\w+\.?)+)/)
 	{
 	    $functions{"FUNC_$1"} = $#Instructions + 1;
 	    $current = $1;
@@ -838,7 +839,7 @@ sub move_main()
     {
 	if(($functions{$key} ne "") && ($there_is_a_main == -1))
 	{
-	    if($key =~ /FUNC_main/)
+	    if($key =~ /FUNC_main$/)
 	    {
 		$there_is_a_main = $functions{$key};
 		last;
