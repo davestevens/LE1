@@ -1276,7 +1276,7 @@ sub return_layout()
     $label = '(\w+\??\.?\w*\.?\d*)';
     $label2 = '(\w+\?\w+(\.\w+)+)';
     $sim_imm = '(-?\d+)';
-    $func = '(\w+\??\w*)';
+    $func = '(\w+[\?\.]?\w*)';
     for($lay=1;$lay<=$#layout;$lay++)
     {
 	if($layout[$lay] ne "=")
