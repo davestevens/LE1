@@ -1224,6 +1224,15 @@ sub operation()
 	    {
 		$next_instruction = &twoscomp($values[3],32);
 	    }
+	    elsif($types[3] eq "F") { # SXBT/F operation with label
+		$temp_op = $_[0];
+		$temp_op =~ s/(\s+=)\s+(.+)/$1 PC_FUNC_$2/;
+		@return_array[0] = "$instruction_address - $syllable - $opcode_name|$temp_op";
+		$instruction_address++;
+		@return_array[1] = "$instruction_address - MOVFUNCNAME$values[3] - 32bit|imm MOVFUNCNAME$values[3]";
+		undef($next_instruction);
+		return(@return_array);
+	    }
 	    else
 	    {
 		print "ERROR - Unknown Layout - $layout - @_[0]\n";
