@@ -4,6 +4,7 @@ use strict;
 
 my @tests = (
     {'dir_name', 'test', 'ass_args', '-DSIZE=10 -O0', 'sim_args', 'machinemodel/model.xml'},
+    {'dir_name', 'staticInlined', 'ass_args', '-cpuid', 'sim_args', 'machinemodel/model.xml -similarIRAM'},
     {'dir_name', 'staticFunction', 'ass_args', '-cpuid', 'sim_args', 'machinemodel/model.xml -similarIRAM'},
     {'dir_name', 'threadedExample', 'ass_args', '-cpuid', 'sim_args', 'machinemodel/model.xml -similarIRAM'},
     {'dir_name', 'alu_ops', 'ass_args', '-skipvex -k', 'sim_args', 'check/machinemodel.xml'},
