@@ -29,12 +29,16 @@ $mem_align = 0;
 $vex_sim = 0;
 $malloc_size = 0;
 $dram_base_offset = '0x0';
+my $falconmlhack = 0;
 foreach $arg (@ARGV) {
     if($arg eq "-d") {
 	$debug = 1;
     }
     elsif($arg eq "-k") {
 	$keep = 1;
+    }
+    elsif($arg eq "-falconmlhack") {
+	$falconmlhack = 1;
     }
     elsif($arg eq "-skipvex") {
 	$assembly = 1;
@@ -198,6 +202,8 @@ EOH
 	    $command = 'cp ' . $xmlmm . ' ' . $cur_dir . '/machinemodel/model.xml';
 	    system($command);
 	}
+
+	if($falconmlhack) {
 	print<<EOH;
 --------------------------------------------------------------------------------
 	Running FalconML Hack
@@ -213,6 +219,7 @@ EOH
 	Running VEX
 --------------------------------------------------------------------------------
 EOH
+	}
 	    if($debug == 1)
 	{
 	    if($fmm eq "")
