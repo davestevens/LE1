@@ -133,7 +133,7 @@ foreach my $file (@files) {
 		chomp($label);
 		if($dataLabels{$label} eq '') {
 		    push @dataLabels, $newAddr . ' - ' . $label . "\n";
-		    $dataLabels{$label} = $newAddr;
+		    $dataLabels{$label} = hex($newAddr);
 		}
 		else {
 		    # data label already exists
