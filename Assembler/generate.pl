@@ -58,11 +58,11 @@ if($xmlMM ne '') {
     }
     elsif(-e('machinemodel/0_0_0.mm')) {
 	# TODO: does not work with heterogeneous systems
-	$fmm = $currentDir . 'mahcinemodel/0_0_0.mm';
+	$fmm = $currentDir . '/machinemodel/0_0_0.mm';
     }
     else {
 	print 'Error:' . "\n";
-	print "\t" . 'Could not find the created machin model.' . "\n";
+	print "\t" . 'Could not find the created machine model.' . "\n";
 	exit(-1);
     }
 
@@ -328,7 +328,7 @@ sub readArgs {
 	if($arg eq '-d')                      { $debug = 1; }
 	elsif($arg eq '-k')                   { $keep = 1; }
 	elsif($arg eq '-falconmlhack')        { $falconMLHack = 1; }
-	elsif($arg eq '-skip')                { $skip = 1; }
+	elsif($arg =~ /-skip(vex)?/)                { $skip = 1; }
 	elsif($arg =~ /-o(\w+)/)              { $outputDir = $1; }
 	elsif($arg eq '-memalign')            { $memAlign = 1; }
 	elsif($arg =~ /-fmm=(.+)/)            { $fmm = $1; }

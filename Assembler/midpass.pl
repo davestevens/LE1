@@ -24,7 +24,7 @@ if($outputName eq '') {
 }
 
 # first of all check for main function
-for(my $i=0;$i<$#files;$i++) {
+for(my $i=0;$i<=$#files;$i++) {
     open FILE, "< $files[$i]" or die 'Could not open file: ' . $files[$i] . ' ' . $! . "\n";
     while(<FILE>) {
 	if(/^--\s*FUNC_main\n/) {
@@ -262,11 +262,11 @@ foreach my $imp (@importObjects) {
 
 print FILE "\n\n" . '##Import' . "\n";
 foreach my $imp (@importsRequired) {
-    print FILE $imp . "\n";
+    print FILE $imp;
 }
 print FILE "\n\n" . '##ImportObjects' . "\n";
 foreach my $imp (@importObjectsRequired) {
-    print FILE $imp . "\n";
+    print FILE $imp;
 }
 # instruction labels
 print FILE "\n\n" . '##Instruction Labels' . "\n";
