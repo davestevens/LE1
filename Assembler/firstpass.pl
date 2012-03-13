@@ -364,7 +364,7 @@ sub first_pass()
 			}
 			$tot = &check_total($tot);
 		    }
-		    elsif($file[$i] =~ /\.import ((\w+\.?)+)\s*\n/)
+		    elsif($file[$i] =~ /\.import ((\w+\.?)+)\s*/)
 		    {
 			$imp = $1;
 			chomp($imp);
@@ -462,7 +462,7 @@ sub first_pass()
 	{
 	    push (@Instructions, $file[$i]);
 	}
-	elsif($file[$i] =~ /\.import ((\w+\.?)+)\s*\n/)
+	elsif($file[$i] =~ /\.import ((\w+\.?)+)\s*/)
 	{
 	    $imp = $1;
 	    if($file[$i+1] =~ /\@object/)
