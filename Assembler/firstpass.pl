@@ -15,7 +15,7 @@ if ($ARGV[0] eq "")
 	Please call this script with a switch of the filename you wish to convert
 	eg. perl firstpass.pl <filename>
 ERROR
-	exit(0);
+	exit(-1);
 }
 else
 {
@@ -56,7 +56,7 @@ $output_file contains data needed for second pass\n";
     else
     {
 	print "Error: First Pass Failed\nFile does not exist ($input_file)\n";
-	exit(0);
+	exit(-1);
     }
 }
 sub first_pass()
@@ -197,7 +197,7 @@ sub first_pass()
 			    if(length($inter) != 4)
 			    {
 				print "Error: First pass failed\nTried to input a larger than 32 bit value\n";
-				exit(0);
+				exit(-1);
 			    }
 			    if(length($inter) > 4)
 			    {
@@ -220,7 +220,7 @@ sub first_pass()
 			    if(length($inter) != 8)
 			    {
 				print "Error: First pass failed\nTried to input a larger than 32 bit value\n";
-				exit(0);
+				exit(-1);
 			    }
 			    $inter =~ s/(.{2})/$1\;/g;
 			    @str = split(/\;/, $inter);
@@ -364,7 +364,7 @@ sub first_pass()
 			}
 			$tot = &check_total($tot);
 		    }
-		    elsif($file[$i] =~ /\.import (\w+\s*)+\n/)
+		    elsif($file[$i] =~ /\.import ((\w+\.?)+)\s*\n/)
 		    {
 			$imp = $1;
 			chomp($imp);
@@ -462,7 +462,7 @@ sub first_pass()
 	{
 	    push (@Instructions, $file[$i]);
 	}
-	elsif($file[$i] =~ /\.import (\w+\s*)+/)
+	elsif($file[$i] =~ /\.import ((\w+\.?)+)\s*\n/)
 	{
 	    $imp = $1;
 	    if($file[$i+1] =~ /\@object/)

@@ -22,7 +22,7 @@ if($ARGV[0] eq "")
 	Pleace call the script with a switch of the filename you wish to convert
 	eg. perl secondpass.pl <filename>
 EOR
-	exit(0);
+	exit(-1);
 }
 else
 {
@@ -101,13 +101,13 @@ else
 	else
 	{
 	    print "Error: Second Pass Failed\nSee above errors ^^^\n";
-	    exit(0);
+	    exit(-1);
 	}
     }
     else
     {
 	print "Second Pass Failed\nwhy? File does not exists $input_file\n";
-	exit(0);
+	exit(-1);
     }
 }
 sub grab_data()
@@ -1486,7 +1486,7 @@ sub nine_or_thritytwo()
     {
 	print "Second Pass Failed
 There has been an issue somewhere :(\ncalled &nine_or_thritytwo(@_[0])\n";
-	exit(0);
+	exit(-1);
     }
     else
     {
@@ -1516,7 +1516,7 @@ There has been an issue somewhere :(\ncalled &twoscomp(@_[0],@_[1])\n";
 	printf("0x%x\n", @_[0]);
 	print "$Operations[$i]\n";
 	print "$out\n";
-	exit(0);
+	exit(-1);
     }
 }
 sub hex_to_ascii()
