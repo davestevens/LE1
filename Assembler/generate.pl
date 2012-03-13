@@ -44,8 +44,9 @@ if($xmlMM ne '') {
     }
 
     my $cmd = $perl . ' ' . $xml_to_mm . ' ' . $xmlMM . ' machinemodel';
-    (my $_dramSize, my $_sSize) = split(/,/, &command($cmd, 'readpipe'));
-
+    my @ret = &command($cmd, 'readpipe');
+    my ($_dramSize, $_sSize) = split(/,/, $ret[0]); 
+    chomp($_sSize);
     if($_dramSize != 0) {
 	$dramSize = $_dramSize;
     }
@@ -191,15 +192,13 @@ else {
 my $cmd = $perl . ' ' . $transform . ' ' . $singleFile . ' > ' . $singleFile . '.new.s';
 &command($cmd);
 
-$singleFile .= '.new.s';
-
 # now to check imports
 if(!$done) {
     $done = 1;
 
     &printHeader('Checking For Imports');
 
-    open FILE, "< $singleFile" or die 'Could not open file: ' . $singleFile . "\n";
+    open FILE, "< $singleFile" or die 'Could not open file: ' . $singleFile . '.new.s' . "\n";
     my $_import = 0;
     my @required;
     while( <FILE> ) {
@@ -276,7 +275,7 @@ if(!$done) {
 }
 
 &printHeader('Running Second Pass');
-my $cmd = $perl . ' ' . $secondpass . ' -d=0 ' . $singleFile . ' -OPC=' . $opcodes . ' -dram=' . sprintf("0x%x ", $dramSize);
+my $cmd = $perl . ' ' . $secondpass . ' -d=0 ' . $singleFile . '.new.s -OPC=' . $opcodes . ' -dram=' . sprintf("0x%x ", $dramSize) . ' -s=' . sprintf("0x%x", $sSize) . ' ';
 if($memAlign) {
     $cmd .= '-mem_align ';
 }
