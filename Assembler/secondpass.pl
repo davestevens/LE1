@@ -62,7 +62,6 @@ else
     if(-e $input_file)
     {
 	($output_file) = split(/\./, $input_file);
-	mkdir('microblaze');
 
 	$output_file_inst = $output_file . ".s.bin";
 	$output_file_inst_readable = $output_file . ".inst.txt";
@@ -78,8 +77,11 @@ else
 	if($ok == 1)
 	{
 	    # create binaries directory
-	    if(!(-e "binaries")) {
-		system("mkdir binaries");
+	    if(!(-e 'binaries')) {
+		mkdir('binaries');
+	    }
+	    if(!(-e 'microblaze')) {
+		mkdir('microblaze');
 	    }
 	    &print_instructions($output_file_inst, $output_file_inst_readable, $output_header_file_inst);
 	    &print_data($output_file_data, $output_file_data_readable, $output_header_file_data, $output_data_le1_vars);
@@ -1458,6 +1460,11 @@ sub return_layout()
 		$type .= &nine_or_thritytwo($Data_Label{$1} + $4);
 	    }
 	    elsif($layout[$lay] =~ /\($label2\+$sim_imm\)/)
+	    {
+		$value .= $Data_Label{$1} + $3;
+		$type .= &nine_or_thritytwo($Data_Label{$1} + $3);
+	    }
+	    elsif($layout[$lay] =~ /\($label\+$hex_num\)/) # added for LLVM assembly output
 	    {
 		$value .= $Data_Label{$1} + $3;
 		$type .= &nine_or_thritytwo($Data_Label{$1} + $3);
