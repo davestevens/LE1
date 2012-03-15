@@ -9,8 +9,8 @@ use File::Path;
 
 require 'filepaths.pl';
 
-my ($debug, $keep, $sSize, $dramSize, $falconMLHack, $skip, $outputDir, $memAlign, $fmm, $xmlMM, $mallocSize, $dramBaseOffset, $inputDir, $softfloat);
-our ($le1_folder, $assembler_folder, $perl, $xml_to_mm, $falconml_hack, $vex_location, $firstpass, $midpass, $transform, $pullin, $deps, $libraries, $secondpass, $opcodes, $floatlib);
+my ($debug, $keep, $sSize, $dramSize, $falconMLHack, $skip, $outputDir, $memAlign, $fmm, $xmlMM, $mallocSize, $dramBaseOffset, $inputDir, $softfloat, $llvm);
+our ($le1_folder, $assembler_folder, $perl, $xml_to_mm, $falconml_hack, $vex_location, $firstpass, $midpass, $transform, $pullin, $deps, $libraries, $secondpass, $opcodes, $floatlib, $llvmTrans);
 my $arguments = '';
 
 # read in command line arguments
@@ -71,7 +71,7 @@ if($xmlMM ne '') {
     &command($cmd);
 }
 
-if(!$skip) {
+if((!$skip) && (!$llvm)) {
     # get all .c files
     my @cfiles = <*.c>;
     if($#cfiles == -1) {
@@ -141,141 +141,160 @@ else {
 
 &printHeader('Running Assembler');
 
-my @sfiles = <*.s>;
-if($#sfiles == -1) {
-    print 'Error:' . "\n";
-    print "\t" . 'No .s files found' . "\n";
-    exit(-1);
-}
-# create string of all .s files
-my $sfiles = join(' ', @sfiles);
-
-# do some initial modifications of the .s files
-&printHeader('Running First Pass');
-
+my $singleFile = '';
 my @sfiles_new;
-foreach my $sfile (@sfiles) {
-    my $cmd = $perl . ' ' . $firstpass . ' ' . $sfile . ' ';
-    #$cmd .= '2>&1';
-    my @ret = &command($cmd, 'readpipe');
-    (my $fn, my $r) = split(/\s+contains\s+/, $ret[$#ret]);
-    push @sfiles_new, $fn;
-}
 
-# the single file containing full program
-my $singleFile = $outputDir . '/' . $outputDir . '.temp.s';
-
-my $done = 0;
- REWIND:
-
-# if only 1 .s file, mid pass not required
-if($#sfiles_new > 0) {
-
-    # concatenate all files into a single .s files
-    &printHeader('Running Mid Pass');
-
-    my $sfiles_new = join(' ', @sfiles_new);
-    my $cmd = $perl . ' ' . $midpass . ' ' . $sfiles_new . ' -o' . $outputDir . ' -DRAM_OFFSET=' . sprintf("0x%x ", $dramBaseOffset);
-    #$cmd .= ' 2>&1';
-    my @ret = &command($cmd, 'readpipe');
-}
-else {
-    # copy the current file to the new dir
-    mkdir $outputDir;
-    my $cmd = 'cp ' . $sfiles_new[0] . ' ' . $outputDir . '/' . $outputDir . '.temp.s';
-    &command($cmd);
-}
-
-# transform the current file into new format
-&printHeader('Transforming Assembly File');
-
-my $cmd = $perl . ' ' . $transform . ' ' . $singleFile . ' > ' . $singleFile . '.new.s';
-&command($cmd);
-
-# now to check imports
-if(!$done) {
-    $done = 1;
-
-    &printHeader('Checking For Imports');
-
-    open FILE, "< $singleFile" or die 'Could not open file: ' . $singleFile . '.new.s' . "\n";
-    my $_import = 0;
-    my @required;
-    while( <FILE> ) {
-	if($_import) {
-	    if(/^\n/) { last; }
-	    elsif(/FUNC_(\w+)/) { push @required, $1; }
-	}
-	if(/##Import/) {
-	    $_import = 1;
-	}
+if(!$llvm) {
+    my @sfiles = <*.s>;
+    if($#sfiles == -1) {
+	print 'Error:' . "\n";
+	print "\t" . 'No .s files found' . "\n";
+	exit(-1);
     }
-    close FILE;
+# create string of all .s files
+    my $sfiles = join(' ', @sfiles);
+    
+# do some initial modifications of the .s files
+    &printHeader('Running First Pass');
 
-    my $required = join(' ', @required);
-
-    my $cmd = $perl . ' ' . $pullin . ' ' . $deps . ' '  . $required;
-    my @toImport = &command($cmd, 'readpipe');
-
-    foreach my $toImport (@toImport) {
-	print "\t\t" . 'Importing: ' . $toImport;
-	chomp($toImport);
-
-	my $cmd = $vex_location  . ' -S ' . $libraries . $toImport . ' ' . $arguments . ' -fexpand-div -fno-xnop -w ';
-	if($fmm ne '') {
-	    $cmd .= '-fmm=' . $fmm . ' ';
-	}
-	if($mallocSize) {
-	    $cmd .= '-DHEAP_SIZE=' . $mallocSize . ' ';
-	}
-	$cmd .= '2>&1';
-	&command($cmd);
-
-	$toImport =~ /(\w+)\/(\w+)\.c/;
-	my $s_toImport = $2 . '.s';
-
-	my $cmd = $perl . ' ' . $firstpass . ' ' . $s_toImport . ' ';
-	$cmd .= '2>&1';
+    foreach my $sfile (@sfiles) {
+	my $cmd = $perl . ' ' . $firstpass . ' ' . $sfile . ' ';
+	#$cmd .= '2>&1';
 	my @ret = &command($cmd, 'readpipe');
 	(my $fn, my $r) = split(/\s+contains\s+/, $ret[$#ret]);
 	push @sfiles_new, $fn;
+    }
 
-	# TODO check for softfloat
-	if(!$softfloat) {
-	    foreach my $sfile (@sfiles_new) {
-		open SFILE, "< $sfile" or die 'Could not open file: ' . $sfile . "\n";
-		while(<SFILE>) {
-		    if(/_(r|d)_(r|d|add|sub|mul|div|eq|le|lt|ilfloat|ufloat)/) {
-			print "\t" . 'Need to include the softfloat lib...' . "\n";
-			my $floatlib_arguments = $arguments;
-			$floatlib_arguments =~ s/-c99inline//g;
+# the single file containing full program
+    $singleFile = $outputDir . '/' . $outputDir . '.temp.s';
+    
+    my $done = 0;
+REWIND:
+    
+# if only 1 .s file, mid pass not required
+    if($#sfiles_new > 0) {
+	
+	# concatenate all files into a single .s files
+	&printHeader('Running Mid Pass');
 
-			my $cmd = $vex_location . ' -S ' . $floatlib . ' ' . $floatlib_arguments . ' -fexpand-div -fno-xnop -w ';
-			if($fmm ne '') {
-			    $cmd .= '-fmm=' . $fmm . ' ';
+	my $sfiles_new = join(' ', @sfiles_new);
+	my $cmd = $perl . ' ' . $midpass . ' ' . $sfiles_new . ' -o' . $outputDir . ' -DRAM_OFFSET=' . sprintf("0x%x ", $dramBaseOffset);
+	#$cmd .= ' 2>&1';
+	my @ret = &command($cmd, 'readpipe');
+    }
+    else {
+	# copy the current file to the new dir
+	mkdir $outputDir;
+	my $cmd = 'cp ' . $sfiles_new[0] . ' ' . $outputDir . '/' . $outputDir . '.temp.s';
+	&command($cmd);
+    }
+
+# transform the current file into new format
+    &printHeader('Transforming Assembly File');
+    
+    my $cmd = $perl . ' ' . $transform . ' ' . $singleFile . ' > ' . $singleFile . '.new.s';
+    &command($cmd);
+    
+# now to check imports
+    if(!$done) {
+	$done = 1;
+	
+	&printHeader('Checking For Imports');
+	
+	open FILE, "< $singleFile" or die 'Could not open file: ' . $singleFile . '.new.s' . "\n";
+	my $_import = 0;
+	my @required;
+	while( <FILE> ) {
+	    if($_import) {
+		if(/^\n/) { last; }
+		elsif(/FUNC_(\w+)/) { push @required, $1; }
+	    }
+	    if(/##Import/) {
+		$_import = 1;
+	    }
+	}
+	close FILE;
+	
+	my $required = join(' ', @required);
+	
+	my $cmd = $perl . ' ' . $pullin . ' ' . $deps . ' '  . $required;
+	my @toImport = &command($cmd, 'readpipe');
+	
+	foreach my $toImport (@toImport) {
+	    print "\t\t" . 'Importing: ' . $toImport;
+	    chomp($toImport);
+	    
+	    my $cmd = $vex_location  . ' -S ' . $libraries . $toImport . ' ' . $arguments . ' -fexpand-div -fno-xnop -w ';
+	    if($fmm ne '') {
+		$cmd .= '-fmm=' . $fmm . ' ';
+	    }
+	    if($mallocSize) {
+		$cmd .= '-DHEAP_SIZE=' . $mallocSize . ' ';
+	    }
+	    $cmd .= '2>&1';
+	    &command($cmd);
+	    
+	    $toImport =~ /(\w+)\/(\w+)\.c/;
+	    my $s_toImport = $2 . '.s';
+	    
+	    my $cmd = $perl . ' ' . $firstpass . ' ' . $s_toImport . ' ';
+	    $cmd .= '2>&1';
+	    my @ret = &command($cmd, 'readpipe');
+	    (my $fn, my $r) = split(/\s+contains\s+/, $ret[$#ret]);
+	    push @sfiles_new, $fn;
+	    
+	    # TODO check for softfloat
+	    if(!$softfloat) {
+		foreach my $sfile (@sfiles_new) {
+		    open SFILE, "< $sfile" or die 'Could not open file: ' . $sfile . "\n";
+		    while(<SFILE>) {
+			if(/_(r|d)_(r|d|add|sub|mul|div|eq|le|lt|ilfloat|ufloat)/) {
+			    print "\t" . 'Need to include the softfloat lib...' . "\n";
+			    my $floatlib_arguments = $arguments;
+			    $floatlib_arguments =~ s/-c99inline//g;
+			    
+			    my $cmd = $vex_location . ' -S ' . $floatlib . ' ' . $floatlib_arguments . ' -fexpand-div -fno-xnop -w ';
+			    if($fmm ne '') {
+				$cmd .= '-fmm=' . $fmm . ' ';
+			    }
+			    $cmd .= '2>&1';
+			    &command($cmd);
+			    $softfloat = 1;
+			    last;
 			}
-			$cmd .= '2>&1';
-			&command($cmd);
-			$softfloat = 1;
+		    }
+		    close SFILE;
+		    if($softfloat) {
 			last;
 		    }
 		}
-		close SFILE;
-		if($softfloat) {
-		    last;
-		}
 	    }
+	}
+	
+	# if any files have been included need to go back and compile through again
+	if($#toImport > -1) {
+	    goto REWIND;
 	}
     }
 
-    # if any files have been included need to go back and compile through again
-    if($#toImport > -1) {
-	goto REWIND;
+    $singleFile .= '.new.s';
+}
+else {
+    my @sfiles = <*.s>;
+    if($#sfiles > 0) {
+	print 'Error:' . "\n";
+	print "\t" . 'Trying to pass more than 1 file to secondpass.' . "\n";
+	exit(-1);
     }
+    mkdir $outputDir;
+    &printHeader('Running LLVM transform');
+    my $cmd = $perl . ' ' . $llvmTrans . ' ' . $sfiles[0] . ' > ' . $outputDir . '/' . $outputDir . '.temp.s.new.s';
+    &command($cmd);
+    $singleFile = $outputDir . '/' . $outputDir . '.temp.s.new.s';
 }
 
 &printHeader('Running Second Pass');
-my $cmd = $perl . ' ' . $secondpass . ' -d=0 ' . $singleFile . '.new.s -OPC=' . $opcodes . ' -dram=' . sprintf("0x%x ", $dramSize) . ' -s=' . sprintf("0x%x", $sSize) . ' ';
+my $cmd = $perl . ' ' . $secondpass . ' -d=0 ' . $singleFile . ' -OPC=' . $opcodes . ' -dram=' . sprintf("0x%x ", $dramSize) . ' -s=' . sprintf("0x%x", $sSize) . ' ';
 if($memAlign) {
     $cmd .= '-mem_align ';
 }
@@ -322,12 +341,14 @@ sub readArgs {
     $inputDir = ''; # directory of files for compilation
     $arguments = ''; # argument string to pass to compiler
     $softfloat = 0; # used for including extra library
+    $llvm = 0; # flag for assembly from llvm
 
     foreach my $arg (@args) {
 	if($arg eq '-d')                      { $debug = 1; }
 	elsif($arg eq '-k')                   { $keep = 1; }
 	elsif($arg eq '-falconmlhack')        { $falconMLHack = 1; }
-	elsif($arg =~ /-skip(vex)?/)                { $skip = 1; }
+	elsif($arg eq '-llvm')                { $llvm = 1; }
+	elsif($arg =~ /-skip(vex)?/)          { $skip = 1; }
 	elsif($arg =~ /-o(\w+)/)              { $outputDir = $1; }
 	elsif($arg eq '-memalign')            { $memAlign = 1; }
 	elsif($arg =~ /-fmm=(.+)/)            { $fmm = $1; }
