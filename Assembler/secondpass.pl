@@ -1651,7 +1651,11 @@ sub print_instructions()
 	    {
 		if($operation =~ /MOVFUNCNAME(.+)/)
 		{
-		    $syllable = ($Inst_Label{"FUNC_$1"} * 4);
+		    if(!defined($Inst_Label{"FUNC_$1"})) {
+			$syllable = ($Data_Label{$1});
+		    } else {
+			$syllable = ($Inst_Label{"FUNC_$1"} * 4);
+		    }
 		}
 	    }
 	    printf(INST_TXT_FILE "%04x - %032b - %08x - %s %s\n", ($address*4),$syllable, $syllable, $type, $operation);
