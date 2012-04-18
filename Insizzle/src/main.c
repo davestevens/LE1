@@ -44,6 +44,7 @@ int main(int argc, char *argv[])
   suppressOOB = 1;
   STACK_SIZE = 8; /* Default stack size to 8 KiB */
   PRINT_OUT = 0;
+  SINGLE_STEP = 0;
   printf("Insizzle (%s)\n", versionNumber);
 
   /* signal catch (SIGSEGV and SIGUSR1) */
@@ -83,6 +84,9 @@ int main(int argc, char *argv[])
     }
     else if(!strcmp(argv[i], "-printout")) {
       PRINT_OUT = 1;
+    }
+    else if(!strcmp(argv[i], "-singlestep")) {
+      SINGLE_STEP = 1;
     }
     else {
       printf("Unknown argument: %s\n", argv[i]);
@@ -206,6 +210,16 @@ int main(int argc, char *argv[])
 #else
   while(checkActive())
     {
+      if(SINGLE_STEP) {
+	/* dump state and wait for something */
+	stateDump();
+	int sstmode = 0;
+	do {
+	  printf("SINGLE STEP MODE, cycle: %lld\n", cycleCount);
+	  if(scanf("%d", &sstmode) == EOF)
+	    return -1;
+	} while(!sstmode);
+      }
 #endif
 #ifndef API
       if(PRINT_OUT) {

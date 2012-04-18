@@ -36,6 +36,7 @@ unsigned char similarIRAM, suppressOOB;
 unsigned long long cycleCount;
 unsigned int STACK_SIZE; /* stack size per hypercontext in KB */
 unsigned int PRINT_OUT; /* switch to output cycle information */
+unsigned int SINGLE_STEP;
 
 typedef struct {
   unsigned op;
