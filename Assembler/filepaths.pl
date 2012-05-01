@@ -22,6 +22,7 @@ my $deps_name        = "deps.pl";
 my $falconml_hack_name = "FalconML_hack.pl";
 my $xml_to_mm_name   = "xml_to_mm.pl";
 my $llvmTrans_name = "llvmTransform.pl";
+my $llvmConcat_name = "llvmConcat.pl";
 
 my $libraries        = "includes/libraries/";
 
@@ -43,6 +44,7 @@ our $libraries  = $le1_folder . "/" . $assembler_folder . "/" . $libraries;
 our $falconml_hack   = $le1_folder . "/" . $assembler_folder . "/" . $falconml_hack_name;
 our $xml_to_mm   = $le1_folder . "/" . $assembler_folder . "/" . $xml_to_mm_name;
 our $llvmTrans = $le1_folder . "/" . $assembler_folder . "/" . $llvmTrans_name;
+our $llvmConcat = $le1_folder . "/" . $assembler_folder . "/" . $llvmConcat_name;
 
 # these should be removed at some point soon
 our $floatlib   = $le1_folder . "/" . $assembler_folder . "/" . $floatlib;

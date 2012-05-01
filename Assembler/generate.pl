@@ -10,7 +10,7 @@ use File::Path;
 require 'filepaths.pl';
 
 my ($debug, $keep, $sSize, $dramSize, $falconMLHack, $skip, $outputDir, $memAlign, $fmm, $xmlMM, $mallocSize, $dramBaseOffset, $inputDir, $softfloat, $llvm);
-our ($le1_folder, $assembler_folder, $perl, $xml_to_mm, $falconml_hack, $vex_location, $firstpass, $midpass, $transform, $pullin, $deps, $libraries, $secondpass, $opcodes, $floatlib, $llvmTrans);
+our ($le1_folder, $assembler_folder, $perl, $xml_to_mm, $falconml_hack, $vex_location, $firstpass, $midpass, $transform, $pullin, $deps, $libraries, $secondpass, $opcodes, $floatlib, $llvmTrans, $llvmConcat);
 my $arguments = '';
 
 # read in command line arguments
@@ -280,15 +280,21 @@ REWIND:
     $singleFile .= '.new.s';
 }
 else {
+    &printHeader('Running LLVM transform');
     my @sfiles = <*.s>;
-    if($#sfiles > 0) {
-	print 'Error:' . "\n";
-	print "\t" . 'Trying to pass more than 1 file to secondpass.' . "\n";
-	exit(-1);
+    # run llvmtransform on each file
+    foreach my $sfile (@sfiles) {
+	my $cmd = $perl . ' ' . $llvmTrans . ' ' . $sfile . ' > ' . $sfile . '.tran';
+	&command($cmd);
+    }
+
+    # pass all files to concat function
+    my $tranFiles = '';
+    foreach my $sfile (@sfiles) {
+	$tranFiles .= $sfile . '.tran ';
     }
     mkdir $outputDir;
-    &printHeader('Running LLVM transform');
-    my $cmd = $perl . ' ' . $llvmTrans . ' ' . $sfiles[0] . ' > ' . $outputDir . '/' . $outputDir . '.temp.s.new.s';
+    my $cmd = $perl . ' ' . $llvmConcat . ' ' . $tranFiles . ' > ' . $outputDir . '/' . $outputDir . '.temp.s.new.s';
     &command($cmd);
     $singleFile = $outputDir . '/' . $outputDir . '.temp.s.new.s';
 }
