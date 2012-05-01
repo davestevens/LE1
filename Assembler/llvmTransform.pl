@@ -64,7 +64,8 @@ for(my $j=0;$j<=$#oper;$j++) {
     # replace labels in instructions
     if($oper[$j] !~ /^--/) {
 	while(my ($key, $value) = each(%instLabels)) {
-	    $oper[$j] =~ s/(\W+)$key/$1$value/g;
+	    # TODO: this may need to be altered
+	    $oper[$j] =~ s/(\W+)$key\s*$/$1$value/g;
 	}
     }
     # rename multiply instructions
