@@ -3,6 +3,7 @@ Insizzle/INSIZZLE
 Insizzle/INSIZZLEAPI
 Insizzle/obj/
 test/INSIZZLE*
+test/outcome.txt
 test/*/binaries/
 test/*/machinemodel/
 test/*/microblaze/
