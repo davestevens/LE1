@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include "functions.h"
 #include "macros.h"
+#include <string.h>
 
 #ifdef SHM
 #include <sys/types.h>
@@ -12,6 +13,32 @@
 #ifdef API
 #include "xmlRead.h"
 #endif
+
+/* switch endianess of memory */
+void switchEndian(char *out, unsigned length, unsigned memAddr) {
+  unsigned stringI = 0;
+  char c[2] = {'\0','\0'};
+  while(stringI < length) {
+    _LDUB_iss(&c[0], memAddr + stringI);
+    memcpy(out++, &c[0], 1);
+    stringI++;
+  }
+}
+
+/* get a string from memory
+   requires function due to endian stuff */
+void getString(char *out, unsigned length, unsigned memAddr) {
+  unsigned stringI = 0;
+  char c[2] = {'\0','\0'};
+  while(stringI < length) {
+    _LDUB_iss(&c[0], memAddr + stringI);
+    if(!c[0]) {
+      return;
+    }
+    strcat(out, c);
+    stringI++;
+  }
+}
 
 /* catch segFaults */
 void sigsegv_debug(int sig) {

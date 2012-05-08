@@ -1162,6 +1162,11 @@ sub operation()
 	    }
 	    return("$instruction_address - $syllable - $opcode_name|@_[0]");
 	}
+	if($opcode_name eq "SYSCALL") {
+	    $syllable |= &twoscomp($values[0],20);
+	    return("$instruction_address - $syllable - $opcode_name|@_[0]");
+	}
+
 	$syllable |= $values[0] << 15;
 	if($types[1] eq "I")
 	{

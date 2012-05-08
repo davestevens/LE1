@@ -10,7 +10,7 @@
 
 CC = gcc
 CFLAGS = -c -Wall -pedantic -std=c99 -Wextra -m32 `xml2-config --cflags` -D_XOPEN_SOURCE
-LDFLAGS = -lm -m32 `xml2-config --libs`
+LDFLAGS = -lm -m32 `xml2-config --libs` -lpcre
 
 INCDIR = inc
 SRCDIR = src

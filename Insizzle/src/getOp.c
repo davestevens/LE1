@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "functions.h"
 #include "macros.h"
+#include "pcre_split.h"
 #include <stdlib.h>
 
 void insertSource(sourceReg *, regT, unsigned short, unsigned char, unsigned, unsigned char);
@@ -1567,6 +1568,159 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		      /*printf("case0\n");*/
 		      ret.opcode = SYSCALL;
 		      /* TODO: implement! */
+		      switch(inst & 0xfffff) {
+			/* All assume registers are availabe in current
+			   registers, due to VEX seeming to work this way
+			 */
+		      case 0: /* printf */
+			/* r3 = printf(r3, r4...r10);*/
+			{
+			  char format[256] = {'\0'};
+			  getString(&format[0], 256, *(S_GPR + 3) + (unsigned)(system->dram));
+			  /* PCRE section */
+			  split_t *_test;
+			  split_t *_temp;
+			  int _count = 4; /* arguments start from register 4 */
+
+			  _test = pcre_split("%[\\+#-]?(\\d+|\\*)?\\.?\\d*([hlLzjt]|[hl]{2})?([csuxXfFeEpgGdionz])",format);
+			  _temp = _test;
+			  if(_test == NULL)
+			    printf("Error: Nothing to print\n");
+			  else {
+			    do {
+			      if(_test->string != NULL)
+				printf("%s", _test->string);
+			      
+			      if(_test->match != NULL) {
+				switch(*(char *)((unsigned)_test->match + strlen(_test->match) - 1)) {
+				case 's':
+				case 'S':
+				  {
+				    char str[256] = {'\0'};
+				    getString(&str[0], 256, *(pS_GPR + _count++) + (unsigned)(system->dram));
+				    printf(_test->match, str);
+				  }
+				  break;
+				case 'f':
+				case 'F':
+				  {
+				    /* first register needs to be odd :S */
+				    if(!(_count % 2)) { _count++; } /* skip odd register */
+				    double d;
+				    int *dP = (int *)&d;
+				    *(dP+1) = *(S_GPR + _count++);
+				    *dP = *(S_GPR + _count++);
+				    printf(_test->match, d);
+				  }
+				  break;
+				default:
+				  printf(_test->match, *(S_GPR + _count++));
+				  break;
+				}
+			      }
+			      if(_count > 10) {
+				printf("*** Limit of Insizzle printf ***\n");
+				break;
+			      }
+			    } while((_test = _test->next) != NULL);
+			  }
+			  
+			  /* TODO: fix this */
+			  /*pcre_split_free(_temp);*/
+			}
+			break;
+		      case 1: /* fopen */
+			/* r3 = fopen(r3, r4) */
+			{
+			  char filename[256] = {'\0'};
+			  getString(&filename[0], 256, *(S_GPR + 3) + (unsigned)(system->dram));
+			  char filemode[256] = {'\0'};
+			  getString(&filemode[0], 256, *(S_GPR + 4) + (unsigned)(system->dram));
+
+			  FILE *fp = fopen(filename, filemode);
+
+			  *(S_GPR + 3) = (unsigned)fp;
+			}
+			break;
+		      case 2: /* fclose */
+			/* r3 = fclose(r3) */
+			{
+			  FILE *stream = (FILE *)*(S_GPR + 3);
+
+			  int ret = fclose(stream);
+
+			  *(S_GPR + 3) = (unsigned)ret;
+			}
+			break;
+		      case 3: /* fwrite */
+			/* r3 = fwrite(r3, r4, r5, r6) */
+			{
+			  size_t size = (size_t)*(S_GPR + 4);
+			  size_t nitems = (size_t)*(S_GPR + 5);
+			  FILE *stream = (FILE *)*(S_GPR + 6);
+			  
+			  /* Switch Endian */
+			  char *ptrSwitch = (char *)calloc((size * nitems), 1);
+			  switchEndian(ptrSwitch, (size * nitems), *(S_GPR + 3) + (unsigned)(system->dram));
+			  size_t ret = fwrite(ptrSwitch, size, nitems, stream);
+
+			  *(S_GPR + 3) = (unsigned)ret;
+			}
+			break;
+		      case 4: /* fread */
+			/* r3 = fread(r3, r4, r5, r6) */
+			{
+			  void *ptr = (void *)(*(S_GPR + 3) + (unsigned)(system->dram));
+			  size_t size = (size_t)*(S_GPR + 4);
+			  size_t nitems = (size_t)*(S_GPR + 5);
+			  FILE *stream = (FILE *)*(S_GPR + 6);
+			  
+			  /* need to make sure its a factor of 4 i think */
+			  size_t s = (size * nitems);
+			  while(s++ % 4) {}
+			  char *ptrSwitch = (char *)calloc(s, 1);
+			  size_t ret = fread(ptrSwitch, size, nitems, stream);
+
+			  switchEndian(ptr, s, (unsigned)ptrSwitch);
+
+			  *(S_GPR + 3) = (unsigned)ret;
+			}
+			break;
+		      case 5: /* fprintf */
+			/* r3 = fprintf(r3, r4, r5...r10) */
+			{
+			  FILE *stream = (FILE *)*(S_GPR + 3);
+			  char format[256] = {'\0'};
+			  getString(&format[0], 256, *(S_GPR + 4) + (unsigned)(system->dram));
+
+			  /* PCRE section */
+			  split_t *_test;
+			  split_t *_temp;
+			  int _count = 5; /* arguments start from register 4 */
+
+			  _test = pcre_split("%[\\+#-]?(\\d+|\\*)?\\.?\\d*([hlLzjt]|[hl]{2})?([csuxXfFeEpgGdionz])",format);
+			  _temp = _test;
+			  if(_test == NULL)
+			    printf("Error: Nothing to print\n");
+			  else {
+			    do {
+			      if(_test->string != NULL)
+				fprintf(stream, "%s", _test->string);
+			      
+			      if(_test->match != NULL) {
+				fprintf(stream, _test->match, *(pS_GPR + _count++));
+			      }
+			    } while((_test = _test->next) != NULL);
+			  }
+			  /* TODO: work out freeing this without stack dump */
+			  /* if there are no extra parts it breaks */
+			  /*pcre_split_free(_temp);*/
+			}
+			break;
+		      default:
+			printf("Unknown SYSCALL: %d\n", (inst & 0xfffff));
+			break;
+		      }
 		      break;
 		    case 1:
 		      /*printf("case1\n");*/

@@ -8,6 +8,14 @@ use strict;
 
 my $section = '';
 my $prev = '';
+my %supportedSTDIO;
+
+$supportedSTDIO{'printf'} = 0;
+$supportedSTDIO{'fopen'} = 1;
+$supportedSTDIO{'fclose'} = 2;
+$supportedSTDIO{'fwrite'} = 3;
+$supportedSTDIO{'fread'} = 4;
+$supportedSTDIO{'fprintf'} = 5;
 
 while( <> ) {
     # different sections
@@ -116,6 +124,14 @@ while( <> ) {
 			}
 		    }
 		    $asmASS = $left . "X" . $right;
+		}
+# catch STDIO which is suported
+		if($op =~ /call/i) {
+		    $items =~ /FUNC\_(\w+)/;
+		    if(defined($supportedSTDIO{$1})) {
+			print 'syscall.0 ' . $supportedSTDIO{$1} . "\n";
+			next;
+		    }
 		}
 
 		# replace = with ,

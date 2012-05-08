@@ -33,6 +33,9 @@ chdir($inputDir);
 my $currentDir = readpipe('pwd');
 chomp($currentDir);
 
+if($xmlMM eq '') {
+    $xmlMM = $le1_folder . '/Insizzle/MM/1Context_Default.xml';
+}
 # create machine models from LE1 XML
 if($xmlMM ne '') {
     &printHeader('Creating machine model from XML file');

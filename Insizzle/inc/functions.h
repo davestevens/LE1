@@ -143,6 +143,8 @@ struct newThreadT {
   struct newThreadT *next;
 };
 
+void switchEndian(char *, unsigned, unsigned);
+void getString(char *, unsigned, unsigned);
 void sigsegv_debug(int);
 void sigusr1_debug(int);
 void stateDump(void);
