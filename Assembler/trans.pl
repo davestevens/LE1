@@ -16,6 +16,11 @@ $supportedSTDIO{'fclose'} = 2;
 $supportedSTDIO{'fwrite'} = 3;
 $supportedSTDIO{'fread'} = 4;
 $supportedSTDIO{'fprintf'} = 5;
+$supportedSTDIO{'fseek'} = 6;
+$supportedSTDIO{'ftell'} = 7;
+$supportedSTDIO{'snprintf'} = 8;
+$supportedSTDIO{'clock'} = 9;
+$supportedSTDIO{'fscanf'} = 10;
 
 while( <> ) {
     # different sections

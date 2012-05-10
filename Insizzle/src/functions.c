@@ -14,15 +14,54 @@
 #include "xmlRead.h"
 #endif
 
-/* switch endianess of memory */
-void switchEndian(char *out, unsigned length, unsigned memAddr) {
-  unsigned stringI = 0;
-  char c[2] = {'\0','\0'};
-  while(stringI < length) {
-    _LDUB_iss(&c[0], memAddr + stringI);
-    memcpy(out++, &c[0], 1);
-    stringI++;
+/* switching endian, dependent on size */
+void endianSwapLittle2Big(char *out, unsigned size, unsigned nitems, char *in) {
+  /* data is in x86 endian, need to switch to LE1 */
+  unsigned memI = 0;
+  unsigned i = 0;
+  while(i < (nitems * size)) {
+    switch(size) {
+    case 2:
+      _STH_iss((out + (memI * size)), ((unsigned short *)(in) + memI));
+      i += 2;
+      break;
+    case 4:
+      _STW_iss((out + (memI * size)), ((unsigned *)(in) + memI));
+      i += 4;
+      break;
+    default:
+      _STB_iss((out + memI), ((unsigned char*)(in) + memI));
+      i++;
+      break;
+    }
+    memI++;
   }
+  return;
+}
+
+/* swap endian from LE1 to x86 for writing to file */
+void endianSwapBig2Little(char *out, unsigned size, unsigned nitems, char *in) {
+  /* data is in LE1 endian, need to switch to x86 */
+  unsigned memI = 0;
+  unsigned i = 0;
+  while(i < (nitems * size)) {
+    switch(size) {
+    case 2:
+      _LDUH_iss(((unsigned short *)out + memI), ((unsigned short*)(in) + memI));
+      i += 2;
+      break;
+    case 4:
+      _LDW_iss(((unsigned int *)out + memI), ((unsigned *)(in) + memI));
+      i += 4;
+      break;
+    default:
+      _LDUB_iss(((unsigned char *)out + memI), ((unsigned char*)(in) + memI));
+      i++;
+      break;
+    }
+    memI++;
+  }
+  return;
 }
 
 /* get a string from memory

@@ -1655,16 +1655,16 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		      case 3: /* fwrite */
 			/* r3 = fwrite(r3, r4, r5, r6) */
 			{
+			  void *ptr = (void *)(*(S_GPR + 3) + (unsigned)(system->dram));
 			  size_t size = (size_t)*(S_GPR + 4);
 			  size_t nitems = (size_t)*(S_GPR + 5);
 			  FILE *stream = (FILE *)*(S_GPR + 6);
-			  
-			  /* Switch Endian */
-			  char *ptrSwitch = (char *)calloc((size * nitems), 1);
-			  switchEndian(ptrSwitch, (size * nitems), *(S_GPR + 3) + (unsigned)(system->dram));
-			  size_t ret = fwrite(ptrSwitch, size, nitems, stream);
 
+			  char *ptrLittle = (char *)calloc((size * nitems), 1);
+			  endianSwapBig2Little(ptrLittle, size, nitems, ptr);
+			  size_t ret = fwrite(ptrLittle, size, nitems, stream);
 			  *(S_GPR + 3) = (unsigned)ret;
+			  
 			}
 			break;
 		      case 4: /* fread */
@@ -1675,14 +1675,10 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 			  size_t nitems = (size_t)*(S_GPR + 5);
 			  FILE *stream = (FILE *)*(S_GPR + 6);
 			  
-			  /* need to make sure its a factor of 4 i think */
-			  size_t s = (size * nitems);
-			  while(s++ % 4) {}
-			  char *ptrSwitch = (char *)calloc(s, 1);
-			  size_t ret = fread(ptrSwitch, size, nitems, stream);
-
-			  switchEndian(ptr, s, (unsigned)ptrSwitch);
-
+			  /* copy into local memory, then perform endian switch into LE1 space */
+			  char *ptrLittle = (char *)calloc((size * nitems), 1);
+			  size_t ret = fread(ptrLittle, size, nitems, stream);
+			  endianSwapLittle2Big(ptr, size, nitems, ptrLittle);
 			  *(S_GPR + 3) = (unsigned)ret;
 			}
 			break;
@@ -1714,6 +1710,184 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 			  }
 			  /* TODO: work out freeing this without stack dump */
 			  /* if there are no extra parts it breaks */
+			  /*pcre_split_free(_temp);*/
+			}
+			break;
+		      case 6: /* fseek */
+			/* r3 = fseek(r3, r4, r5) */
+			{
+			  FILE *stream = (FILE *)*(S_GPR + 3);
+			  long offset = (long)*(S_GPR + 4);
+			  int whence = (int)*(S_GPR + 5);
+
+			  int ret = fseek(stream, offset, whence);
+
+			  *(S_GPR + 3) = (unsigned)ret;
+			}
+			break;
+		      case 7: /* ftell */
+			/* r3 = ftell(r3) */
+			{
+			  FILE *stream = (FILE *)*(S_GPR + 3);
+
+			  long ret = ftell(stream);
+
+			  *(S_GPR + 3) = (unsigned)ret;
+			}
+			break;
+		      case 8: /* snprintf */
+			/* r3 = snprintf(r3, r4, r5, ...) */
+			{
+			  char *s = (char *)*(S_GPR + 3) + (unsigned)(system->dram);
+			  size_t n = (size_t)*(S_GPR + 4);
+			  char format[256] = {'\0'};
+			  getString(&format[0], 256, *(S_GPR + 5) + (unsigned)(system->dram));
+
+
+			  /* make a char array the size of n */
+			  char *sLittle = calloc(n+1, 1);
+
+			  /* PCRE section */
+			  split_t *_test;
+			  split_t *_temp;
+			  int _count = 6; /* arguments start from register 4 */
+
+			  _test = pcre_split("%[\\+#-]?(\\d+|\\*)?\\.?\\d*([hlLzjt]|[hl]{2})?([csuxXfFeEpgGdionz])",format);
+			  _temp = _test;
+			  if(_test == NULL)
+			    printf("Error: Nothing to print\n");
+			  else {
+			    do {
+			      if(_test->string != NULL)
+				strcat(sLittle, _test->string);
+			      
+			      if(_test->match != NULL) {
+				switch(*(char *)((unsigned)_test->match + strlen(_test->match) - 1)) {
+				case 's':
+				case 'S':
+				  {
+				    char str[256] = {'\0'};
+				    getString(&str[0], 256, *(pS_GPR + _count++) + (unsigned)(system->dram));
+				    char _s[256];
+				    snprintf(_s, 256, _test->match, str);
+				    strcat(sLittle, _s);
+				  }
+				  break;
+				case 'f':
+				case 'F':
+				  {
+				    /* first register needs to be odd :S */
+				    if(!(_count % 2)) { _count++; } /* skip odd register */
+				    double d;
+				    int *dP = (int *)&d;
+				    *(dP+1) = *(S_GPR + _count++);
+				    *dP = *(S_GPR + _count++);
+
+				    char _s[256];
+				    snprintf(_s, 256, _test->match, d);
+				    strcat(sLittle, _s);
+				  }
+				  break;
+				default:
+				  {
+				    char _s[256];
+				    snprintf(_s, 256, _test->match, *(S_GPR + _count++));
+				    strcat(sLittle, _s);
+				  }
+				  break;
+				}
+			      }
+			      if(_count > 10) {
+				printf("*** Limit of Insizzle printf ***\n");
+				break;
+			      }
+			    } while((_test = _test->next) != NULL);
+			  }
+			  
+			  /* TODO: fix this */
+			  /*pcre_split_free(_temp);*/
+
+			  /* need to copy sLittle into s */
+			  endianSwapLittle2Big(s, 1, strlen(sLittle), sLittle);
+			}
+			break;
+		      case 9: /* clock */
+			{
+			  *(S_GPR + 3) = (unsigned)cycleCount;
+			}
+			break;
+		      case 10: /* fscanf */
+			/* r3 = fscanf(r3, r4, ...) */
+			{
+			  FILE *stream = (FILE *)*(S_GPR + 3);
+			  char format[256] = {'\0'};
+			  getString(&format[0], 256, *(S_GPR + 4) + (unsigned)(system->dram));
+			  /* PCRE section */
+			  split_t *_test;
+			  split_t *_temp;
+			  int _count = 5; /* arguments start from register 4 */
+
+			  _test = pcre_split("%[\\+#-]?(\\d+|\\*)?\\.?\\d*([hlLzjt]|[hl]{2})?([csuxXfFeEpgGdionz])",format);
+			  _temp = _test;
+			  if(_test == NULL)
+			    printf("Error: Nothing to print\n");
+			  else {
+			    char _str[256] = {'\0'};
+			    do {
+			      if(_test->string != NULL) {
+				/*printf("%s", _test->string);*/
+				strcat(_str, _test->string);
+			      }
+
+			      if(_test->match != NULL) {
+				strcat(_str, _test->match);
+				switch(*(char *)((unsigned)_test->match + strlen(_test->match) - 1)) {
+				case 's':
+				case 'S':
+				  {
+				    char str[256] = {'\0'};
+				    fscanf(stream, _str, str);
+				    endianSwapLittle2Big((char *)*(S_GPR + _count++) + (unsigned)(system->dram), 1, strlen(str), str);
+				  }
+				  break;
+				case 'f':
+				case 'F':
+				  {
+				    switch(*(char *)((unsigned)_test->match + strlen(_test->match) - 2)) {
+				    case 'l':
+				      {
+					double d;
+					fscanf(stream, _str, &d);
+					int *dP = (int *)&d;
+					*(unsigned *)(*(S_GPR + _count) + (unsigned)(system->dram)) = *dP;
+					*(unsigned *)(*(S_GPR + _count++) + (unsigned)(system->dram)) = *(dP+1);
+				      }
+				      break;
+				    default:
+				      {
+					float d;
+					fscanf(stream, _str, &d);
+					int *dP = (int *)&d;
+					*(unsigned *)(*(S_GPR + _count++) + (unsigned)(system->dram)) = *dP;
+				      }
+				      break;
+				    }
+				  }
+				  break;
+				default:
+				  fscanf(stream, _str, (unsigned *)(*(S_GPR + _count++) + (unsigned)(system->dram)));
+				  break;
+				}
+				_str[0] = '\0';
+			      }
+			      if(_count > 10) {
+				printf("*** Limit of Insizzle printf ***\n");
+				break;
+			      }
+			    } while((_test = _test->next) != NULL);
+			  }
+			  
+			  /* TODO: fix this */
 			  /*pcre_split_free(_temp);*/
 			}
 			break;

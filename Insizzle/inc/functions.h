@@ -143,7 +143,8 @@ struct newThreadT {
   struct newThreadT *next;
 };
 
-void switchEndian(char *, unsigned, unsigned);
+void endianSwapLittle2Big(char *, unsigned, unsigned, char *); /* from x86 to LE1 */
+void endianSwapBig2Little(char *, unsigned, unsigned, char *); /* from LE1 to x86 */
 void getString(char *, unsigned, unsigned);
 void sigsegv_debug(int);
 void sigusr1_debug(int);
