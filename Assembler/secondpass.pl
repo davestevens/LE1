@@ -252,8 +252,8 @@ sub second_pass()
 	'1,5,AR?',	            # for store with 32 bit immediate
 	'11,2,LDBU.?\w?',           # load byte unsigned
 	'10,2,LDB.?\w?$',           # load byte
-	'12,2,LDH.?\w?$',           # load halfword
 	'13,2,LDHU.?\w?',           # load halfword unsigned
+	'12,2,LDH.?\w?$',           # load halfword
 	'14,2,LDW.?\w?',            # load word
 	'1,5,LD\w+.?\w?$',          # load, 32bit
 	'1,5,RL',                   # mov from link reg
