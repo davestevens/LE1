@@ -254,10 +254,12 @@ sub first_pass()
 		    }
 		    elsif($file[$i] =~ /\.skip (\d+)/)
 		    {
-			$tot += $1;
+			$tot = &check_total($tot);
 			for($j=0;$j<$1;$j++)
 			{
 			    $data_line .= sprintf("%02x", 0);
+			    $tot += 1;
+			    $tot = &check_total($tot);
 			}
 			$tot = &check_total($tot);
 		    }
@@ -313,7 +315,9 @@ sub first_pass()
 		    }
 		    elsif($file[$i] =~ /\.real(\d+) 0x(\w+)/)
 		    {
+			print 'before: ' . $tot . "($data_start)\n";
 			$tot = &check_total($tot);
+			print 'after: ' . $tot . "($data_start)\n";
 			$inter = $2;
 			$size_of = $1;
 			if($size_of == 4)
