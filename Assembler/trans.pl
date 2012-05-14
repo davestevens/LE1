@@ -21,6 +21,7 @@ $supportedSTDIO{'ftell'} = 7;
 $supportedSTDIO{'snprintf'} = 8;
 $supportedSTDIO{'clock'} = 9;
 $supportedSTDIO{'fscanf'} = 10;
+$supportedSTDIO{'fgetc'} = 11;
 
 while( <> ) {
     # different sections
