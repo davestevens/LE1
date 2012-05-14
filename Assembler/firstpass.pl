@@ -811,7 +811,7 @@ sub check_calls()
 	if(($Instructions[$calls_check] =~ /call \$l0\.0 =/) && ($Instructions[$calls_check+1] ne ";;"))
 	{
 	    $position_of_call = $calls_check;
-	    while($Instructions[$calls_check] ne ";;")
+	    while(($Instructions[$calls_check] ne ";;") && ($calls_check <= $#Instructions))
 	    {
 		$calls_check++;
 	    }
@@ -875,7 +875,7 @@ sub move_main()
 	{
 	    push @Instructions_Temp, $Instructions[$k];
 	}
-	for($k=$endding;$k<$#Instructions;$k++)
+	for($k=$endding;$k<=$#Instructions;$k++)
 	{
 	    push @Instructions_Temp, $Instructions[$k];
 	}
