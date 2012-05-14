@@ -741,7 +741,7 @@ ENDOFHEADER
 	else
 	{
 	    $data = hex($bit);
-	    printf(OUTPUT "%04x - %08x - %032b\n",$start, $data, $data);
+	    printf(OUTPUT "%04x - %08x - %032b\n",$start, ($data & 0xffffffff), ($data & 0xffffffff));
 	    $start += 4;
 	}
     }
