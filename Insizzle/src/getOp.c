@@ -1614,7 +1614,22 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 				  }
 				  break;
 				default:
-				  printf(_test->match, *(S_GPR + _count++));
+				  /* TODO: may need to perform an endian swap? */
+				  {
+				    int temp = *(S_GPR + _count++);
+				    if(!(temp >> 8)) {
+				      /* possibly char */
+				      printf(_test->match, temp);
+				    }
+				    else if(!(temp >> 16)) {
+				      /* possibly short */
+				      printf(_test->match, ntohs(temp));
+				    }
+				    else {
+				      /* possibly int */
+				      printf(_test->match, ntohl(temp));
+				    }
+				  }
 				  break;
 				}
 			      }
@@ -1889,6 +1904,16 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 			  
 			  /* TODO: fix this */
 			  /*pcre_split_free(_temp);*/
+			}
+			break;
+		      case 11: /* fgetc */
+			/* r3 = fgetc(r3) */
+			{
+			  FILE *stream = (FILE *)*(S_GPR + 3);
+
+			  int ret = fgetc(stream);
+
+			  *(S_GPR + 3) = (unsigned)ret;
 			}
 			break;
 		      default:
