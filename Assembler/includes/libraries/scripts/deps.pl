@@ -97,6 +97,7 @@
 @malloc = ("stdlib/mem.c");
 @calloc = ("stdlib/mem.c");
 @free = ("stdlib/mem.c");
+@qsort = ("stdlib/qsort.c", "stdlib/mem.c", "string/memcpy.c");
 
 # SOFTFLOAT
 
@@ -104,3 +105,7 @@
 # PTHREAD
 @vthread_create = ("pthread/pthread.c");
 @vthread_join = ("pthread/pthread.c");
+
+# CTYPE
+@toupper = ("ctype/toupper.c");
+@tolower = ("ctype/tolower.c");
