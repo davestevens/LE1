@@ -115,6 +115,26 @@ for($i=$i-1;$i<=$#inFile;$i++) {
 	my $varname = $1;
 	$lookup{$varname} = $currentAddr;
 	my $found = 0;
+	my $size = 0;
+	my $width = 0;
+
+	# figure out size and width of data item
+	my $i_copy = $i;
+	my $break = 0;
+	my $i_start = 0;
+	do {
+	    $i++;
+	    if($inFile[$i] =~ /$varname:/) {
+		$i_start = $i;
+	    }
+	    if($inFile[$i] =~ /\.size\s+(\w+),\s*(\d+)/) {
+		$size = $2;
+		$width = $size / ($i - ($i_start + 1));
+		$break = 1;
+	    }
+	} while(($inFile[$i] !~ /^\n/) && ($i <= $#inFile) && (!$break));
+	$i = $i_copy;
+
 	do {
 	    $i++;
 	    if($inFile[$i] =~ /\.comm\s+(\w+),(\d+),(\d+)/) {
@@ -139,9 +159,27 @@ for($i=$i-1;$i<=$#inFile;$i++) {
 	    elsif($inFile[$i] =~ /\.asci[iz]\s+\"(\w+)\"/) {
 		&pushData($varname, $1, 0x0, "STRING");
 	    }
-	    elsif($inFile[$i] =~ /\.space\s+(\d+)/) {
-		&pushData("", 0x0, $1, "SPACE");
-		$found = 1;
+	    elsif($inFile[$i] =~ /\.asci[iz]\s+\"(.+)\"/) {
+		# this is a guess at how it works
+		# using data size / number of lines to define number of chars?
+		my @oct = split(/\\/, $1);
+		my $o;
+		for($o=1;$o<=$#oct;$o++) {
+		    &pushData($varname, oct($oct[$o]), 0x0, "BYTE");
+		}
+		while($o <= $width) {
+		    &pushData($varname, 0x0, 0x0, "BYTE");
+		    $o++;
+		}
+	    }
+	    elsif($inFile[$i] =~ /\.space\s+(\d+),?(\d+)?/) {
+		#$space = $1;
+		# space can have a value allocated to it
+		my $fill = (!$2) ? 0x0 : $2;
+		for(my $s=0;$s<$1;$s++) {
+		    &pushData($varname, $fill, 0x0, "BYTE");
+		}
+		#$found = 1;
 	    }
 	    elsif($inFile[$i] =~ /\.size\s+(\w+),\s*(\d+)/) {
 		# should be the end of data item
