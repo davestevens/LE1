@@ -88,6 +88,14 @@ int main(int argc, char *argv[])
     else if(!strcmp(argv[i], "-singlestep")) {
       SINGLE_STEP = 1;
     }
+    else if(!strcmp(argv[i], "-calls_list")) {
+      /* setup calls list */
+      callsList = NULL;
+      if(setupCallsList(argv[i+1]) != 0) {
+	return -1;
+      }
+      i++;
+    }
     else {
       printf("Unknown argument: %s\n", argv[i]);
     }

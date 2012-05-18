@@ -14,6 +14,9 @@ $return_count = 0;
 $debug = 0;
 $mem_align = 0;
 $dram_base_offset = 0;
+
+my %testing_calls;
+
 if($ARGV[0] eq "")
 {
     print<<EOR;
@@ -261,6 +264,8 @@ sub second_pass()
 	'1,5,LDL',                  # load from link reg
 	'1,5,STL',                  # store to link reg
 	'1,5,RF',                   # this is a MOV with a function label
+	'1,5,RRF',                   # this is a MOV with a function label
+	# need to make a RRF for the CMP using the function label
 	'3,2,R',
 	);
     $syllable |= $2 << 15;
@@ -378,6 +383,8 @@ sub return_args()
 sub call_caller()
 {
     $call = @_[0];
+    $call =~ /\.call\s+(\w+)\s+arg\((.+)\)\s/;
+    $testing_calls{$1} = $2;
     push @output, $_[0];
 }
 sub clock()
@@ -1021,7 +1028,7 @@ sub operation()
 	}
 	else
 	{
-	    print "ERROR - Unknown Layout - $layout - @_[0]\n";
+	    print "3ERROR - Unknown Layout - $layout - @_[0]\n";
 	    $ok = 0;
 	}
     }
@@ -1216,9 +1223,18 @@ sub operation()
 	elsif($types[2] eq "")
 	{
 	}
+	elsif($types[2] eq "F") { # SXBT/F operation with label
+	    $temp_op = $_[0];
+	    $temp_op =~ s/(\s+=)\s+(.+)/$1 PC_FUNC_$2/;
+	    @return_array[0] = "$instruction_address - $syllable - $opcode_name|$temp_op";
+	    $instruction_address++;
+	    @return_array[1] = "$instruction_address - MOVFUNCNAME$values[3] - 32bit|imm MOVFUNCNAME$values[3]";
+	    undef($next_instruction);
+	    return(@return_array);
+	}
 	else
 	{
-	    print "ERROR - Unknown Layout - $layout - @_[0]\n";
+	    print "2ERROR - Unknown Layout - $layout - @_[0] ($types[2])\n";
 	    $ok = 0;
 	}
 	if($types[3] ne "")
@@ -1242,7 +1258,7 @@ sub operation()
 	    }
 	    else
 	    {
-		print "ERROR - Unknown Layout - $layout - @_[0]\n";
+		print "1ERROR - Unknown Layout - $layout - @_[0]\n";
 		$ok = 0;
 	    }
 	}
@@ -1556,6 +1572,9 @@ sub print_instructions()
     open INST_TXT_FILE, "> @_[1]" or die
 	"Second Pass Failed\nCould not open file (@_[1] : $!)\n";
 
+    open CALLS_LIST, "> microblaze/calls_list.dat" or die
+	"Second Pass Failed\nCould not open file (microblaze/calls_list.dat : $!)\n";
+
     for($outting=0;$outting<=$#output;$outting++)
     {
 	$syllable = 0;
@@ -1583,6 +1602,25 @@ sub print_instructions()
 
 	    if(($type eq "CALL") && ($operation ne 'CALLTOLINKREG'))
 	    {
+		#print $operation . "\n";
+		foreach $key (%testing_calls) {
+		    if($operation =~ /$key/) {
+			printf(CALLS_LIST "%d %s ", ($address*4),$key);
+			my @registers = split(/,/, $testing_calls{$key});
+			for(my $regI=3;$regI<10;$regI++) {
+			    my $f = 0;
+			    foreach my $reg (@registers) {
+				if($reg =~ /r0\.$regI/) {
+				    $f = 1;
+				    last;
+				}
+			    }
+			    printf(CALLS_LIST "%d ", $f);
+			}
+			printf(CALLS_LIST "\n");
+			last;
+		    }
+		}
 		if($operation !~ /\.call/)
 		{
 		    $syllable |= &twoscomp((($Inst_Label{$operation} - $test_address) * 4),20);
@@ -1635,6 +1673,7 @@ sub print_instructions()
 	    elsif($type =~ /BRF?/)
 	    {
 		($label_temp, $clus_temp) = split(/ \^ /, $operation);
+		print $operation . "\n";
 		$syllable |= &twoscomp((($Inst_Label{$label_temp} - $test_address) * 4),16);
 		$syllable |= $clus_temp << 16;
 		$operation .= " " . $type;
@@ -1697,6 +1736,7 @@ sub print_instructions()
     $_[3] =~ /^(\w+)/;
     print IRAM_HEADER "};\n#define LE1_INST_SIZE $instruction_size\n";
     close IRAM_HEADER;
+    close CALLS_LIST;
 }
 
 sub print_data()

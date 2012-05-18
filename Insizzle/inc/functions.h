@@ -38,6 +38,18 @@ unsigned int STACK_SIZE; /* stack size per hypercontext in KB */
 unsigned int PRINT_OUT; /* switch to output cycle information */
 unsigned int SINGLE_STEP;
 
+/* list of calls with names, pcs and registers required */
+typedef struct {
+  unsigned pc;
+  char *name;
+  char registers[7];
+  struct callsList_t *next;
+} callsList_t;
+
+callsList_t *callsList;
+/* TODO: remember to free all the memory */
+int setupCallsList(char *);
+
 typedef struct {
   unsigned op;
   unsigned imm;

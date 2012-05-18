@@ -1708,6 +1708,26 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		      ret.target = -1;
 		      /* need to set link_register to correct value */
 		      *(S_L) = hypercontext->programCounter + 0x4;
+
+		      callsList_t *temp = callsList;
+		      int register_count = 0;
+		      while(temp) {
+			if(temp->pc == hypercontext->programCounter) {
+			  printf("%s(", temp->name);
+			  for(register_count = 0;register_count<7;register_count++) {
+			    if(!(temp->registers[register_count])) {
+			      break;
+			    }
+			    if(register_count > 0) {
+			      printf(", ");
+			    }
+			    printf("0x%08x", *(S_GPR + (register_count+3)));
+			  }
+			  printf(")\n");
+			  break;
+			}
+			temp = (callsList_t *)temp->next;
+		      }
 		      break;
 		    case 3:
 		      ret.opcode = GOTOL;

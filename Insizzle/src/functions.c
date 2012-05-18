@@ -14,6 +14,51 @@
 #include "xmlRead.h"
 #endif
 
+int setupCallsList(char *filename) {
+  FILE *fp;
+  printf("filename: %s\n", filename);
+  fp = fopen(filename, "r");
+  if(fp == NULL) {
+    printf("Could not open file: %s\n", filename);
+    return -1;
+  }
+  char line[256];
+  while(fgets(line, sizeof(line), fp) != NULL) {
+    callsList_t *t = (callsList_t *)calloc(sizeof(callsList_t), 1);
+    char *name = (char *)calloc(256, 1);
+    sscanf(line, "%d %s %d %d %d %d %d %d %d",
+	   (int *)&(t->pc),
+	   name,
+	   (int *)&(t->registers[0]),
+	   (int *)&(t->registers[1]),
+	   (int *)&(t->registers[2]),
+	   (int *)&(t->registers[3]),
+	   (int *)&(t->registers[4]),
+	   (int *)&(t->registers[5]),
+	   (int *)&(t->registers[6]));
+    t->name = name;
+    t->next = NULL;
+
+    /* then stick in a linked list */
+    if(callsList == NULL) {
+      callsList = t;
+    }
+    else {
+      callsList_t *temp = callsList;
+      while(temp) {
+	if(temp->next == NULL) {
+	  temp->next = (struct callsList_t *)t;
+	  break;
+	}
+	temp = (callsList_t *)temp->next;
+      }
+    }
+  }
+
+  fclose(fp);
+  return 0;
+}
+
 /* catch segFaults */
 void sigsegv_debug(int sig) {
   fprintf(stderr, "--------------------------------------------------------------------------------\n");
