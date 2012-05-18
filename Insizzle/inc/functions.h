@@ -183,6 +183,7 @@ void serviceMemRequestNOSTALLS(systemT *, unsigned, unsigned, unsigned);
 void serviceMemRequestPERFECT(systemT *, unsigned);
 
 void returnOpcode(opT);
+void stateDumpToTerminal(instruction, instructionPacket, hyperContextT *, unsigned long long);
 void printOut(instruction, instructionPacket, hyperContextT *, unsigned long long);
 int setupGalaxy(void);
 int freeMem(void);

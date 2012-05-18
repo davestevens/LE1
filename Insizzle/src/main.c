@@ -86,6 +86,7 @@ int main(int argc, char *argv[])
       PRINT_OUT = 1;
     }
     else if(!strcmp(argv[i], "-singlestep")) {
+      printf("SINGLE_STEP\n");
       SINGLE_STEP = 1;
     }
     else if(!strcmp(argv[i], "-calls_list")) {
@@ -218,16 +219,6 @@ int main(int argc, char *argv[])
 #else
   while(checkActive())
     {
-      if(SINGLE_STEP) {
-	/* dump state and wait for something */
-	stateDump();
-	int sstmode = 0;
-	do {
-	  printf("SINGLE STEP MODE, cycle: %lld\n", cycleCount);
-	  if(scanf("%d", &sstmode) == EOF)
-	    return -1;
-	} while(!sstmode);
-      }
 #endif
 #ifndef API
       if(PRINT_OUT) {
@@ -468,6 +459,13 @@ int main(int argc, char *argv[])
 #else
 				      printOut(inst, this, hypercontext, 0);
 #endif
+				    }
+				    if(SINGLE_STEP) {
+				      stateDumpToTerminal(inst, this, hypercontext, cycleCount);
+				      stateDump();
+				      printf("Press enter to continue.");
+				      getchar();
+
 				    }
 
 #ifdef API
@@ -1127,6 +1125,57 @@ int freeMem(void)
   free((systemT *)galaxyT);
   free((systemConfig *)SYSTEM);
   return 0;
+}
+
+void stateDumpToTerminal(instruction inst, instructionPacket this, hyperContextT *hypercontext, unsigned long long cycleCount) {
+  system("clear");
+  printf("CycleCount: %llu\n", cycleCount);
+  printf("PC:         0x%x\n", hypercontext->programCounter);
+  printf("SP:         0x%x\n", hypercontext->linkReg);
+  printf("LR:         0x%x\n", *(hypercontext->pS_GPR + (unsigned)1));
+  printf("Operation:  ");
+  returnOpcode(inst.packet.opcode);
+  printf("\n");
+
+  switch(inst.packet.addr) {
+  case 0: /* GPR */
+    printf("r%d = ", inst.packet.target);
+    break;
+  case 1: /* PR */
+    printf("b%d = ", inst.packet.target);
+    break;
+  case 2: /* LR */
+    printf("l%d = ", inst.packet.target);
+    break;
+  case 3: /* MEMORY */
+    printf("0x%x = ", inst.packet.target);
+    break;
+  case 4: /* NULL */
+    printf("NULL = ");
+    break;
+  default:
+    printf("UNKNOWN = ");
+    break;
+  }
+
+  printf("%d, %d, %d\n", inst.packet.source1, inst.packet.source2, inst.packet.source3);
+
+  printf("\n");
+
+  /* print out registers */
+  int i;
+  printf("\nRegisters: \n");
+  for(i=0;i<32;i++) {
+    printf("%02d: 0x%08x\t%02d: 0x%08x\n", i, *(hypercontext->S_GPR + (unsigned)i), (i+32), *(hypercontext->S_GPR + (unsigned)(i+32)));
+  }
+
+  /* print out branch registers */
+  printf("\nBranch Registers: \n");
+  for(i=0;i<4;i++) {
+    printf("%02d: 0x%x\t%02d: 0x%x\n", i, *(hypercontext->S_PR + (unsigned)i), (i+4), *(hypercontext->S_PR + (unsigned)(i+4)));
+  }
+
+  return;
 }
 
 void printOut(instruction inst, instructionPacket this, hyperContextT *hypercontext, unsigned long long cycleCount)
