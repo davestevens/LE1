@@ -1605,17 +1605,22 @@ sub print_instructions()
 		#print $operation . "\n";
 		foreach $key (%testing_calls) {
 		    if($operation =~ /$key/) {
-			printf(CALLS_LIST "%d %s ", ($address*4),$key);
-			my @registers = split(/,/, $testing_calls{$key});
-			for(my $regI=3;$regI<10;$regI++) {
-			    my $f = 0;
-			    foreach my $reg (@registers) {
-				if($reg =~ /r0\.$regI/) {
-				    $f = 1;
-				    last;
+			printf(CALLS_LIST "%d %s ", ($address*4),$operation);
+			if($testing_calls{$key} ne '') {
+			    my @registers = split(/,/, $testing_calls{$key});
+			    for(my $regI=3;$regI<10;$regI++) {
+				my $f = 0;
+				foreach my $reg (@registers) {
+				    if($reg =~ /r0\.$regI/) {
+					$f = 1;
+					last;
+				    }
 				}
+				printf(CALLS_LIST "%d ", $f);
 			    }
-			    printf(CALLS_LIST "%d ", $f);
+			}
+			else {
+			    printf(CALLS_LIST "1 1 1 1 1 1 1");
 			}
 			printf(CALLS_LIST "\n");
 			last;
