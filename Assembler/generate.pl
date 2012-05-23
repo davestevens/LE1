@@ -169,7 +169,7 @@ if(!$llvm) {
     }
 
 # the single file containing full program
-    $singleFile = $outputDir . '/' . $outputDir . '.temp.s';
+    $singleFile = $outputDir . '/' . $outputDir . '.le1.s';
     
     my $done = 0;
 REWIND:
@@ -188,7 +188,7 @@ REWIND:
     else {
 	# copy the current file to the new dir
 	mkdir $outputDir;
-	my $cmd = 'cp ' . $sfiles_new[0] . ' ' . $outputDir . '/' . $outputDir . '.temp.s';
+	my $cmd = 'cp -f ' . $sfiles_new[0] . ' ' . $outputDir . '/' . $outputDir . '.le1.s';
 	&command($cmd);
     }
 
@@ -199,7 +199,9 @@ REWIND:
     if($syscall) {
 	$cmd .= '-syscall=' . $le1_folder . '/Insizzle/inc/syscall_layout.h ';
     }
-    $cmd .= $singleFile . ' > ' . $singleFile . '.new.s';
+    $cmd .= $singleFile . ' > ' . $singleFile . '.temp';
+    &command($cmd);
+    $cmd = 'mv ' . $singleFile . '.temp ' . $singleFile;
     &command($cmd);
     
 # now to check imports
@@ -208,7 +210,7 @@ REWIND:
 	
 	&printHeader('Checking For Imports');
 	
-	open FILE, "< $singleFile" or die 'Could not open file: ' . $singleFile . '.new.s' . "\n";
+	open FILE, "< $singleFile" or die 'Could not open file: ' . $singleFile . "\n";
 	my $_import = 0;
 	my @required;
 	while( <FILE> ) {
@@ -284,7 +286,7 @@ REWIND:
 	}
     }
 
-    $singleFile .= '.new.s';
+    #$singleFile .= '.new.s';
 }
 else {
     &printHeader('Running LLVM transform');
@@ -301,9 +303,9 @@ else {
 	$tranFiles .= $sfile . '.tran ';
     }
     mkdir $outputDir;
-    my $cmd = $perl . ' ' . $llvmConcat . ' ' . $tranFiles . ' > ' . $outputDir . '/' . $outputDir . '.temp.s.new.s';
+    my $cmd = $perl . ' ' . $llvmConcat . ' ' . $tranFiles . ' > ' . $outputDir . '/' . $outputDir . '.le1.s';
     &command($cmd);
-    $singleFile = $outputDir . '/' . $outputDir . '.temp.s.new.s';
+    $singleFile = $outputDir . '/' . $outputDir . 'le1.s';
 }
 
 &printHeader('Running Second Pass');
@@ -327,7 +329,9 @@ if(!$keep) {
     # remove directories
     foreach my $toRemove (@sfiles_new) {
 	(my $dir, my $file) = split(/\//, $toRemove);
-	rmtree($dir) or warn 'Could not remove directory: ' . $dir . "\n";
+	if($dir ne $outputDir) {
+	    rmtree($dir) or warn 'Could not remove directory: ' . $dir . "\n";
+	}
     }
 }
 

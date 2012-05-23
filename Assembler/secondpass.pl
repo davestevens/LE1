@@ -88,19 +88,7 @@ else
 	    }
 	    &print_instructions($output_file_inst, $output_file_inst_readable, $output_header_file_inst);
 	    &print_data($output_file_data, $output_file_data_readable, $output_header_file_data, $output_data_le1_vars);
-
-	    # need a flat file of data labels and addresses
-	    open FILE, "> $output_file.datalabels" or die;
-	    foreach $key (sort sortdatalabel (keys(%Data_Label)))
-	    {
-		if($key ne "")
-		{
-		    print FILE "$key $Data_Label{$key}\n";
-		}
-	    }	    
-	    close FILE;
-
-	    print "Second Pass Completed\n$output_file_inst created & $output_file_data created\n";
+	    print "Second Pass Completed\n";
 	    exit(0);
 	}
 	else
