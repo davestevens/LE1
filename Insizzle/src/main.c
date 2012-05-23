@@ -398,12 +398,13 @@ int main(int argc, char *argv[])
 #ifdef NOSTALLS
 					hypercontext->stallCount += cB;
 #else
-					unsigned long long *bundleCount;
-					bundleCount = (unsigned long long *)((unsigned)hypercontext->bundleCount);
-					*bundleCount = *bundleCount + 1;
+					unsigned long long *bundleCountP;
+					bundleCountP = (unsigned long long *)((unsigned)hypercontext->bundleCount);
+					*bundleCountP = *bundleCountP + 1;
 
-					hypercontext->stalled += cB;
+					hypercontext->stalled += (cB-1);
 					hypercontext->cycleCount++;
+					hypercontext->stallCount++;
 					continue;
 #endif					
 				      }
