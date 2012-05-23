@@ -8,22 +8,21 @@ use strict;
 
 my $section = '';
 my $prev = '';
-my %supportedSTDIO;
+my %supportedSYSCALLS;
+my $inFile = '';
 
-$supportedSTDIO{'printf'} = 0;
-$supportedSTDIO{'fopen'} = 1;
-$supportedSTDIO{'fclose'} = 2;
-$supportedSTDIO{'fwrite'} = 3;
-$supportedSTDIO{'fread'} = 4;
-$supportedSTDIO{'fprintf'} = 5;
-$supportedSTDIO{'fseek'} = 6;
-$supportedSTDIO{'ftell'} = 7;
-$supportedSTDIO{'snprintf'} = 8;
-$supportedSTDIO{'clock'} = 9;
-$supportedSTDIO{'fscanf'} = 10;
-$supportedSTDIO{'fgetc'} = 11;
+foreach my $arg (@ARGV) {
+    if($arg =~ /-syscall=(.+)/) {
+	&populateSyscalls($1);
+    }
+    else {
+	$inFile = $arg;
+    }
+}
 
-while( <> ) {
+open FILE, "< $inFile" or die;
+my $entry;
+while( <FILE> ) {
     # different sections
     if(/^##\s*Operations/) {
 	print;
@@ -91,7 +90,7 @@ while( <> ) {
 		$ret =~ s/:[su]32//g;
 		$ret =~ s/\$//g;
 		if($type eq 'entry') {
-		    print '.' . $type . ' arg() ret()' . "\n";
+		    print '.' . $type . ' arg(' . $arg . ') ret()' . "\n";
 		}
 		else {
 		    print '.' . $type . ' arg(' . $arg . ') ret(' . $ret . ')' . "\n";
@@ -134,8 +133,8 @@ while( <> ) {
 # catch STDIO which is suported
 		if($op =~ /call/i) {
 		    $items =~ /FUNC\_(\w+)/;
-		    if(defined($supportedSTDIO{$1})) {
-			print 'syscall.0 ' . $supportedSTDIO{$1} . "\n";
+		    if(defined($supportedSYSCALLS{$1})) {
+			print 'syscall.0 ' . $supportedSYSCALLS{$1} . "\n";
 			next;
 		    }
 		}
@@ -273,4 +272,17 @@ while( <> ) {
     }
 }
 
+close FILE;
+
 exit(0);
+
+sub populateSyscalls {
+    open SYSCALL, "< $_[0]" or die "Could not open file: $_[0] ($!)\n";
+    while(<SYSCALL>) {
+	chomp();
+	if(/#define\s+(\w+)\s+(\d+)/) {
+	    $supportedSYSCALLS{lc($1)} = $2;
+	}
+    }
+    close SYSCALL;
+}

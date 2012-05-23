@@ -1603,6 +1603,7 @@ sub print_instructions()
 	    if(($type eq "CALL") && ($operation ne 'CALLTOLINKREG'))
 	    {
 		#print $operation . "\n";
+		#if(0) {
 		foreach $key (%testing_calls) {
 		    if($operation =~ /$key/) {
 			printf(CALLS_LIST "%d %s ", ($address*4),$operation);
@@ -1625,6 +1626,7 @@ sub print_instructions()
 			printf(CALLS_LIST "\n");
 			last;
 		    }
+		#}
 		}
 		if($operation !~ /\.call/)
 		{
@@ -1678,7 +1680,6 @@ sub print_instructions()
 	    elsif($type =~ /BRF?/)
 	    {
 		($label_temp, $clus_temp) = split(/ \^ /, $operation);
-		print $operation . "\n";
 		$syllable |= &twoscomp((($Inst_Label{$label_temp} - $test_address) * 4),16);
 		$syllable |= $clus_temp << 16;
 		$operation .= " " . $type;

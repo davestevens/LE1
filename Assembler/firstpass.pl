@@ -86,7 +86,7 @@ sub first_pass()
 		    {
 			$functions{"FUNC_$1"} = $#Instructions + 1;
 			$current = $1;
-			if($current =~ /main$/)
+			if($current =~ /^main$/)
 			{
 			    $where_we_were = $i;
 			    while($file[$i] !~ /\s*\#\# End/)
@@ -268,8 +268,9 @@ sub first_pass()
 			$comm_dec = hex($2);
 			push @comm, "$1:$comm_dec:$3";
 		    }
-                    elsif($file[$i] =~ /\.data(\d+) (\(+\w*\??(\w+\.*)+(\s*[+-]?\s*\d*\))+)/)
+                    elsif($file[$i] =~ /\.data(\d+) (\(+\w*\??(\w+\.*)+(\s*[+-]?\s*\d*\))+)(:(\d+))?/)
                     {
+			$temp_padding = $6;
 			$temp_link_size = $1;
                         $tot = &check_total($tot);
 			$temp_link = $2;
@@ -284,6 +285,13 @@ sub first_pass()
 			}
                         $tot += $temp_link_size;
                         $tot = &check_total($tot);
+			if($temp_padding) {
+			    for(my $_i=1;$_i<$temp_padding;$_i++) {
+				$data_line = "00000000";
+				$tot += 4;
+				$tot = &check_total($tot);
+			    }
+			}
                     }
 		    elsif($file[$i] =~ /\.data(\d+) \((~?)0x(\w+)\)/)
 		    {
@@ -315,9 +323,7 @@ sub first_pass()
 		    }
 		    elsif($file[$i] =~ /\.real(\d+) 0x(\w+)/)
 		    {
-			print 'before: ' . $tot . "($data_start)\n";
 			$tot = &check_total($tot);
-			print 'after: ' . $tot . "($data_start)\n";
 			$inter = $2;
 			$size_of = $1;
 			if($size_of == 4)
@@ -444,7 +450,7 @@ sub first_pass()
 	{
 	    $functions{"FUNC_$1"} = $#Instructions + 1;
 	    $current = $1;
-	    if($current =~ /main$/)
+	    if($current =~ /^main$/)
 	    {
 		$where_we_were = $i;
 		$i++;

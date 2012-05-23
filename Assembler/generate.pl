@@ -10,7 +10,7 @@ use File::Path;
 require 'filepaths.pl';
 
 my ($debug, $keep, $sSize, $dramSize, $falconMLHack, $skip, $outputDir, $memAlign, $fmm, $xmlMM, $mallocSize, $dramBaseOffset, $inputDir, $softfloat, $llvm);
-our ($le1_folder, $assembler_folder, $perl, $xml_to_mm, $falconml_hack, $vex_location, $firstpass, $midpass, $transform, $pullin, $deps, $libraries, $secondpass, $opcodes, $floatlib, $llvmTrans, $llvmConcat);
+our ($le1_folder, $assembler_folder, $perl, $xml_to_mm, $falconml_hack, $vex_location, $firstpass, $midpass, $transform, $pullin, $deps, $libraries, $secondpass, $opcodes, $floatlib, $llvmTrans, $llvmConcat, $syscall);
 my $arguments = '';
 
 # read in command line arguments
@@ -195,7 +195,11 @@ REWIND:
 # transform the current file into new format
     &printHeader('Transforming Assembly File');
     
-    my $cmd = $perl . ' ' . $transform . ' ' . $singleFile . ' > ' . $singleFile . '.new.s';
+    my $cmd = $perl . ' ' . $transform . ' ';
+    if($syscall) {
+	$cmd .= '-syscall=' . $le1_folder . '/Insizzle/inc/syscall_layout.h ';
+    }
+    $cmd .= $singleFile . ' > ' . $singleFile . '.new.s';
     &command($cmd);
     
 # now to check imports
@@ -351,6 +355,7 @@ sub readArgs {
     $arguments = ''; # argument string to pass to compiler
     $softfloat = 0; # used for including extra library
     $llvm = 0; # flag for assembly from llvm
+    $syscall = 0; # replace certain functions with syscalls
 
     foreach my $arg (@args) {
 	if($arg eq '-d')                      { $debug = 1; }
@@ -370,6 +375,7 @@ sub readArgs {
 	elsif($arg eq '-pthread')             { $arguments .= ' -I' . $le1_folder . '/' . $assembler_folder . '/includes/libraries/pthread/' ;}
 	# macro for getCPUID function
 	elsif($arg eq '-cpuid')               { $arguments .= ' -DgetCPUID\(x\)=_asm1\(0x0,x\) '; }
+	elsif($arg eq '-syscall')             { $syscall = 1; }
 	elsif($arg =~ /-D(.+)=(.+)/)          { $arguments .= ' ' . $arg . ' '; }
 	elsif($arg =~ /-h(elp)?/)             { &help; }
 	# any other flag sent
