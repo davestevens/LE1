@@ -169,7 +169,7 @@ if(!$llvm) {
     }
 
 # the single file containing full program
-    $singleFile = $outputDir . '/' . $outputDir . '.le1.s';
+    $singleFile = $outputDir . '/' . $outputDir;
     
     my $done = 0;
 REWIND:
@@ -187,9 +187,11 @@ REWIND:
     }
     else {
 	# copy the current file to the new dir
-	mkdir $outputDir;
-	my $cmd = 'cp -f ' . $sfiles_new[0] . ' ' . $outputDir . '/' . $outputDir . '.le1.s';
-	&command($cmd);
+	if($outputDir . '/' . $outputDir . '.temp.s' ne $sfiles_new[0]) {
+	    mkdir $outputDir;
+	    my $cmd = 'cp -f ' . $sfiles_new[0] . ' ' . $outputDir . '/' . $outputDir . '.temp.s';
+	    &command($cmd);
+	}
     }
 
 # transform the current file into new format
@@ -199,9 +201,7 @@ REWIND:
     if($syscall) {
 	$cmd .= '-syscall=' . $le1_folder . '/Insizzle/inc/syscall_layout.h ';
     }
-    $cmd .= $singleFile . ' > ' . $singleFile . '.temp';
-    &command($cmd);
-    $cmd = 'mv ' . $singleFile . '.temp ' . $singleFile;
+    $cmd .= $singleFile . '.temp.s > ' . $singleFile . '.le1.s';
     &command($cmd);
     
 # now to check imports
@@ -210,7 +210,7 @@ REWIND:
 	
 	&printHeader('Checking For Imports');
 	
-	open FILE, "< $singleFile" or die 'Could not open file: ' . $singleFile . "\n";
+	open FILE, "< $singleFile.le1.s" or die 'Could not open file: ' . $singleFile . '.le1.s' . "\n";
 	my $_import = 0;
 	my @required;
 	while( <FILE> ) {
@@ -285,8 +285,6 @@ REWIND:
 	    goto REWIND;
 	}
     }
-
-    #$singleFile .= '.new.s';
 }
 else {
     &printHeader('Running LLVM transform');
@@ -305,11 +303,11 @@ else {
     mkdir $outputDir;
     my $cmd = $perl . ' ' . $llvmConcat . ' ' . $tranFiles . ' > ' . $outputDir . '/' . $outputDir . '.le1.s';
     &command($cmd);
-    $singleFile = $outputDir . '/' . $outputDir . 'le1.s';
+    $singleFile = $outputDir . '/' . $outputDir;
 }
 
 &printHeader('Running Second Pass');
-my $cmd = $perl . ' ' . $secondpass . ' -d=0 ' . $singleFile . ' -OPC=' . $opcodes . ' -dram=' . sprintf("0x%x ", $dramSize) . ' -s=' . sprintf("0x%x", $sSize) . ' ';
+my $cmd = $perl . ' ' . $secondpass . ' -d=0 ' . $singleFile . '.le1.s -OPC=' . $opcodes . ' -dram=' . sprintf("0x%x ", $dramSize) . ' -s=' . sprintf("0x%x", $sSize) . ' ';
 if($memAlign) {
     $cmd .= '-mem_align ';
 }
