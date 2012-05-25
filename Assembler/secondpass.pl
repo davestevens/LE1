@@ -661,7 +661,7 @@ sub operation()
 	    $syllable |= 1 << 6;
 	}
     }
-    if(($layout eq "oL") || ($layout eq "Lo") || ($layout eq "OL") || ($layout eq "LO") || ($layout eq "aL") || ($layout eq "La"))
+    if(($layout eq "oL") || ($layout eq "Lo") || ($layout eq "OL") || ($layout eq "LO") || ($layout eq "aL") || ($layout eq "La") || ($layout eq "LA") || ($layout eq "AL"))
     {
 	$layout =~ s/o/O/;
 	$layout =~ s/a/A/;
