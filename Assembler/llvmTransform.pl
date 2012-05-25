@@ -99,7 +99,7 @@ for(my $j=0;$j<=$#oper;$j++) {
 # need to move main to the top of the file
 if($mainStart != 0) {
     # remove main function
-    my @mainFunc = splice(@oper, $mainStart, ($mainEnd - $mainStart)+1);
+    my @mainFunc = splice(@oper, $mainStart, ($mainEnd - $mainStart));
     # put in at top of operations array
     splice(@oper, 0, 0, @mainFunc);
 }
