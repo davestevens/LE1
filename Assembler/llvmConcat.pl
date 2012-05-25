@@ -84,7 +84,10 @@ foreach my $op (@operations) {
     $op .= "\n";
     if($op !~ /^--/) {
 	while(my ($key, $value) = each(%instLabels)) {
-	    $op =~ s/(\W+)$key(\W+)/$1$value$2/g;
+	    # check if its not a static variable
+	    if($op !~ /\W+$key\.(\w+)/) { # test this
+		$op =~ s/(\W+)$key(\W+)/$1$value$2/g;
+	    }
 	}
     }
     print $op;
