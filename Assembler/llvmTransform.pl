@@ -111,7 +111,7 @@ my $currentAddr = 0;
 my %lookup;
 
 for($i=$i-1;$i<=$#inFile;$i++) {
-    if($inFile[$i] =~ /\.type\s+(\.?\w+),\@object/) {
+    if($inFile[$i] =~ /\.type\s+((\.?\w+)+),\@object/) {
 	my $varname = $1;
 	$lookup{$varname} = $currentAddr;
 	my $found = 0;
