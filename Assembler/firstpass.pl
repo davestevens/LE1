@@ -279,6 +279,7 @@ sub first_pass()
 			$temp_link =~ s/^\(//g;
 			$temp_link =~ s/\)$//g;
                         $data_line = $temp_link;
+			my $temp_data_line = $data_line;
 			if($temp_link =~ /TAG/)
 			{
 			    $data_line = "LABEL: $data_line";
@@ -287,7 +288,12 @@ sub first_pass()
                         $tot = &check_total($tot);
 			if($temp_padding) {
 			    for(my $_i=1;$_i<$temp_padding;$_i++) {
-				$data_line = "00000000";
+				if($temp_data_line =~ /TAG/) {
+				    $data_line = "LABEL: $temp_data_line";
+				}
+				else {
+				    $data_line = "00000000";
+				}
 				$tot += 4;
 				$tot = &check_total($tot);
 			    }
