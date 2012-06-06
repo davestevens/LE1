@@ -8,6 +8,8 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#define OUT stderr
+
 void syscall(unsigned *S_GPR, unsigned dram, unsigned call, unsigned long long cycleCount) {
   switch(call) {
     /* All assume registers are availabe in current
@@ -30,7 +32,7 @@ void syscall(unsigned *S_GPR, unsigned dram, unsigned call, unsigned long long c
       else {
 	do {
 	  if(_test->string != NULL)
-	    printf("%s", _test->string);
+	    fprintf(OUT, "%s", _test->string);
 			      
 	  if(_test->match != NULL) {
 	    switch(*(char *)((unsigned)_test->match + strlen(_test->match) - 1)) {
@@ -38,8 +40,10 @@ void syscall(unsigned *S_GPR, unsigned dram, unsigned call, unsigned long long c
 	    case 'S':
 	      {
 		char str[256] = {'\0'};
+		/* TODO: need to check that this is within memory */
+		/* causing segfault because string is within the register :S */
 		getString(&str[0], 256, *(S_GPR + _count++) + dram);
-		printf(_test->match, str);
+		fprintf(OUT, _test->match, str);
 	      }
 	    break;
 	    case 'f':
@@ -51,7 +55,7 @@ void syscall(unsigned *S_GPR, unsigned dram, unsigned call, unsigned long long c
 		int *dP = (int *)&d;
 		*(dP+1) = *(S_GPR + _count++);
 		*dP = *(S_GPR + _count++);
-		printf(_test->match, d);
+		fprintf(OUT, _test->match, d);
 	      }
 	    break;
 	    default:
@@ -72,13 +76,13 @@ void syscall(unsigned *S_GPR, unsigned dram, unsigned call, unsigned long long c
 		  printf(_test->match, ntohl(temp));
 		}
 #endif
-		printf(_test->match, *(S_GPR + _count++));
+		fprintf(OUT, _test->match, *(S_GPR + _count++));
 	      }
 	      break;
 	    }
 	  }
 	  if(_count > 10) {
-	    printf("*** Limit of Insizzle printf ***\n");
+	    fprintf(OUT, "*** Limit of Insizzle printf ***\n");
 	    break;
 	  }
 	} while((_test = _test->next) != NULL);
@@ -285,6 +289,7 @@ void syscall(unsigned *S_GPR, unsigned dram, unsigned call, unsigned long long c
       split_t *_test;
       split_t *_temp;
       int _count = 5; /* arguments start from register 4 */
+      int ret = 0;
 
       _test = pcre_split("%[\\+#-]?(\\d+|\\*)?\\.?\\d*([hlLzjt]|[hl]{2})?([csuxXfFeEpgGdionz])",format);
       _temp = _test;
@@ -305,7 +310,7 @@ void syscall(unsigned *S_GPR, unsigned dram, unsigned call, unsigned long long c
 	    case 'S':
 	      {
 		char str[256] = {'\0'};
-		fscanf(stream, _str, str);
+		ret += fscanf(stream, _str, str);
 		endianSwapLittle2Big((char *)*(S_GPR + _count++) + dram, 1, strlen(str), str);
 	      }
 	    break;
@@ -316,7 +321,7 @@ void syscall(unsigned *S_GPR, unsigned dram, unsigned call, unsigned long long c
 		case 'l':
 		  {
 		    double d;
-		    fscanf(stream, _str, &d);
+		    ret += fscanf(stream, _str, &d);
 		    int *dP = (int *)&d;
 		    *(unsigned *)(*(S_GPR + _count) + dram) = *dP;
 		    *(unsigned *)(*(S_GPR + _count++) + dram) = *(dP+1);
@@ -325,7 +330,7 @@ void syscall(unsigned *S_GPR, unsigned dram, unsigned call, unsigned long long c
 		default:
 		  {
 		    float d;
-		    fscanf(stream, _str, &d);
+		    ret += fscanf(stream, _str, &d);
 		    int *dP = (int *)&d;
 		    *(unsigned *)(*(S_GPR + _count++) + dram) = *dP;
 		  }
@@ -334,7 +339,9 @@ void syscall(unsigned *S_GPR, unsigned dram, unsigned call, unsigned long long c
 	      }
 	    break;
 	    default:
-	      fscanf(stream, _str, (unsigned *)(*(S_GPR + _count++) + dram));
+	      {
+		ret += fscanf(stream, _str, (unsigned *)(*(S_GPR + _count++) + dram));
+	      }
 	      break;
 	    }
 	    _str[0] = '\0';
@@ -348,6 +355,8 @@ void syscall(unsigned *S_GPR, unsigned dram, unsigned call, unsigned long long c
 			  
       /* TODO: fix this */
       /*pcre_split_free(_temp);*/
+
+      *(S_GPR + 3) = (unsigned)ret;
     }
     break;
   case FGETC:
@@ -631,11 +640,32 @@ void syscall(unsigned *S_GPR, unsigned dram, unsigned call, unsigned long long c
     /* r3 = fstat(r3, r4) */
     {
       int fd = (int)*(S_GPR + 3);
-      struct stat *buf = (struct stat*)(*(S_GPR + 4) + dram);
+      /*struct stat *buf = (struct stat*)(*(S_GPR + 4) + dram);*/
+      unsigned *buf = (unsigned *)(*(S_GPR + 4) + dram);
 
       /* this will require an endian flip of some kind :S */
-      int ret = fstat(fd, buf);
+      struct stat bufLittle;
 
+      /* the struct elements and offset used in VEX
+	 st_dev   : 0x0
+	 st_ino   : 0x4 
+	 st_mode  : 0x8
+	 st_nlink : 0xc
+	 st_uid   : 0x10
+	 st_gid   : 0x14
+	 st_rdev  : 0x18
+	 st_size  : 0x1c
+      */
+      int ret = fstat(fd, &bufLittle);
+      *(buf + 0) = bufLittle.st_dev;
+      *(buf + 1) = bufLittle.st_ino;
+      *(buf + 2) = bufLittle.st_mode;
+      *(buf + 3) = bufLittle.st_nlink;
+      *(buf + 4) = bufLittle.st_uid;
+      *(buf + 5) = bufLittle.st_gid;
+      *(buf + 6) = bufLittle.st_rdev;
+      *(buf + 7) = bufLittle.st_size;
+      
       *(S_GPR + 3) = (unsigned)ret;
     }
     break;
