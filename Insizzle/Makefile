@@ -25,7 +25,7 @@ TARGETAPI = INSIZZLEAPI
 REV_PERL = `perl scripts/revision.pl ${TARGET} ${TARGET}`
 
 debug:		CFLAGS += -g
-release:	CFLAGS += -O3
+release:	CFLAGS += -O3 -fno-strict-aliasing
 mbMem:		CFLAGS += -DmicroblazeMemDump
 API:		CFLAGS += -DAPI
 NOSTALLS:	CFLAGS += -DNOSTALLS
