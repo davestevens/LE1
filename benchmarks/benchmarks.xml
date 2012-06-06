@@ -1,0 +1,155 @@
+<benchmarks>
+  <single_thread>
+    <dir name="mibench">
+      <dir name="consumer">
+	<dir name="jpeg">
+	  <dir name="jpeg_enc" fileio="true" assembler="-syscall -DNO_GETENV -MALLOC_SIZE=40000" insizzle="" />
+	  <dir name="jpeg_dec" fileio="true" assembler="-syscall -DNO_GETENV -MALLOC_SIZE=40000" insizzle="" />
+	</dir>
+      </dir>
+      <dir name="network">
+	<dir name="dijkstra">
+	  <dir name="dijkstra_large" stdio="true" assembler="-syscall -MALLOC_SIZE=1000" />
+	  <dir name="dijkstra_small" stdio="true" assembler="-syscall -MALLOC_SIZE=1000" />
+	</dir>
+      </dir>
+      <dir name="office">
+	<dir name="stringsearch">
+	  <dir name="stringsearch_large" stdio="true" assembler="-syscall" />
+	  <dir name="stringsearch_small" stdio="true" assembler="-syscall" />
+	</dir>
+      </dir>
+      <dir name="security">
+	<dir name="sha">
+	  <dir name="sha_large" stdio="true" assembler="-syscall" />
+	  <dir name="sha_small" stdio="true" assembler="-syscall" />
+	</dir>
+      </dir>
+      <dir name="telecom">
+	<dir name="adpcm">
+	  <dir name="encode" stdio="true" fileio="true" assembler="-syscall" />
+	  <dir name="decode" stdio="true" fileio="true" assembler="-syscall" />
+	</dir>
+	<dir name="crc32" stdio="true" assembler="-syscall" />
+	<dir name="fft" stdio="true" assembler="-syscall -MALLOC_SIZE=40000" />
+      </dir>
+    </dir>
+      <dir name="trimaran">
+      <dir name="integer_bench">
+	<dir name="bitcount_int" stdio="true" assembler="-syscall" />
+	<dir name="cjpeg_int" fileio="true" assembler="-syscall -DNO_GETENV -MALLOC_SIZE=40000" />
+	<dir name="djpeg_int" fileio="true" assembler="-syscall -DNO_GETENV -MALLOC_SIZE=40000" />
+      </dir>
+      <dir name="simple">
+	<dir name="bmm" stdio="true" assembler="-syscall" />
+	<dir name="dag" stdio="true" assembler="-syscall" />
+	<dir name="eight" stdio="true" assembler="-syscall" />
+	<dir name="fact2" stdio="true" assembler="-syscall" />
+	<dir name="fft" stdio="true" assembler="-syscall -MALLOC_SIZE=40000" />
+	<dir name="fib">
+	  <dir name="fib" stdio="true" assembler="-syscall" />
+	  <dir name="fib_mem" stdio="true" assembler="-syscall" />
+	  <dir name="fib_rec" stdio="true" assembler="-syscall" />
+	</dir>
+	<dir name="fir">
+	  <dir name="fir" stdio="true" assembler="-syscall" />
+	  <dir name="fir_int" stdio="true" assembler="-syscall" />
+	</dir>
+	<dir name="hyper" stdio="true" assembler="-syscall" />
+	<dir name="ifthen" stdio="true" assembler="-syscall" />
+	<dir name="local_var_test" stdio="true" assembler="-syscall" />
+	<dir name="mm">
+	  <dir name="mm" stdio="true" assembler="-syscall" />
+	  <dir name="mm_double" stdio="true" assembler="-syscall" />
+	  <dir name="mm_dyn" stdio="true" assembler="-syscall -MALLOC_SIZE=1000" />
+	  <dir name="mm_int" stdio="true" assembler="-syscall" />
+	</dir>
+	<dir name="nested" stdio="true" assembler="-syscall" />
+	<dir name="nested_complex" stdio="true" assembler="-syscall" />
+	<dir name="paraffins" stdio="true" assembler="-syscall -MALLOC_SIZE=500000" />
+	<dir name="parms_test" stdio="true" assembler="-syscall" />
+	<dir name="parms_test2" stdio="true" assembler="-syscall" />
+	<dir name="sqrt" stdio="true" assembler="-syscall" />
+	<dir name="strcpy" stdio="true" assembler="-syscall" />
+	<dir name="struct_test" stdio="true" assembler="-syscall" />
+	<dir name="switch_test" stdio="true" assembler="-syscall" />
+	<dir name="type_test" stdio="true" assembler="-syscall" />
+	<dir name="wave" stdio="true" assembler="-syscall" />
+      </dir>
+    </dir>
+      <dir name="legup">
+      <dir name="array" stdio="true" assembler="-syscall" />
+      <dir name="dhrystone" stdio="true" assembler="-syscall">
+	<file name="dhry.c" />
+      </dir>
+      <dir name="div_const" stdio="true" assembler="-syscall" />
+      <dir name="fft" stdio="true" assembler="-syscall">
+	<file name="fft.c" />
+      </dir>
+      <dir name="fir" stdio="true" assembler="-syscall" />
+      <dir name="function_pointer" stdio="true" assembler="-syscall" />
+      <dir name="functions" stdio="true" assembler="-syscall" />
+      <dir name="hierarchy_test" stdio="true" assembler="-syscall" />
+      <dir name="llist" stdio="true" assembler="-syscall" />
+      <dir name="loadstore" stdio="true" assembler="-syscall" />
+      <dir name="loop" stdio="true" assembler="-syscall" />
+      <dir name="loopbug" stdio="true" assembler="-syscall" />
+      <dir name="memory_access_test" stdio="true" assembler="-syscall" />
+      <dir name="memset" stdio="true" assembler="-syscall" />
+      <dir name="phi" stdio="true" assembler="-syscall" />
+      <dir name="select" stdio="true" assembler="-syscall" />
+      <dir name="shift" stdio="true" assembler="-syscall" />
+      <dir name="signeddiv" stdio="true" assembler="-syscall" />
+      <dir name="simplestruct" stdio="true" assembler="-syscall" />
+      <dir name="sra" stdio="true" assembler="-syscall" />
+      <dir name="struct" stdio="true" assembler="-syscall" />
+      <dir name="switches" stdio="true" assembler="-syscall" />
+      <dir name="tiger">
+	<dir name="sra" stdio="true" assembler="-syscall" />
+      </dir>
+      <dir name="unaligned" stdio="true" assembler="-syscall" />
+      <dir name="malloc" stdio="true" assembler="-syscall" />
+      <dir name="ogg" stdio="true" assembler="-syscall" />
+      <dir name="chstone">
+	<dir name="adpcm" stdio="true" assembler="-syscall" />
+	<dir name="aes" stdio="true" assembler="-syscall" >
+	  <file name="aes.c" />
+	</dir>
+	<dir name="blowfish" stdio="true" assembler="-syscall" >
+	  <file name="bf.c" />
+	</dir>
+	<dir name="gsm" stdio="true" assembler="-syscall" >
+	  <file name="gsm.c" />
+	</dir>
+	<dir name="mips" stdio="true" assembler="-syscall" >
+	  <file name="mips.c" />
+	</dir>
+	<dir name="sha" stdio="true" assembler="-syscall" >
+	  <file name="sha_driver.c" />
+	</dir>
+	<dir name="jpeg" stdio="true" assembler="-syscall" >
+	  <file name="main.c" />
+	</dir>
+      </dir>
+    </dir>
+  </single_thread>
+  <coremark>
+    <dir name="coremark">
+      <dir name="coremark_v1_0_PERFORMANCE" stdio="true" assembler="-syscall -DPERFORMANCE_RUN=1" />
+      <dir name="coremark_v1_0_PROFILE" stdio="true" assembler="-syscall -DPROFILE_RUN=1" />
+      <dir name="coremark_v1_0_VALIDATION" stdio="true" assembler="-syscall -DVALIDATION_RUN=1" />
+    </dir>
+  </coremark>
+  <pthread>
+    <dir name="pthread">
+      <dir name="coremark">
+	<dir name="3core" stdio="true" assembler="-syscall -pthread -DPERFORMANCE_RUN=1 -DMULTITHREAD=2 -DUSE_PTHREAD=1" insizzle="-similarIRAM" />
+	<dir name="4core" stdio="true" assembler="-syscall -pthread -DPERFORMANCE_RUN=1 -DMULTITHREAD=3 -DUSE_PTHREAD=1" insizzle="-similarIRAM" />
+      </dir>
+      <dir name="mandelbrot">
+	<dir name="2core" memcheck="true" assembler="-pthread -DNUM_THREADS=2" insizzle="-similarIRAM" />
+	<dir name="4core" memcheck="true" assembler="-pthread -DNUM_THREADS=4" insizzle="-similarIRAM" />
+      </dir>
+    </dir>
+  </pthread>
+</benchmarks>

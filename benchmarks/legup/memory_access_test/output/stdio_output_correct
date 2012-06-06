@@ -1,0 +1,39 @@
+
+All results should equal 136
+Writing sum to local memory
+local + local + local + local = 136
+local + local + local + global = 136
+local + local + global + local = 136
+local + local + global + global = 136
+local + global + local + local = 136
+local + global + local + global = 136
+local + global + global + local = 136
+local + global + global + global = 136
+global + local + local + local = 136
+global + local + local + global = 136
+global + local + global + local = 136
+global + local + global + global = 136
+global + global + local + local = 136
+global + global + local + global = 136
+global + global + global + local = 136
+global + global + global + global = 136
+
+Writing sum to global memory
+local + local + local + local = 136
+local + local + local + global = 136
+local + local + global + local = 136
+local + local + global + global = 136
+local + global + local + local = 136
+local + global + local + global = 136
+local + global + global + local = 136
+local + global + global + global = 136
+global + local + local + local = 136
+global + local + local + global = 136
+global + local + global + local = 136
+global + local + global + global = 136
+global + global + local + local = 136
+global + global + local + global = 136
+global + global + global + local = 136
+global + global + global + global = 136
+Result: 32
+RESULT: PASS

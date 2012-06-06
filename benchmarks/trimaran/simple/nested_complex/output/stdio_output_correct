@@ -1,0 +1,31 @@
+<check a>          6672
+<check b>          7104.000000
+<check c>          6598.000000
+(accum_mask)       6672
+(accum_or)         7448
+(accum_and)        5574
+init_flt: [0], v 2.853117, lv 2.593743, a 29.516903*** Limit of Insizzle printf ***
+init_flt: [1], v 7.400250, lv 6.727500, a 108.434105*** Limit of Insizzle printf ***
+init_flt: [2], v 19.194345, lv 17.449406, a 313.124969*** Limit of Insizzle printf ***
+init_flt: [3], v 49.785187, lv 45.259262, a 844.040527*** Limit of Insizzle printf ***
+init_flt: [4], v 129.129944, lv 117.390862, a 2221.098633*** Limit of Insizzle printf ***
+init_flt: [5], v 334.929810, lv 304.481659, a 5792.832520*** Limit of Insizzle printf ***
+init_flt: [6], v 868.721741, lv 789.747009, a 15056.989258*** Limit of Insizzle printf ***
+init_flt: [7], v 2253.240723, lv 2048.400635, a 39085.828125*** Limit of Insizzle printf ***
+init_flt: [8], v 5844.325684, lv 5313.023438, a 101410.445312*** Limit of Insizzle printf ***
+init_flt: [9], v 15158.676758, lv 13780.615234, a 263064.468750*** Limit of Insizzle printf ***
+(init_flt)         263064.468750
+<check b>          269316.468750
+(init_dbl)         263064.417397
+<check c>          268846.417397
+(init_mixfltdbl)   263064.406250
+<check c>          268846.416418
+(break_before)     893
+(break_after)      894
+(hand_no_unroll)   34731946
+(hand_unroll)      34731946
+(var_not_live_in)  9855205
+(var_not_live_in2) 1799
+(omega_init)       19900
+(omega_check1)     20296
+(omega_check2)     500

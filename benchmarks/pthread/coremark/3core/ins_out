@@ -1,0 +1,91 @@
+Insizzle (ebfdd23)
+PID: 15824
+(send SIGUSR1 signal to produce state dump)
+homogeneous system
+Galaxy setup completed.
+Please specify the location of the dram binary for system 0
+> file: binaries/dram.bin
+	Size of binaries/dram.bin is 0xa78
+	required size is: 262144 bytes
+LOADING BINARY
+Please specify the location of the iram binary for system 0, context 0
+> file: binaries/iram0.bin
+	Size of binaries/iram0.bin is 0xacf4
+	required size is: 262144 bytes
+LOADING BINARY
+Please specify the location of the iram binary for system 0, context 1
+> file: binaries/iram0.bin
+	Size of binaries/iram0.bin is 0xacf4
+	required size is: 262144 bytes
+LOADING BINARY
+Please specify the location of the iram binary for system 0, context 2
+> file: binaries/iram0.bin
+	Size of binaries/iram0.bin is 0xacf4
+	required size is: 262144 bytes
+LOADING BINARY
+Using Stack Size / hypercontext of 8 KiB
+HALT operation received from [0][0][0] at cycle 289550850
+Start Time: 1338984629
+End Time: 1338985009
+Total Time: 380 (seconds)
+performance statistics
+	galaxy:         0
+	system:         0
+	context:        0
+	hypercontext: 0
+	Cycle breakdown
+		cycleCount:       289550851
+		stallCount:       289498039
+		nopCount:         22066
+		idleCount:        0
+			[0] = 19833
+			[1] = 39588
+			[2] = 8476
+			[3] = 2016
+			[4] = 2732
+		decodeStallCount: 4981
+		branchTaken:      1070
+		branchNotTaken:   3465
+		controlFlowChange:4948
+		memoryAccessCount:8
+performance statistics
+	galaxy:         0
+	system:         0
+	context:        1
+	hypercontext: 0
+	Cycle breakdown
+		cycleCount:       286659253
+		stallCount:       92546719
+		nopCount:         89273411
+		idleCount:        2891598
+			[0] = 92546719
+			[1] = 143341133
+			[2] = 31282855
+			[3] = 11689746
+			[4] = 7798800
+		decodeStallCount: 22979146
+		branchTaken:      6554648
+		branchNotTaken:   13942528
+		controlFlowChange:22653000
+		memoryAccessCount:1608576
+performance statistics
+	galaxy:         0
+	system:         0
+	context:        2
+	hypercontext: 0
+	Cycle breakdown
+		cycleCount:       289478319
+		stallCount:       95365785
+		nopCount:         89273411
+		idleCount:        72532
+			[0] = 95365785
+			[1] = 143341133
+			[2] = 31282855
+			[3] = 11689746
+			[4] = 7798800
+		decodeStallCount: 22979146
+		branchTaken:      6554648
+		branchNotTaken:   13942528
+		controlFlowChange:22653000
+		memoryAccessCount:4427642
+filename: memoryDump_0.dat

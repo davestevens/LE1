@@ -1,0 +1,39 @@
+a=3 b=00000d14 c=00000d14 d=00000d14
+b1=4 b2=5 b3=6 b4=7
+e1=37 e1_ptr=0
+a=7 b=00000007 c=00000000 d=00000000
+b1=7 b2=7 b3=7 b4=7
+e1=7 e1_ptr=7
+char2 = 2
+short2 = 2
+int2 = 2
+long2 = 2
+float2 = 2.000000
+double2 = 2.000000
+pointer2 = 2
+unsigned char4 = 4
+unsigned short4 = 4
+unsigned int4 = 4
+unsigned long4 = 4
+unsigned pointer4 = 4
+char_array2[1] = 2
+short_array2[1] = 2
+int_array2[1] = 2
+long_array2[1] = 2
+float_array2[1] = 2.000000
+double_array2[1] = 2.000000
+pointer_array2[1] = 2
+pointer_array2[4] = string_test2
+char_array3 = 'test string'
+struct1[1].b = 98
+struct1[1].f = 2.100000
+struct1[1].d = 2.200000
+struct2[0].b = 99
+struct2[0].f = 3.100000
+struct2[0].d = 0.000000
+struct2[1].b = 100
+struct2[1].f = 4.100000
+struct2[1].d = 4.200000
+struct2[2].b = 101
+struct2[2].f = 0.000000
+struct2[2].d = 0.000000

@@ -1,0 +1,40 @@
+Insizzle (ebfdd23)
+PID: 13155
+(send SIGUSR1 signal to produce state dump)
+Galaxy setup completed.
+Please specify the location of the dram binary for system 0
+> file: binaries/dram.bin
+	Size of binaries/dram.bin is 0xc1c
+	required size is: 262144 bytes
+LOADING BINARY
+Please specify the location of the iram binary for system 0, context 0
+> file: binaries/iram0.bin
+	Size of binaries/iram0.bin is 0x660
+	required size is: 262144 bytes
+LOADING BINARY
+Using Stack Size / hypercontext of 8 KiB
+HALT operation received from [0][0][0] at cycle 42471282
+Start Time: 1338983236
+End Time: 1338983257
+Total Time: 21 (seconds)
+performance statistics
+	galaxy:         0
+	system:         0
+	context:        0
+	hypercontext: 0
+	Cycle breakdown
+		cycleCount:       42471283
+		stallCount:       7544576
+		nopCount:         15061653
+		idleCount:        0
+			[0] = 7544576
+			[1] = 27388321
+			[2] = 4111416
+			[3] = 686493
+			[4] = 2740477
+		decodeStallCount: 5480954
+		branchTaken:      690
+		branchNotTaken:   685129
+		controlFlowChange:687874
+		memoryAccessCount:0
+filename: memoryDump_0.dat

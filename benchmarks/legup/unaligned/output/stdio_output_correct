@@ -1,0 +1,9 @@
+Two integers: aabbccdd eeff0011
+Byte 0: aabbccdd
+Byte 1: 11aabbcc
+Byte 2: 11aabb
+Byte 3: ff0011aa
+Byte 4: eeff0011
+Byte 5: eeff00
+Byte 6: eeff
+Byte 7: ee

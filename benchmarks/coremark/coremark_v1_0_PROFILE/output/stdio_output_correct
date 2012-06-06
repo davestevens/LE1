@@ -1,0 +1,15 @@
+CoreMark Size    : 666
+Total ticks      : 255276581
+Total time (secs): 10.211063
+Iterations/Sec   : 29.379898
+Iterations       : 300
+Compiler version : Please put compiler version here (e.g. gcc 4.1)
+Compiler flags   : TODO
+Memory location  : Please put data memory location here
+			(e.g. code in flash, data on heap etc)
+seedcrc          : 0xefe9
+[0]crclist       : 0x46c6
+[0]crcmatrix     : 0x0fe9
+[0]crcstate      : 0x657b
+[0]crcfinal      : 0xe258
+Cannot validate operation for these seed values, please compare with results on a known platform.

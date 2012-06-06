@@ -1,0 +1,10 @@
+added main_test
+removed fprintf(stderr,
+
+gcc *.c -lm
+./a.out > gcc_out
+
+perl generate.pl ../trimaran_bench/simple/fft/src/ -d -syscall -MALLOC_SIZE=40000
+../../../../Insizzle/INSIZZLE machinemodel/model.xml > ins_out
+
+output matches

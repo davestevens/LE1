@@ -1,0 +1,79 @@
+3+1: 'parm2' 'parm3' 'parm4'
+4+1: 'parm2' 'parm3' 'parm4' 'parm5'
+5+1: 'parm2' 'parm3' 'parm4' 'parm5' 'parm6'
+In printca5:
+5+1: 'parm2' 'parm3' 'parm4' 'parm5' 'parm6'
+In printc5:
+5+1: 'a' 'b' 'c' 'd' 'c'
+In printc5:
+5+1+: 'a' 'b' 'c' 'd' 'e'
+In prints5:
+5+1: '12' '13' '14' '15' '16'
+In prints5:
+5+1+: '36' '13' '101' '11' '-22'
+In prints5_2:
+5+1: '-12' '-13' '-101' '-11' '22'
+In printi5:
+5+1: '22' '23' '24' '25' '26'
+In printi5:
+5+1+: '22' '98' '22' '25' '33'
+In printl5:
+5+1: '32' '33' '34' '35' '36'
+In printl5:
+5+1+: '32' '33' '11' '98' '36'
+In printf5:
+5+1: '2.100000' '3.200000' '4.300000*** Limit of Insizzle printf ***
+In printf5:
+5+1+: '101.000000' '36.000000' '4.300000*** Limit of Insizzle printf ***
+In printd5:
+5+1: '2.120000' '3.230000' '4.340000*** Limit of Insizzle printf ***
+In printd5:
+5+1+: '2.120000' '98.000000' '33.000000*** Limit of Insizzle printf ***
+8+1: 'parm2' 'parm3' 'parm4' 'parm5' 'parm6' 'parm7' 'parm8*** Limit of Insizzle printf ***
+10+1: 'parm2' 'parm3' 'parm4' 'parm5' 'parm6' 'parm7' 'parm8*** Limit of Insizzle printf ***
+20+1: 'parm2' 'parm3' 'parm4' 'parm5' 'parm6' 'parm7' 'parm8*** Limit of Insizzle printf ***
+10f+1: '0.20' '0.30' '0.40*** Limit of Insizzle printf ***
+Struct1 orig: c = 'a' f = '1.1000'
+Struct1 inc1: c = 'b' f = '2.1000'
+In inc_struct2: c = 'c' f = '3.100000'
+Struct1 inc2: c = 'b' f = '2.1000'
+In inc_struct3: s1.c = 'c' s1.f = '3.100000'
+In inc_struct3: s5.c = 'g' s1.f = '7.100000'
+Struct1 inc3: c = 'b' f = '2.1000'
+In inc_struct4: s1.d = '3.120000' s1.c = 'b' s1.f = '2.100000*** Limit of Insizzle printf ***
+In inc_struct4: s5.d = '7.120000' s5.c = 'f' s1.f = '6.100000*** Limit of Insizzle printf ***
+Struct2 inc4: d = '2.120000' c = 'a' f = '1.100000*** Limit of Insizzle printf ***
+In inc_struct5: s1.c = 'h' s2.f = '13.313100' s3.d = '17.240000' i=10
+Struct3 inc5: s1.c = 'f' s2.f = '3.313000' s3.d = '4.140000' i=5
+Struct3 inc6: s1.c = 'd' s2.f = '-6.687100' s3.d = '-8.960000' i=-10
+copy_Struct4: [1]=0 [3]=-30 [7]=-70 [13]=-130 [17]=-170
+indirect_int start: i1 = 10 i2 = 20 i3 = 30 i4 = 40 i5 = 50
+indirect_int end: i1 = 11 i2 = 20 i3 = 33 i4 = 40 i5 = 55
+indirect_float start: f1=10.100 f2=20.200 f3=30.300*** Limit of Insizzle printf ***
+indirect_float end: f1=11.110 f2=20.200 f3=33.330*** Limit of Insizzle printf ***
+indirect_double start: f1=10.1010 f2=20.2020 f3=30.3030*** Limit of Insizzle printf ***
+indirect_double end: f1=11.1120 f2=20.2020 f3=33.3360*** Limit of Insizzle printf ***
+Return_(type): char='y' short=1002 int=10003 long=100400 float=8.641500*** Limit of Insizzle printf ***
+Return_(type)_ptr: char='7' short=71 int=77 long=777
+                   float=-7.707000*** Limit of Insizzle printf ***
+Indirect->In printf5:
+5+1: '-52.100' '53.200' '-54.300*** Limit of Insizzle printf ***
+Indirect->In printd5:
+5+1: '62.1200' '-63.2300' '64.3400*** Limit of Insizzle printf ***
+In return_printf5_ptr: value = 101
+Indirect2->In printf5:
+5+1: '502.1000' '-503.2000' '504.3000*** Limit of Insizzle printf ***
+indirect_return_(type): char='r' short=2002 int=20003 long=300400
+                        float=28.641500*** Limit of Insizzle printf ***
+Returning from return_Struct1()
+return_Struct1: c = 'm' f = '7.7000'
+return_Struct2: d = '12.1200' c = 'n' f = '8.8000*** Limit of Insizzle printf ***
+return_Struct3: s1.c = 'o' s2.f = '73.3130' s3.d = '74.1400' i=75
+return_Int_Array: iap1[5]=0 iap1[10]=1010 iap1[50]=5050
+return_Int_Array: iap2[5]=1 iap2[10]=1011 iap2[50]=5051
+inc_Int_Array_Ptr: iap1[5]=3030 iap1[10]=4040 iap1[50]=8080
+inc_Int_Array_Ptr_Ptr: iap1[5]=2919 iap1[10]=3929 iap1[50]=7969
+return_Int_Matrix: imp1[0][6]=0 imp1[3][5]=-1010 imp1[4][9]=-5050
+return_Int_Matrix: imp2[0][6]=1 imp2[3][5]=-1009 imp2[4][9]=-5049
+inc_Int_Matrix_Ptr: imp1[0][6]=6060 imp1[3][5]=5050 imp1[4][9]=1010
+inc_Int_Matrix_Ptr_Ptr: imp1[0][6]=5283 imp1[3][5]=4273 imp1[4][9]=233

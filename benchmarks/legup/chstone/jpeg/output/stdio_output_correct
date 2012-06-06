@@ -1,0 +1,77 @@
+
+marker = 0xd8
+
+marker = 0xe0
+
+marker = 0xdb
+ length = 65
+ prec = 0
+ num  = 0
+
+marker = 0xdb
+ length = 65
+ prec = 0
+ num  = 1
+
+marker = 0xc0
+length         = 17
+data_precision = 8
+image_height   = 59
+image_width    = 90
+num_components = 3
+ index         = 0
+ id            = 1
+ h_samp_factor = 2
+ v_samp_factor = 2
+ quant_tbl_no  = 0
+
+ index         = 1
+ id            = 2
+ h_samp_factor = 1
+ v_samp_factor = 1
+ quant_tbl_no  = 1
+
+ index         = 2
+ id            = 3
+ h_samp_factor = 1
+ v_samp_factor = 1
+ quant_tbl_no  = 1
+
+
+Sampling Factor is 4:1:1
+
+marker = 0xc4
+ length = 29
+ index = 0x0
+ count = 12
+
+marker = 0xc4
+ length = 179
+ index = 0x10
+ count = 162
+
+marker = 0xc4
+ length = 29
+ index = 0x1
+ count = 12
+
+marker = 0xc4
+ length = 179
+ index = 0x11
+ count = 162
+
+marker = 0xda
+ length = 12
+ num_comp = 3
+ comp_id       = 1
+ dc_tbl_no     = 0
+ ac_tbl_no     = 0
+ comp_id       = 2
+ dc_tbl_no     = 1
+ ac_tbl_no     = 1
+ comp_id       = 3
+ dc_tbl_no     = 1
+ ac_tbl_no     = 1
+Decode 4:1:1 NumMCU = 96
+Result: 21745
+RESULT: PASS

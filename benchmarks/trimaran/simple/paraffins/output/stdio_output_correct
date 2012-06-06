@@ -1,0 +1,17 @@
+
+Paraffin Counts
+	paraffins[ 1] : 1
+	paraffins[ 2] : 1
+	paraffins[ 3] : 1
+	paraffins[ 4] : 2
+	paraffins[ 5] : 3
+	paraffins[ 6] : 5
+	paraffins[ 7] : 9
+	paraffins[ 8] : 18
+	paraffins[ 9] : 35
+	paraffins[10] : 75
+	paraffins[11] : 159
+	paraffins[12] : 355
+	paraffins[13] : 802
+	paraffins[14] : 1858
+	paraffins[15] : 4347
