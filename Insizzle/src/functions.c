@@ -869,8 +869,7 @@ void serviceMemRequest(systemT *system, unsigned findBank, unsigned numBanks, un
 #ifdef DEBUGmem
 			printf("LDUB\n");
 			printf("temp->value: %d\n", temp->value);
-			printf("0x%08x\n", *((unsigned *)system->dram + (temp->value)));
-			printf("0x%08x\n", *((unsigned *)system->dram + (temp->value >> 2)));
+			printf("0x%08x\n", *(unsigned *)((unsigned)system->dram + temp->value));
 #endif
 			if(temp->value >= dramSize)
 			  {
