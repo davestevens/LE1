@@ -462,7 +462,7 @@ int main(int argc, char *argv[])
 #endif
 				    }
 				    if(SINGLE_STEP) {
-				      stateDumpToTerminal(inst, this, hypercontext, cycleCount);
+				      stateDumpToTerminal(inst, hypercontext, cycleCount);
 				      stateDump();
 				      printf("Press enter to continue.");
 				      getchar();
@@ -1128,7 +1128,7 @@ int freeMem(void)
   return 0;
 }
 
-void stateDumpToTerminal(instruction inst, instructionPacket this, hyperContextT *hypercontext, unsigned long long cycleCount) {
+void stateDumpToTerminal(instruction inst, hyperContextT *hypercontext, unsigned long long cycleCount) {
   system("clear");
   printf("CycleCount: %llu\n", cycleCount);
   printf("PC:         0x%x\n", hypercontext->programCounter);
