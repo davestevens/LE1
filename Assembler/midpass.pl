@@ -162,7 +162,8 @@ foreach my $file (@files) {
 		# i think this isn't used anymore (old)
 		else {
 		    $hex =~ /(\(*(\w*\??(\w+\.*)+)((\s*[+-]?\s*\d*\))*))/;
-		    my $label = $filename . $2;
+		    # unsure if global or local at this point :S
+		    my $label = (defined($dataLabels{$filename . $2})) ? $filename . $2 : $2;
 		    my $newValue = ($dataLabels{$label} + $dramBaseOffset);
 		    my @newValue = split(/\)/, $4);
 
