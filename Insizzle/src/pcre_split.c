@@ -6,7 +6,7 @@ split_t *pcre_split(char *pattern, char *string) {
   const char *error;
   int erroffset;
   split_t_int *ret_int;
-  split_t *curr;
+  split_t *curr = NULL;
   split_t *head = NULL;
 
   /* setup regex */
