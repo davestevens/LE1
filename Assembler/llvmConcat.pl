@@ -70,8 +70,17 @@ foreach my $file (@order) {
 	}
 	if(/^##\s*Data\s+Section\s*\-\s*(\d+)\s*\-\s*Data_align=(\d+)/) {
 	    while(<FILE>) {
-		/(\w+)\s*\-\s*(\w+)\s*\-\s*(\d+)/;
-		push @dataArea, hex($2);
+		if(/(\w+)\s*\-\s*(\w+)\s*\-\s*(\d+)/) {
+		    push @dataArea, hex($2);
+		}
+		elsif(/(\w+)\s*\-\s*(LABEL: .+)/) {
+		    my $temp = $2;
+		    chomp($temp);
+		    push @dataArea, $temp;
+		}
+		else {
+		    # this is a problem
+		}
 	    }
 	}
     }
@@ -101,6 +110,11 @@ print "\n";
 print '##Data Section - ' . (@dataArea * 4)  . ' - Data_align=32' . "\n";
 #foreach my $line (@dataArea) {
 for(my $i=0;$i<@dataArea;$i++) {
-    printf("%04x - %08x - %032b\n", $i * 4, $dataArea[$i], $dataArea[$i]);
+    if($dataArea[$i] =~ /LABEL: FUNC_/) {
+	printf("%04x - %s\n", $i * 4, $dataArea[$i]);
+    }
+    else {
+	printf("%04x - %08x - %032b\n", $i * 4, $dataArea[$i], $dataArea[$i]);
+    }
 }
 print "\n";

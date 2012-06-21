@@ -156,6 +156,9 @@ for($i=$i-1;$i<=$#inFile;$i++) {
 	    elsif($inFile[$i] =~ /\.4byte\s+(\d+)/) {
 		&pushData($varname, $1, 0x0, "WORD");
 	    }
+	    elsif($inFile[$i] =~ /\.4byte\s+(\w+)/) {
+		&pushData($varname, $1, 0x0, "WORD");
+	    }
 	    elsif($inFile[$i] =~ /\.asci[iz]\s+\"(\w+)\"/) {
 		&pushData($varname, $1, 0x0, "STRING");
 	    }
@@ -210,8 +213,11 @@ while(my ($key, $value) = each(%lookup)) {
 my $dataAddr = 0;
 print "\n##Data Section - " . (($#data + 1) * 4) . " - Data_align=32\n";
 foreach my $d (@data) {
-    if($d =~ /\d+/) {
+    if($d =~ /^\d+$/) {
 	printf("%04x - %08x - %032b\n", $dataAddr, $d, $d);
+    }
+    elsif($d =~ /LABEL: FUNC_/) {
+	printf("%04x - %s\n", $dataAddr, $d);
     }
     else {
 	printf("%04x - %08x - %032b\n", $dataAddr, $lookup{$d}, $lookup{$d});
@@ -263,7 +269,12 @@ sub pushData {
 	#    $lookup{$name} = $currentAddr;
 	#}
 
-	push @data, $data;
+	if($data !~ /^\d+$/) {
+	    push @data, "LABEL: FUNC_" . $1;
+	}
+	else {
+	    push @data, $data;
+	}
 	$currentAddr += 4;
     }
     elsif($type eq "HALF") {
