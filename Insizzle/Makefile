@@ -12,7 +12,8 @@ CC = gcc
 CFLAGS = -c -Wall -pedantic -std=c99 -Wextra -m32 `xml2-config --cflags` -D_XOPEN_SOURCE
 LDFLAGS = -lm -m32 `xml2-config --libs` -lpcre
 
-INCDIR = inc
+INCDIR =  inc
+LE1_DRIVER_INC = ../le1_driver
 SRCDIR = src
 OBJDIR = obj
 
@@ -50,7 +51,7 @@ $(TARGETAPI): $(OBJ)
 	ar cr $(TARGETAPI) $(OBJ)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
-	$(CC) $(CFLAGS) $< -o $@ -I$(INCDIR)/ $(VTAPI)
+	$(CC) $(CFLAGS) $< -o $@ -I$(INCDIR) -I$(LE1_DRIVER_INC) $(VTAPI)
 
 clean:
 		rm -f $(OBJ) $(TARGET) $(TARGETAPI)
