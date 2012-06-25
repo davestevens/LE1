@@ -691,14 +691,14 @@ void newThreadRequest(unsigned from, unsigned to, systemT *system)
 {
   /* get system */
   struct newThreadT *temp;
-#ifdef DEBUG
+#ifdef INSDEBUG
   printf("newThreadRequest: 0x%x, 0x%x\n", from, to);
 #endif
 
   if(system->threadReq == NULL)
     {
       /* this means there are no memory requests */
-#ifdef DEBUG
+#ifdef INSDEBUG
       printf("nothing in the list\n");
 #endif
       if((system->threadReq = calloc(sizeof(struct newThreadT), 1)) == NULL)
@@ -739,7 +739,7 @@ int serviceThreadRequests(systemT *system)
     return 0;
 
   do {
-#ifdef DEBUG
+#ifdef INSDEBUG
       printf("there is a thread request\n");
       printf("\ttemp->from 0x%x\n", temp->from);
       printf("\ttemp->to 0x%x\n", temp->to);
@@ -753,14 +753,14 @@ int serviceThreadRequests(systemT *system)
 	context = (temp->to >> 16) & 0xff;
 	hypercontext = (temp->to >> 12) & 0xf;
 
-#ifdef DEBUG
+#ifdef INSDEBUG
 	printf("context[%d] hypercontext[%d]\n", context, hypercontext);
 #endif
 	cnt = (contextT *)((unsigned)system->context + (context * sizeof(contextT)));
 	hcnt = (hyperContextT *)((unsigned)cnt->hypercontext + (hypercontext * sizeof(hyperContextT)));
 
 	hcnt->VT_CTRL |= RUNNING << 3;
-#ifdef DEBUG
+#ifdef INSDEBUG
 	printf("hcnt->VT_CTRL 0x%x\n", hcnt->VT_CTRL);
 #endif
       }
@@ -1752,7 +1752,7 @@ int insizzleAPIWrOneBr(unsigned br, unsigned wdata) {
 int insizzleAPIRdCtrl(galaxyConfigT *galaxyConfig, vtCtrlStateE *val) {
   /*val = (globalHC->VT_CTRL >> 3) & 0xff;*/
   if((globalHC->VT_CTRL >> 1) & 0x1) {
-    *val = _DEBUG;
+    *val = DEBUG;
   }
   else {
     if((globalHC->VT_CTRL >> 2) & 0x1) {
@@ -1814,7 +1814,7 @@ int insizzleAPIRdCtrl(galaxyConfigT *galaxyConfig, vtCtrlStateE *val) {
  */
 int insizzleAPIWrCtrl(galaxyConfigT *galaxyConfig, vtCtrlStateE val) {
   switch(val) {
-  case _DEBUG:
+  case DEBUG:
     globalHC->VT_CTRL &= 0xfffffffb;
     globalHC->VT_CTRL |= (1 << 1);
     break;

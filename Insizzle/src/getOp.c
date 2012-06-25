@@ -84,7 +84,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
       pS_VR = cluster->pS_VR;
       pS_PR = cluster->pS_PR;
 
-#ifdef DEBUG
+#ifdef INSDEBUG
       printf("cluster: %d\nr1: 0x%x\n", clust, *(S_GPR + 1));
       printf("cluster: %d\nr1: 0x%x\n", clust, *(pS_GPR + 1));
 #endif
@@ -92,7 +92,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 
       if(((inst >> 30) & 0x1) == clust)
 	{
-#ifdef DEBUG
+#ifdef INGDEBUG
 	  printf("FORMAT: %d\n", format);
 #endif
 	  switch(format)
@@ -964,7 +964,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 			    }
 			  break;
 			case 1:
-#ifdef DEBUG
+#ifdef INSDEBUG
 			  printf("CASM32\n");
 #endif
 			  extra  = ((inst >> 9) & 0x3f);
@@ -979,7 +979,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 			    {
 			    case 0:
 			      /* vthread_create_local */
-#ifdef DEBUG
+#ifdef INGDEBUG
 			      printf("vthread_create_local\n");
 			      printf("target1: %d\n", ret.target);
 			      printf("\t0x%x\n", *(pS_GPR + ret.target));
@@ -1004,11 +1004,11 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 				unsigned *GPR;
 				for(i=0;i<context->numHyperContext;i++)
 				  {
-#ifdef DEBUG
+#ifdef INSDEBUG
 				    printf("\thypercontext: %d\n", i);
 #endif
 				    hcnt = (hyperContextT *)((unsigned)context->hypercontext + (i * sizeof(hyperContextT)));
-#ifdef DEBUG
+#ifdef INSDEBUG
 				    printf("\t0x%08x\n", hcnt->VT_CTRL);
 #endif
 				    deepstate = (hcnt->VT_CTRL >> 3) & 0xff;
@@ -1016,7 +1016,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 
 				    if((deepstate == READY) && (!debug))
 				      {
-#ifdef DEBUG
+#ifdef INSDEBUG
 					printf("need to set this thread up!\n");
 #endif
 					found = 1;
@@ -1024,7 +1024,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 					hcnt->programCounter = *(pS_GPR + ret.source2);
 					GPR = hcnt->S_GPR;
 					*(GPR + 3) = *(pS_GPR + ret.source3);
-#ifdef DEBUG
+#ifdef INSDEBUG
 					printf("\t\tset PC: 0x%x\n", hcnt->programCounter);
 					printf("\t\tset args: 0x%x\n", *(GPR + 3));
 #endif
@@ -1053,7 +1053,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 			      break;
 			    case 1:
 			      /* vthread_create_remote */
-#ifdef DEBUG
+#ifdef INSDEBUG
 			      printf("vthread_create_remote\n");
 			      printf("target1: %d\n", ret.target);
 			      printf("\t0x%x\n", *(pS_GPR + ret.target));
@@ -1080,18 +1080,18 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 				unsigned *GPR;
 				for(i=0;i<system->numContext;i++)
 				  {
-#ifdef DEBUG
+#ifdef INSDEBUG
 				    printf("\tcontext: %d\n", i);
 #endif
 				    cnt = (contextT *)((unsigned)system->context + (i * sizeof(contextT)));
 
 				    for(j=0;j<cnt->numHyperContext;j++)
 				      {
-#ifdef DEBUG
+#ifdef INSDEBUG
 					printf("\thypercontext: %d\n", j);
 #endif
 					hcnt = (hyperContextT *)((unsigned)cnt->hypercontext + (j * sizeof(hyperContextT)));
-#ifdef DEBUG
+#ifdef INSDEBUG
 					printf("\t0x%08x\n", hcnt->VT_CTRL);
 #endif
 					deepstate = (hcnt->VT_CTRL >> 3) & 0xff;
@@ -1099,7 +1099,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 
 					if((deepstate == READY) && (!debug))
 					  {
-#ifdef DEBUG
+#ifdef INSDEBUG
 					    printf("need to set this thread up!\n");
 #endif
 					    found = 1;
@@ -1107,7 +1107,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 					    hcnt->programCounter = *(pS_GPR + ret.source2);
 					    GPR = hcnt->S_GPR;
 					    *(GPR + 3) = *(pS_GPR + ret.source3);
-#ifdef DEBUG
+#ifdef INSDEBUG
 					    printf("\t\tset PC: 0x%x\n", hcnt->programCounter);
 					    printf("\t\tset args: 0x%x\n", *(GPR + 3));
 #endif
@@ -1529,7 +1529,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		      /* if the link register is zero, then it is possibly the end of the function */
 		      if(!(*(pS_L)))
 			{
-#ifdef DEBUG
+#ifdef INSDEBUG
 			  printf("This is possibly the end? LINK_REG = 0x0\n");
 #endif
 #ifdef VTHREAD
@@ -2031,7 +2031,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 			  ret.source1 = (inst & 0x3f);
 			  ret.target = ((inst >> 15) & 0x3f);
 			  ret.target2 = ((inst >> 6) & 0x3f);
-#ifdef DEBUG
+#ifdef INSDEBUG
 			  printf("vthread_join\n");
 #endif
 			  /*printf("source: %d\n", *(pS_GPR + ret.source1));

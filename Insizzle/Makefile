@@ -4,7 +4,7 @@
 # CFLAGS extra options
 # -DVTHREAD - for running code with vthreads
 # -DPRINTOUT - print all instructions executed
-# -DDEBUG - print lots of information about everything
+# -DINSDEBUG - print lots of information about everything
 # -DDEBUGmem - print information about memory accesses
 # -DNOSTALLS - count stall events but don't execute them
 

@@ -4,7 +4,7 @@
 $CFLAGS = "-c -Wall -pedantic -std=c99 -Wextra -m32 -g `xml2-config --cflags` ";
 $INSIZZLE_BINARIES_DIR = "../InsizzleBinaries";
 
-@options = ("PRINTOUT", "DEBUG", "VTHREAD");
+@options = ("PRINTOUT", "INSDEBUG", "VTHREAD");
 
 for($i=0;$i<@options;$i++) {
     @ar = @empty;

@@ -198,8 +198,9 @@ int main(int argc, char *argv[])
     }
 
 #endif
-#endif
   start = time(NULL);
+#endif
+
 #ifdef API
   int insizzleAPIClock(galaxyConfigT *galaxyConfig, hcTracePacketT gTracePacket[][MASTERCFG_CONTEXTS_MAX][MASTERCFG_HYPERCONTEXTS_MAX])
   {
@@ -226,13 +227,13 @@ int main(int argc, char *argv[])
       }
 #endif
 
-#ifdef DEBUG
+#ifdef INSDEBUG
       printf("galaxy: 0\n");
 #endif
       /* loop through systems in the galaxy */
       for(i=0;i<(GALAXY_CONFIG & 0xff);i++)
 	{
-#ifdef DEBUG
+#ifdef INSDEBUG
 	  printf("\tsystem: %d\n", i);
 #endif
 	  SYS = (systemConfig *)((unsigned)SYSTEM + (i * sizeof(systemConfig)));
@@ -241,7 +242,7 @@ int main(int argc, char *argv[])
 	  /* loop through contexts */
 	  for(j=0;j<(SYS->SYSTEM_CONFIG & 0xff);j++)
 	    {
-#ifdef DEBUG
+#ifdef INSDEBUG
 	      printf("\t\tcontext: %d\n", j);
 #endif
 	      CNT = (contextConfig *)((unsigned)SYS->CONTEXT + (j * sizeof(contextConfig)));
@@ -250,7 +251,7 @@ int main(int argc, char *argv[])
 	      /* loop through hypercontexts */
 	      for(k=0;k<((CNT->CONTEXT_CONFIG >> 4) & 0xf);k++)
 		{
-#ifdef DEBUG
+#ifdef INSDEBUG
 		  printf("\t\t\thypercontext: %d\n", k);
 #endif
 
@@ -259,17 +260,17 @@ int main(int argc, char *argv[])
 #ifdef API
 		  bundlePos = 0;
 #endif
-#ifdef DEBUG
+#ifdef INSDEBUG
 		  printf("\t\t\t\thypercontext totalWidth: %d\n", hypercontext->totalWidth);
 #endif
-#ifdef DEBUG
+#ifdef INSDEBUG
 		  printf("hypercontext cycleCount: %lld\n", hypercontext->cycleCount);
 #endif
 		  /* TODO: here will be the status check of the hypercontext to see what
 		     state it is in
 		  */
 		  /* check the state VT_CTRL */
-#ifdef DEBUG
+#ifdef INSDEBUG
 		  printf("hypercontext->VT_CTRL: 0x%08x\n", hypercontext->VT_CTRL);
 #endif
 
@@ -278,16 +279,10 @@ int main(int argc, char *argv[])
 		  unsigned int debug = (hypercontext->VT_CTRL >> 1) & 0x1;
 		  /*unsigned int kernel = hypercontext->VT_CTRL & 0x1;*/
 
-#ifdef DEBUG
+#ifdef INSDEBUG
 		  printf("\tdeepstate: %d\n", deepstate);
-#endif
-#ifdef DEBUG
 		  printf("\tsstep:     %d\n", sstep);
-#endif
-#ifdef DEBUG
 		  printf("\tdebug:     %d\n", debug);
-#endif
-#ifdef DEBUG
 		  /*printf("\tkernel:    %d\n", kernel);*/
 #endif
 
@@ -300,7 +295,7 @@ int main(int argc, char *argv[])
 		  if(debug)
 		    {
 
-#ifdef DEBUG
+#ifdef INSDEBUG
 		      printf("HC STATE: DEBUG\n");
 #endif
 		      /* nothing to do here */
@@ -337,23 +332,20 @@ int main(int argc, char *argv[])
 			{
 			  if(deepstate == READY)
 			    {
-#ifdef DEBUG
+#ifdef INSDEBUG
 			      printf("HC STATE: READY\n");
 #endif
 			      hypercontext->idleCount++;
 			    }
 			  else if(deepstate == RUNNING)
 			    {
-#ifdef DEBUG
+#ifdef INSDEBUG
 			      printf("HC STATE: RUNNING\n");
+			      printf("%d:%d:%d (system:context:hypercontext)\n", i, j, k);
 #endif
 
 			      /* TODO: check the microarchitectural state of the hypercontext */
 			      /* stalled, running */
-
-#ifdef DEBUG
-			      printf("%d:%d:%d (system:context:hypercontext)\n", i, j, k);
-#endif
 			      bundleCount = 0;
 			      if(hypercontext->stalled > 0)
 				{
@@ -365,7 +357,7 @@ int main(int argc, char *argv[])
 				  if(hypercontext->checkedPC != (int)hypercontext->programCounter)
 				    {
 				      hypercontext->checkedPC = (int)hypercontext->programCounter;
-#ifdef DEBUG
+#ifdef INGDEBUG
 				      printf("checking bundle for PC: 0x%x\n", hypercontext->programCounter);
 #endif
 				      instructionPacket this;
@@ -384,10 +376,8 @@ int main(int argc, char *argv[])
 					  }
 					endPC  = this.nextPC;
 				      } while(!(this.op >> 31) & 0x1);
-#ifdef DEBUG
+#ifdef INSDEBUG
 				      printf("startPC: 0x%x\n", startPC);
-#endif
-#ifdef DEBUG
 				      printf("endPC: 0x%x\n", endPC);
 #endif
 
@@ -410,7 +400,7 @@ int main(int argc, char *argv[])
 				      }
 				    }
 
-#ifdef DEBUG
+#ifdef INSDEBUG
 				  printf("already checked bundle for PC: 0x%x\n", hypercontext->programCounter);
 #endif
 				  /*if(cycle(context, hypercontext, (HCNT->HCONTEXT_CONFIG & 0xf)) == -1)
@@ -425,7 +415,7 @@ int main(int argc, char *argv[])
 				    bundleCount++;
 				    this = fetchInstruction(context, hypercontext->programCounter, CNT);
 
-#ifdef DEBUG
+#ifdef INSDEBUG
 				    printf("PC: 0x%x, this.op: 0x%08x\n", hypercontext->programCounter, this.op);
 				    if(this.immValid)
 				      printf("PC: 0x%x, this.imm: 0x%08x\n", (hypercontext->programCounter + 4), this.imm);
@@ -569,7 +559,7 @@ int main(int argc, char *argv[])
 #else
 					hypercontext->stallCount += PIPELINE_REFILL;
 #endif
-#ifdef DEBUG
+#ifdef INSDEBUG
 					printf("control flow change!\n");
 #endif
 					hypercontext->controlFlowChange++;
@@ -599,7 +589,7 @@ int main(int argc, char *argv[])
 			    {
 			      /* TODO: this is the vthread_join thing */
 #if 1
-#ifdef DEBUG
+#ifdef INSDEBUG
 			      printf("HC STATE: TERMINATED_ASYNC_HOST\n");
 			      printf("\twaiting for: 0x%x\n", hypercontext->joinWaiting);
 #endif
@@ -674,7 +664,7 @@ int main(int argc, char *argv[])
 	  /* SYSTEM LEVEL */
 	  for(j=0;j<(SYS->SYSTEM_CONFIG & 0xff);j++)
 	    {
-#ifdef DEBUG
+#ifdef INSDEBUG
 	      printf("\t\tcontext: %d\n", j);
 #endif
 	      CNT = (contextConfig *)((unsigned)SYS->CONTEXT + (j * sizeof(contextConfig)));
@@ -683,17 +673,15 @@ int main(int argc, char *argv[])
 	      /* loop through hypercontexts */
 	      for(k=0;k<((CNT->CONTEXT_CONFIG >> 4) & 0xf);k++)
 		{
-#ifdef DEBUG
+#ifdef INSDEBUG
 		  printf("\t\t\thypercontext: %d\n", k);
 #endif
 
 		  HCNT = (hyperContextConfig *)((unsigned)CNT->HCONTEXT + (k * sizeof(hyperContextConfig)));
 		  hypercontext = (hyperContextT *)((unsigned)context->hypercontext + (k * sizeof(hyperContextT)));
 
-#ifdef DEBUG
+#ifdef INSDEBUG
 		  printf("\t\t\t\thypercontext totalWidth: %d\n", hypercontext->totalWidth);
-#endif
-#ifdef DEBUG
 		  printf("hypercontext cycleCount: %lld\n", hypercontext->cycleCount);
 #endif
 		  /* at this point flip registers ready for next cycle
@@ -717,9 +705,8 @@ int main(int argc, char *argv[])
 #endif
     }
 
-  end = time(NULL);
-
 #ifndef API
+  end = time(NULL);
 #else
   int insizzleAPIoutputCounts(void) {
     unsigned i, j, k;
