@@ -82,11 +82,11 @@ typedef enum {
   mLDSB, mLDBs, mLDUB, mLDSH, mLDUH, mLDW, mSTB, mSTBs, mSTH, mSTW
 } memOpT;
 
-#ifndef API
+
 typedef enum {
   S_PRED, GPR, FPR, VR, CR, IMM32, LINK, CURR_PC, PKT_PC, NXTPKT_OFFS, PLUS1SYLL, MEM, IMM9, IMM12, IMM8
 } regT;
-#endif
+
 
 typedef struct {
   regT target;
