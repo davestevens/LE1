@@ -197,22 +197,22 @@ int insizzleAPIClock(galaxyConfigT *, hcTracePacketT gTracePacket[][MASTERCFG_CO
 int insizzleAPIWrOneSGpr(unsigned, unsigned);
 int insizzleAPIRdOneSGpr(unsigned, unsigned *);
 
-int insizzleAPIRdOneLr(galaxyConfigT *, unsigned *);
-int insizzleAPIWrOneLr(galaxyConfigT *, unsigned);
+int insizzleAPIRdOneLr(unsigned *);
+int insizzleAPIWrOneLr(unsigned);
 
 int insizzleAPIRdOneBr(unsigned, unsigned *);
 int insizzleAPIWrOneBr(unsigned, unsigned);
 
 /* read/write CTRL registers */
-int insizzleAPIRdCtrl(galaxyConfigT *, unsigned *);
-int insizzleAPIWrCtrl(galaxyConfigT *, unsigned);
+int insizzleAPIRdCtrl(unsigned *);
+int insizzleAPIWrCtrl(unsigned);
 
 /* read/write memory */
-int insizzleAPIWrOneIramLocation (galaxyConfigT *, unsigned, unsigned);
-int insizzleAPIRdOneIramLocation (galaxyConfigT *, unsigned, unsigned *);
+int insizzleAPIWrOneIramLocation (unsigned, unsigned);
+int insizzleAPIRdOneIramLocation (unsigned, unsigned *);
 
-int insizzleAPIWrOneDramLocation (galaxyConfigT *, unsigned, unsigned);
-int insizzleAPIRdOneDramLocation (galaxyConfigT *, unsigned, unsigned *);
+int insizzleAPIWrOneDramLocation (unsigned, unsigned);
+int insizzleAPIRdOneDramLocation (unsigned, unsigned *);
 
 /* load iram/dram */
 void insizzleAPILdIRAM(char *, int);
@@ -225,8 +225,8 @@ int insizzleAPISetCurrent(unsigned, unsigned, unsigned, unsigned);
 int insizzleAPIStubInitVtApi(galaxyConfigT *);
 
 /* write program counter */
-int insizzleAPIWrPC(galaxyConfigT *, unsigned);
-int insizzleAPIRdPC(galaxyConfigT *, unsigned *);
+int insizzleAPIWrPC(unsigned);
+int insizzleAPIRdPC(unsigned *);
 
 int insizzleAPIoutputCounts(void);
 

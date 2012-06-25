@@ -1638,7 +1638,7 @@ int insizzleAPISetCurrent(unsigned system, unsigned context, unsigned hyperconte
 
 /* read one word from memory (iram)
  */
-int insizzleAPIRdOneIramLocation(galaxyConfigT *galaxyConfig, unsigned iaddr, unsigned *data) {
+int insizzleAPIRdOneIramLocation(unsigned iaddr, unsigned *data) {
   *data = (unsigned)*(globalC->iram + (iaddr >> 2));
 #ifdef APIDEBUG
   printf("insizzleAPIRdOneIramLocation: 0x%08x = 0x%08x\n", iaddr, *data);
@@ -1648,7 +1648,7 @@ int insizzleAPIRdOneIramLocation(galaxyConfigT *galaxyConfig, unsigned iaddr, un
 
 /* write one word to memory (iram)
  */
-int insizzleAPIWrOneIramLocation(galaxyConfigT *galaxyConfig, unsigned iaddr, unsigned data) {
+int insizzleAPIWrOneIramLocation(unsigned iaddr, unsigned data) {
   *(globalC->iram + (iaddr >> 2)) = data;
 #ifdef APIDEBUG
   printf("insizzleAPIWrOneIramLocation: 0x%08x = 0x%08x\n", iaddr, data);
@@ -1658,7 +1658,7 @@ int insizzleAPIWrOneIramLocation(galaxyConfigT *galaxyConfig, unsigned iaddr, un
 
 /* read one word from memory (dram)
  */
-int insizzleAPIRdOneDramLocation (galaxyConfigT *galaxyConfig, unsigned daddr, unsigned *data) {
+int insizzleAPIRdOneDramLocation (unsigned daddr, unsigned *data) {
   *data = (unsigned)*(globalS->dram + (daddr >> 2));
 #ifdef APIDEBUG
   printf("insizzleAPIRdOneDramLocation: 0x%08x = 0x%08x\n", daddr, *data);
@@ -1668,7 +1668,7 @@ int insizzleAPIRdOneDramLocation (galaxyConfigT *galaxyConfig, unsigned daddr, u
 
 /* write one word to memory (dram)
  */
-int insizzleAPIWrOneDramLocation (galaxyConfigT *galaxyConfig, unsigned daddr, unsigned data) {
+int insizzleAPIWrOneDramLocation (unsigned daddr, unsigned data) {
   *(globalS->dram + (daddr >> 2)) = data;
 #ifdef APIDEBUG
   printf("insizzleAPIWrOneDramLocation: 0x%08x = 0x%08x\n", daddr, data);
@@ -1699,7 +1699,7 @@ int insizzleAPIWrOneSGpr(unsigned sgpr, unsigned wdata) {
 
 /* read link register
  */
-int insizzleAPIRdOneLr(galaxyConfigT *galaxyConfig, unsigned *rdata) {
+int insizzleAPIRdOneLr(unsigned *rdata) {
   *rdata = globalHC->linkReg;
 #ifdef APIDEBUG
   printf("insizzzleAPIRdOneLr: 0x%08x\n", *rdata);
@@ -1709,7 +1709,7 @@ int insizzleAPIRdOneLr(galaxyConfigT *galaxyConfig, unsigned *rdata) {
 
 /* write link register
  */
-int insizzleAPIWrOneLr(galaxyConfigT *galaxyConfig, unsigned wdata) {
+int insizzleAPIWrOneLr(unsigned wdata) {
   globalHC->linkReg = wdata;
   globalHC->plinkReg = wdata;
 #ifdef APIDEBUG
@@ -1749,7 +1749,7 @@ int insizzleAPIWrOneBr(unsigned br, unsigned wdata) {
 
 /* read control register
  */
-int insizzleAPIRdCtrl(galaxyConfigT *galaxyConfig, vtCtrlStateE *val) {
+int insizzleAPIRdCtrl(vtCtrlStateE *val) {
   /*val = (globalHC->VT_CTRL >> 3) & 0xff;*/
   if((globalHC->VT_CTRL >> 1) & 0x1) {
     *val = DEBUG;
@@ -1812,7 +1812,7 @@ int insizzleAPIRdCtrl(galaxyConfigT *galaxyConfig, vtCtrlStateE *val) {
 
 /* write control register
  */
-int insizzleAPIWrCtrl(galaxyConfigT *galaxyConfig, vtCtrlStateE val) {
+int insizzleAPIWrCtrl(vtCtrlStateE val) {
   switch(val) {
   case DEBUG:
     globalHC->VT_CTRL &= 0xfffffffb;
@@ -1897,7 +1897,7 @@ int insizzleAPIStubInitVtApi(galaxyConfigT *galaxyConfig) {
 
 /* write program counter
  */
-int insizzleAPIWrPC(galaxyConfigT *galaxyConfig, unsigned val) {
+int insizzleAPIWrPC(unsigned val) {
   globalHC->programCounter = val;
 #ifdef APIDEBUG
   printf("insizzleAPIWrPC: 0x%08x\n", val);
@@ -1905,7 +1905,7 @@ int insizzleAPIWrPC(galaxyConfigT *galaxyConfig, unsigned val) {
   return 0;
 }
 
-int insizzleAPIRdPC(galaxyConfigT *galaxyConfig, unsigned *val) {
+int insizzleAPIRdPC(unsigned *val) {
   *val = globalHC->programCounter;
 #ifdef APIDEBUG
   printf("insizzleAPIRdPC: 0x%08x\n", *val);
