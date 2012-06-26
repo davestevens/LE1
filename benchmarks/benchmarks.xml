@@ -1,5 +1,15 @@
 <benchmarks>
   <single_thread>
+    <dir name="vex">
+      <dir name="gsm">
+	<dir name="ed_iface" fileio="true" assembler="-syscall" insizzle="" />
+	<dir name="coder" fileio="true" assembler="-syscall" insizzle="" />
+	<dir name="decoder" fileio="true" assembler="-syscall" insizzle="" />
+      </dir>
+      <!--<dir name="h264dec" fileio="true" assembler="-syscall -Iinc -lm -DNDEBUG" insizzle="" />-->
+      <dir name="imgpipe" fileio="true" assembler="-syscall -DNO_GETENV -MALLOC_SIZE=40000" insizzle="" />
+      <!--<dir name="mad" fileio="true" assembler="" insizzle="" />-->
+    </dir>
     <dir name="mibench">
       <dir name="consumer">
 	<dir name="jpeg">
