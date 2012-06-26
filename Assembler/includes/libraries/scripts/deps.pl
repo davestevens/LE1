@@ -7,7 +7,7 @@
 @ceil = ("lm/s_ceil.c"); # DONE
 @cos = ("lm/s_lib_version.c", "lm/k_standard.c", "lm/s_copysign.c", "lm/s_rint.c", "lm/s_matherr.c", "lm/k_cos.c", "lm/s_cos.c", "lm/e_rem_pio2.c", "lm/k_rem_pio2.c", "lm/s_fabs.c", "lm/s_scalbn.c", "lm/s_copysign.c", "lm/s_floor.c", "lm/k_sin.c"); # DONE
 @cosh = ("lm/s_lib_version.c", "lm/k_standard.c", "lm/s_copysign.c", "lm/s_rint.c", "lm/s_matherr.c", "lm/e_cosh.c", "lm/w_cosh.c", "lm/fabs.c", "lm/isnan.c", "lm/e_exp.c", "lm/w_exp.c", "lm/s_expm1.c"); # DONE
-@exp = ("lm/s_lib_version.c", "lm/k_standard.c", "lm/s_copysign.c", "lm/s_rint.c", "lm/s_matherr.c", "lm/e_exp.c", "lm/w_exp.c"); # DONE
+@exp = ("lm/s_lib_version.c", "lm/k_standard.c", "lm/s_copysign.c", "lm/s_rint.c", "lm/s_matherr.c", "lm/e_exp.c", "lm/w_exp.c", "lm/s_finite.c"); # DONE
 @fabs = ("lm/s_fabs.c"); # DONE
 @floor = ("lm/s_floor.c"); # DONE
 @fmod = ("lm/s_lib_version.c", "lm/k_standard.c", "lm/s_copysign.c", "lm/s_rint.c", "lm/s_matherr.c", "lm/e_fmod.c", "lm/w_fmod.c", "lm/s_isnan.c"); # DONE
