@@ -167,7 +167,40 @@ void syscall(unsigned *S_GPR, unsigned dram, unsigned call, unsigned long long c
 	    fprintf(stream, "%s", _test->string);
 			      
 	  if(_test->match != NULL) {
-	    fprintf(stream, _test->match, *(S_GPR + _count++));
+	    switch(*(char *)((unsigned)_test->match + strlen(_test->match) - 1)) {
+	    case 's':
+	    case 'S':
+	      {
+		char str[256] = {'\0'};
+		/* TODO: need to check that this is within memory */
+		/* causing segfault because string is within the register :S */
+		getString(&str[0], 256, *(S_GPR + _count++) + dram);
+		fprintf(stream, _test->match, str);
+	      }
+	    break;
+	    case 'f':
+	    case 'F':
+	      {
+		/* first register needs to be odd :S */
+		if(!(_count % 2)) { _count++; } /* skip odd register */
+		double d;
+		int *dP = (int *)&d;
+		*(dP+1) = *(S_GPR + _count++);
+		*dP = *(S_GPR + _count++);
+		fprintf(stream, _test->match, d);
+	      }
+	    break;
+	    default:
+	      /* TODO: may need to perform an endian swap? */
+	      {
+		fprintf(stream, _test->match, *(S_GPR + _count++));
+	      }
+	      break;
+	    }
+	  }
+	  if(_count > 10) {
+	    fprintf(stream, "*** Limit of Insizzle printf ***\n");
+	    break;
 	  }
 	} while((_test = _test->next) != NULL);
       }
