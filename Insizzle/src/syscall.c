@@ -324,9 +324,6 @@ void syscall(unsigned *S_GPR, unsigned dram, unsigned call, unsigned long long c
       int _count = 5; /* arguments start from register 4 */
       int ret = 0;
 
-      fpos_t whence;
-      fgetpos(stream, &whence);
-
       _test = pcre_split("%[\\+#-]?(\\d+|\\*)?\\.?\\d*([hlLzjt]|[hl]{2})?([csuxXfFeEpgGdionz])",format);
       _temp = _test;
       if(_test == NULL)
@@ -391,8 +388,6 @@ void syscall(unsigned *S_GPR, unsigned dram, unsigned call, unsigned long long c
 			  
       /* TODO: fix this */
       /*pcre_split_free(_temp);*/
-
-      fsetpos(stream, &whence);
 
       *(S_GPR + 3) = (unsigned)ret;
     }
