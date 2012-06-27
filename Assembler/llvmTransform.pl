@@ -125,12 +125,14 @@ if($mainStart != 0) {
 my $comm = 0;
 my @data;
 my $currentLine = 0;
+my $cleanLine = 1;
 my $currentAddr = 0;
 my %lookup;
 
 for($i=$i-1;$i<=$#inFile;$i++) {
     if($inFile[$i] =~ /\.type\s+((\$?\.?\w+)+),\@object/) {
 	my $varname = $1;
+	&alignMem();
 	$lookup{$varname} = $currentAddr;
 	my $found = 0;
 	my $size = 0;
@@ -184,23 +186,14 @@ for($i=$i-1;$i<=$#inFile;$i++) {
 		&pushData($varname, $1, 0x0, "STRING");
 	    }
 	    elsif($inFile[$i] =~ /\.asci[iz]\s+\"(.+)\"/) {
-                # figure out if it is oct or char string
-		my $str = $1;
-		if($str =~ /(\\\d{3})+/) {
-		    # this is a guess at how it works
-		    # using data size / number of lines to define number of chars?
-		    my @oct = split(/\\/, $str);
-		    my $o;
-		    for($o=1;$o<=$#oct;$o++) {
-			&pushData($varname, oct($oct[$o]), 0x0, "BYTE");
-		    }
-		    while($o <= $width) {
-			&pushData($varname, 0x0, 0x0, "BYTE");
-			$o++;
-		    }
+		my @data = ascii_to_dec($1);
+		my $c;
+		for($c=0;$c<@data;$c++) {
+		    &pushData($varname, $data[$c], 0x0, "BYTE");
 		}
-		else {
-		    &pushData($varname, $str, 0x0, "STRING");
+		while($c < $width) {
+		    &pushData($varname, 0x0, 0x0, "BYTE");
+		    $c++;
 		}
 	    }
 	    elsif($inFile[$i] =~ /\.space\s+(\d+),?(\d+)?/) {
@@ -210,6 +203,12 @@ for($i=$i-1;$i<=$#inFile;$i++) {
 		for(my $s=0;$s<$1;$s++) {
 		    &pushData($varname, $fill, 0x0, "BYTE");
 		}
+		# check its pushed
+		#if(!($currentAddr % 4) && $currentAddr && !$cleanLine) {
+		#    push @data, $currentLine;
+		#    $currentLine = 0;
+		#    $cleanLine = 1;
+		#}
 		#$found = 1;
 	    }
 	    elsif($inFile[$i] =~ /\.size\s+($varname),\s*(\d+)/) {
@@ -218,7 +217,7 @@ for($i=$i-1;$i<=$#inFile;$i++) {
 	    }
 	} while(($inFile[$i] !~ /^\n/) && ($i <= $#inFile) && ($found == 0));
 
-	&alignMem();
+	#&alignMem();
     }
 }
 
@@ -231,9 +230,9 @@ print "\n";
 
 # print out all data labels
 print "\n##Data Labels\n";
-while(my ($key, $value) = each(%lookup)) {
-    if($key !~ /^\./) {
-	printf("%04x - %s\n", $value, $key);
+foreach my $key (sort sortLookUp (keys(%lookup))) {
+    if($lookup{$key} ne '') {
+	printf("%04x - %s\n", $lookup{$key}, $key);
     }
 }
 
@@ -266,20 +265,24 @@ sub pushData {
 	if($currentAddr % 4) {
 	    while($currentAddr % 4) {
 		$currentLine |= 0x00 << ((~($currentAddr % 4) & 0x3) * 8);
+		$cleanLine = 0;
 		$currentAddr++;
 	    }
 	    push @data, $currentLine;
 	    $currentLine = 0;
+	    $cleanLine = 1;
 	}
 
 	#$lookup{$name} = $currentAddr;
 
 	for(my $j=0;$j<$size;$j++) {
 	    $currentLine |= 0x00 << ((~($currentAddr % 4) & 0x3) * 8);
+	    $cleanLine = 0;
 	    $currentAddr++;
 	    if(!($currentAddr % 4)) {
 		push @data, $currentLine;
 		$currentLine = 0;
+		$cleanLine = 1;
 	    }
 	}
     }
@@ -288,10 +291,12 @@ sub pushData {
 	if($currentAddr % 4) {
 	    while($currentAddr % 4) {
 		$currentLine |= 0x00 << ((~($currentAddr % 4) & 0x3) * 8);
+		$cleanLine = 0;
 		$currentAddr++;
 	    }
 	    push @data, $currentLine;
 	    $currentLine = 0;
+	    $cleanLine = 1;
 	}
 	#if(!defined($lookup{$name})) {
 	#    $lookup{$name} = $currentAddr;
@@ -310,11 +315,13 @@ sub pushData {
 	if(!($currentAddr % 4) && $currentAddr) {
 	    push @data, $currentLine;
 	    $currentLine = 0;
+	    $cleanLine = 1;
 	}
 
 	# possibility of padding
 	if(($currentAddr % 2) && $currentAddr) {
 	    $currentLine |= 0x00 << ((~($currentAddr % 4) & 0x3) * 8);
+	    $cleanLine = 0;
 	    $currentAddr++;
 	}
 
@@ -323,13 +330,15 @@ sub pushData {
 	#}
 
 	$currentLine |= $data << (((~$currentAddr-1) % 4) * 8);
+	$cleanLine = 0;
 	$currentAddr += 2;
     }
     elsif($type eq "BYTE") {
 	# need to push any full words to data
-	if(!($currentAddr % 4) && $currentAddr) {
+	if(!($currentAddr % 4) && $currentAddr && !$cleanLine) {
 	    push @data, $currentLine;
 	    $currentLine = 0;
+	    $cleanLine = 1;
 	}
 
 	#if(!defined($lookup{$name})) {
@@ -337,6 +346,7 @@ sub pushData {
 	#}
 
 	$currentLine |= $data << ((~($currentAddr % 4) & 0x3) * 8);
+	$cleanLine = 0;
 	$currentAddr++;
     }
     elsif($type eq "SPACE") {
@@ -344,15 +354,18 @@ sub pushData {
 	if(!($currentAddr % 4) && $currentAddr) {
 	    push @data, $currentLine;
 	    $currentLine = 0;
+	    $cleanLine = 1;
 	}
 
 	for(my $k=0;$k<$size;$k++) {
 	    $currentLine |= 0x00 << ((~($currentAddr % 4) & 0x3) * 8);
+	    $cleanLine = 0;
 	    $currentAddr++;
 
 	    if(!($currentAddr % 4) && $currentAddr) {
 		push @data, $currentLine;
 		$currentLine = 0;
+		$cleanLine = 1;
 	    }
 	}
     }
@@ -366,10 +379,12 @@ sub pushData {
 	my @string = split(//, $data);
 	for(my $k=0;$k<=$#string;$k++) {
 	    $currentLine |= ord($string[$k]) << ((~($k % 4) & 0x3) * 8);
+	    $cleanLine = 0;
 	    $currentAddr++;
 	    if(!($currentAddr % 4) && $currentAddr) {
 		push @data, $currentLine;
 		$currentLine = 0;
+		$cleanLine = 1;
 	    }
 	}
     }
@@ -380,10 +395,19 @@ sub alignMem {
     if($currentAddr % 4) {
 	while($currentAddr % 4) {
 	    $currentLine |= 0x00 << ((~($currentAddr % 4) & 0x3) * 8);
+	    $cleanLine = 0;
 	    $currentAddr++;
 	}
 	push @data, $currentLine;
 	$currentLine = 0;
+	$cleanLine = 1;
+    }
+    else {
+	if(!$cleanLine) {
+	    push @data, $currentLine;
+	    $currentLine = 0;
+	    $cleanLine = 1;
+	}
     }
 }
 
@@ -396,4 +420,47 @@ sub populateSyscalls {
 	}
     }
     close SYSCALL;
+}
+
+sub sortLookUp() {
+    $lookup{$a} <=> $lookup{$b};
+}
+
+sub ascii_to_dec {
+    my @data;
+    my @tmp = split(//, $_[0]);
+    for(my $i=0;$i<@tmp;$i++){
+        if($tmp[$i] eq "\\") {
+            $i++;
+            if($tmp[$i] =~ /\d/) {
+                my $spec =  $tmp[$i] . $tmp[$i+1] . $tmp[$i+2];
+                push (@data, oct($spec));
+                $i += 2;
+            }
+            elsif($tmp[$i] =~ /\w/) {
+                my $spec = "\\" . $tmp[$i];
+                $spec =~ s/\\a/\a/g;
+                $spec =~ s/\\b/\b/g;
+                $spec =~ s/\\n/\n/g;
+                $spec =~ s/\\t/\t/g;
+                $spec =~ s/\\r/\r/g;
+                $spec =~ s/\\f/\f/g;
+                push (@data, ord($spec));
+            }
+            elsif($tmp[$i] eq "\\") {
+                push (@data, ord("\\"));
+            }
+	    elsif($tmp[$i] eq "\"") {
+                push (@data, ord("\""));
+	    }
+            else {
+		print $tmp[$i] . "\n";
+                print "ERROR\n";
+            }
+        }
+        else {
+            push (@data, ord($tmp[$i]));
+        }
+    }
+    return @data;
 }
