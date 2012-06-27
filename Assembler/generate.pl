@@ -291,7 +291,11 @@ else {
     my @sfiles = <*.s>;
     # run llvmtransform on each file
     foreach my $sfile (@sfiles) {
-	my $cmd = $perl . ' ' . $llvmTrans . ' ' . $sfile . ' > ' . $sfile . '.tran';
+	my $cmd = $perl . ' ' . $llvmTrans . ' ' . $sfile;
+	if($syscall) {
+	    $cmd .= ' -syscall=' . $le1_folder . '/Insizzle/inc/syscall_layout.h ';
+	}
+	$cmd .= ' > ' . $sfile . '.tran';
 	&command($cmd);
     }
 
