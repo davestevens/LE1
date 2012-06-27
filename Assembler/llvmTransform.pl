@@ -11,11 +11,23 @@ use strict;
 # Data Section - x - Data_align=32
 # BSS Labels - x - Bss_align=32
 
-open INFILE, "< $ARGV[0]" or die;
+my $inFile = '';
+my %supportedSYSCALLS;
+
+foreach my $arg (@ARGV) {
+    if($arg =~ /-syscall=(.+)/) {
+	&populateSyscalls($1);
+    }
+    else {
+	$inFile = $arg;
+    }
+}
+
+open INFILE, "< $inFile" or die;
 my @inFile = <INFILE>;
 close INFILE;
 
-$ARGV[0] =~ /(\w+)\.(\w+)/;
+$inFile =~ /(\w+)\.(\w+)/;
 my $filename = $1;
 my $instCount = 0;
 my (@oper, %instLabels);
@@ -74,6 +86,12 @@ for(my $j=0;$j<=$#oper;$j++) {
     if($oper[$j] =~ /call\.0\s+l\d+\.\d+,\s+FUNC_exit/) {
 	$oper[$j] = '.call exit, caller, arg($r0.3:s32), ret($r0.3:s32)' . "\n" . $oper[$j];
     }
+    # replace syscall operations
+    if($oper[$j] =~ /call\.(\d+)\s+l\d+\.\d+,\s+(.+)/) {
+	if(defined($supportedSYSCALLS{$2})) {
+	    $oper[$j] = 'syscall.' . $1 . ' ' . $supportedSYSCALLS{$2};
+	}
+    }
 }
 
 # check if main is the first function
@@ -111,12 +129,15 @@ my $currentAddr = 0;
 my %lookup;
 
 for($i=$i-1;$i<=$#inFile;$i++) {
-    if($inFile[$i] =~ /\.type\s+((\.?\w+)+),\@object/) {
+    if($inFile[$i] =~ /\.type\s+((\$?\.?\w+)+),\@object/) {
 	my $varname = $1;
 	$lookup{$varname} = $currentAddr;
 	my $found = 0;
 	my $size = 0;
 	my $width = 0;
+
+	# escape $ in varname
+	$varname =~ s/\$/\\\$/g;
 
 	# figure out size and width of data item
 	my $i_copy = $i;
@@ -127,7 +148,7 @@ for($i=$i-1;$i<=$#inFile;$i++) {
 	    if($inFile[$i] =~ /$varname:/) {
 		$i_start = $i;
 	    }
-	    if($inFile[$i] =~ /\.size\s+(\w+),\s*(\d+)/) {
+	    if($inFile[$i] =~ /\.size\s+($varname),\s*(\d+)/) {
 		$size = $2;
 		$width = $size / ($i - ($i_start + 1));
 		$break = 1;
@@ -163,16 +184,23 @@ for($i=$i-1;$i<=$#inFile;$i++) {
 		&pushData($varname, $1, 0x0, "STRING");
 	    }
 	    elsif($inFile[$i] =~ /\.asci[iz]\s+\"(.+)\"/) {
-		# this is a guess at how it works
-		# using data size / number of lines to define number of chars?
-		my @oct = split(/\\/, $1);
-		my $o;
-		for($o=1;$o<=$#oct;$o++) {
-		    &pushData($varname, oct($oct[$o]), 0x0, "BYTE");
+                # figure out if it is oct or char string
+		my $str = $1;
+		if($str =~ /(\\\d{3})+/) {
+		    # this is a guess at how it works
+		    # using data size / number of lines to define number of chars?
+		    my @oct = split(/\\/, $str);
+		    my $o;
+		    for($o=1;$o<=$#oct;$o++) {
+			&pushData($varname, oct($oct[$o]), 0x0, "BYTE");
+		    }
+		    while($o <= $width) {
+			&pushData($varname, 0x0, 0x0, "BYTE");
+			$o++;
+		    }
 		}
-		while($o <= $width) {
-		    &pushData($varname, 0x0, 0x0, "BYTE");
-		    $o++;
+		else {
+		    &pushData($varname, $str, 0x0, "STRING");
 		}
 	    }
 	    elsif($inFile[$i] =~ /\.space\s+(\d+),?(\d+)?/) {
@@ -184,7 +212,7 @@ for($i=$i-1;$i<=$#inFile;$i++) {
 		}
 		#$found = 1;
 	    }
-	    elsif($inFile[$i] =~ /\.size\s+(\w+),\s*(\d+)/) {
+	    elsif($inFile[$i] =~ /\.size\s+($varname),\s*(\d+)/) {
 		# should be the end of data item
 		$found = 1;
 	    }
@@ -329,16 +357,16 @@ sub pushData {
 	}
     }
     elsif($type eq "STRING") {
-
 	#if(!defined($lookup{$name})) {
 	#    $lookup{$name} = $currentAddr;
 	#}
+	# need to replace \x with char equivalents
+	$data =~ s/\\n/\n/g;
 
 	my @string = split(//, $data);
 	for(my $k=0;$k<=$#string;$k++) {
 	    $currentLine |= ord($string[$k]) << ((~($k % 4) & 0x3) * 8);
 	    $currentAddr++;
-
 	    if(!($currentAddr % 4) && $currentAddr) {
 		push @data, $currentLine;
 		$currentLine = 0;
@@ -355,5 +383,17 @@ sub alignMem {
 	    $currentAddr++;
 	}
 	push @data, $currentLine;
+	$currentLine = 0;
     }
+}
+
+sub populateSyscalls {
+    open SYSCALL, "< $_[0]" or die "Could not open file: $_[0] ($!)\n";
+    while(<SYSCALL>) {
+	chomp();
+	if(/#define\s+(\w+)\s+(\d+)/) {
+	    $supportedSYSCALLS{lc($1)} = $2;
+	}
+    }
+    close SYSCALL;
 }
