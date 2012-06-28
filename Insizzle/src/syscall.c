@@ -1,5 +1,6 @@
 #include "syscall.h"
 #include "macros.h"
+#include "functions.h"
 
 #include "pcre_split.h"
 #include <stdlib.h>
@@ -10,7 +11,66 @@
 
 #define OUT stderr
 
-void syscall(unsigned *S_GPR, unsigned dram, unsigned call, unsigned long long cycleCount) {
+void syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long long cycleCount) {
+  unsigned dram = (unsigned)system->dram;
+
+  if(llvm) {
+    /* check whether there are any memory operations waiting on the registers required */
+    /* max number of registers is 7, create a local copy */
+    unsigned _reg[10];
+    int i;
+    struct memReqT *temp;
+    int found = 0;
+
+    for(i=0;i<10;i++) {
+      temp = system->memReq;
+      found = 0;
+      if(temp != NULL) {
+	do {
+	  if((unsigned)temp->pointer == (unsigned)(S_GPR + i)) {
+	    /* need to get it from memory (only loads) */
+	    found = 1;
+	    switch(temp->memOp) {
+	    case mLDSB:
+	      _LDSB_iss(&_reg[i], (temp->value + (unsigned)(system->dram)));
+	      break;
+	    case mLDBs:
+	      _LDBs_iss(&_reg[i], (temp->value + (unsigned)(system->dram)));
+	      break;
+	    case mLDUB:
+	      _LDUB_iss(&_reg[i], (temp->value + (unsigned)(system->dram)));
+	      break;
+	    case mLDSH:
+	      _LDSH_iss(&_reg[i], (temp->value + (unsigned)(system->dram)));
+	      break;
+	    case mLDUH:
+	      _LDUH_iss(&_reg[i], (temp->value + (unsigned)(system->dram)));
+	      break;
+	    case mLDW:
+	      _LDW_iss(&_reg[i], (temp->value + (unsigned)(system->dram)));
+	      break;
+	    default:
+	      /* ignore i guess */
+	      found = 0;
+	      break;
+	    }
+	    break;
+	  }
+	  temp = temp->next;
+	} while(temp != NULL);
+	if(!found) {
+	  _reg[i] = (unsigned)*(S_GPR + i);
+	}
+      }
+      else {
+	_reg[i] = (unsigned)*(S_GPR + i);
+      }
+    }
+
+    /* set S_GPR pointer to our local registers */
+    S_GPR = &_reg[0];
+  }
+
   switch(call) {
     /* All assume registers are availabe in current
        registers, due to VEX seeming to work this way

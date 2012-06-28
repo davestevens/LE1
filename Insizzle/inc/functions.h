@@ -30,6 +30,7 @@
 #define MAX_CLUSTERS          16 /* per context */
 
 
+unsigned char llvm;
 unsigned memAlign;
 time_t start, end;
 unsigned char similarIRAM, suppressOOB;
@@ -156,7 +157,7 @@ struct newThreadT {
 };
 
 /* syscall function */
-void syscall(unsigned *, unsigned, unsigned, unsigned long long);
+void syscall(unsigned *, systemT *, unsigned, unsigned long long);
 
 void sigsegv_debug(int);
 void sigusr1_debug(int);

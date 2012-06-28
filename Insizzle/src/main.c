@@ -38,6 +38,7 @@ int main(int argc, char *argv[])
   sigset_t block_mask;
   unsigned int STACK_SIZE_ARG = 0;
 
+  llvm = 0;
   cycleCount = 0;
   char *versionNumber = "Insizzle_Revision";
   similarIRAM = 0;
@@ -96,6 +97,9 @@ int main(int argc, char *argv[])
 	return -1;
       }
       i++;
+    }
+    else if(!strcmp(argv[i], "-llvm")) {
+      llvm = 1;
     }
     else {
       printf("Unknown argument: %s\n", argv[i]);
