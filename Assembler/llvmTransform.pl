@@ -77,7 +77,7 @@ for(my $j=0;$j<=$#oper;$j++) {
     if($oper[$j] !~ /^--/) {
 	while(my ($key, $value) = each(%instLabels)) {
 	    # TODO: this may need to be altered
-	    $oper[$j] =~ s/(\W+)$key\s*$/$1$value/g;
+	    $oper[$j] =~ s/(\W+)\(?$key\)?\s*$/$1$value\)/g;
 	}
     }
     # rename multiply instructions
