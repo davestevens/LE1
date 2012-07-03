@@ -1699,34 +1699,52 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		      ret.addr = _NUL_iss;
 		      break;
 		    case 2:
-		      ret.opcode = CALL;
-		      ret.source1 = ((inst & 0xfffff) ^ (1 << 19)) - (1 << 19);
-		      ret.newPCValid = 1;
-		      ret.newPC = hypercontext->programCounter + ret.source1;
-		      ret.addr = _NUL_iss;
-		      ret.data = 0;
-		      ret.target = -1;
-		      /* need to set link_register to correct value */
-		      *(S_L) = hypercontext->programCounter + 0x4;
+		      {
+			int callabs = (inst >> 20) & 0x1;
 
-		      callsList_t *temp = callsList;
-		      int register_count = 0;
-		      while(temp) {
-			if(temp->pc == hypercontext->programCounter) {
-			  printf("%s(", temp->name);
-			  for(register_count = 0;register_count<7;register_count++) {
-			    if(!(temp->registers[register_count])) {
-			      break;
-			    }
-			    if(register_count > 0) {
-			      printf(", ");
-			    }
-			    printf("0x%08x", *(S_GPR + (register_count+3)));
-			  }
-			  printf(")\n");
-			  break;
+			if(callabs) {
+			  ret.opcode = CALLABS;
+			  ret.source1 = immediate;
+			  ret.newPCValid = 1;
+			  ret.newPC = ret.source1;
+			  ret.addr = _NUL_iss;
+			  ret.data = 0;
+			  ret.target = -1;
+			  /* need to set link_register to correct value */
+			  *(S_L) = hypercontext->programCounter + 0x4;
 			}
-			temp = (callsList_t *)temp->next;
+			else {
+			  ret.opcode = CALL;
+			  ret.source1 = ((inst & 0xfffff) ^ (1 << 19)) - (1 << 19);
+			  ret.newPCValid = 1;
+			  ret.newPC = hypercontext->programCounter + ret.source1;
+			  ret.addr = _NUL_iss;
+			  ret.data = 0;
+			  ret.target = -1;
+			  /* need to set link_register to correct value */
+			  *(S_L) = hypercontext->programCounter + 0x4;
+			}
+
+			/* printout the calls and arguments if required */
+			callsList_t *temp = callsList;
+			int register_count = 0;
+			while(temp) {
+			  if(temp->pc == hypercontext->programCounter) {
+			    printf("%s(", temp->name);
+			    for(register_count = 0;register_count<7;register_count++) {
+			      if(!(temp->registers[register_count])) {
+				break;
+			      }
+			      if(register_count > 0) {
+				printf(", ");
+			      }
+			      printf("0x%08x", *(S_GPR + (register_count+3)));
+			    }
+			    printf(")\n");
+			    break;
+			  }
+			  temp = (callsList_t *)temp->next;
+			}
 		      }
 		      break;
 		    case 3:
