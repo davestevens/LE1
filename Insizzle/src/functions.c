@@ -442,7 +442,11 @@ instructionPacket fetchInstruction(contextT *context, unsigned programCounter, c
   /*printf("fetchInstruction\n");
   printf("\tprogramCounter: 0x%x\n", programCounter);
   printf("\tiram: 0x%x\n", *context->iram);*/
-  if(programCounter >= (((CNT->IFE_SIMPLE_IRAM_PRIV_CONFIG >> 8) & 0xffff) * 1024)) {
+  if((programCounter >= (((CNT->IFE_SIMPLE_IRAM_PRIV_CONFIG >> 8) & 0xffff) * 1024))
+    &&
+     (((CNT->IFE_SIMPLE_IRAM_PRIV_CONFIG >> 8) & 0xffff) * 1024)
+     )
+    {
     printf("Warning: programCounter out of range\n");
     printf("\tProgramCounter: 0x%08x\n", programCounter);
     printf("\tIRAM Size: 0x%08x\n", (((CNT->IFE_SIMPLE_IRAM_PRIV_CONFIG >> 8) & 0xffff) * 1024));
