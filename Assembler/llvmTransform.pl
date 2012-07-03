@@ -160,7 +160,7 @@ for($i=$i-1;$i<=$#inFile;$i++) {
 
 	do {
 	    $i++;
-	    if($inFile[$i] =~ /\.comm\s+(\w+),(\d+),(\d+)/) {
+	    if($inFile[$i] =~ /\.comm\s+($varname),(\d+),(\d+)/) {
 		&pushData($varname, 0x0, $2, "COMM");
 		$found = 1;
 	    }
