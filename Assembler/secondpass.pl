@@ -7,15 +7,25 @@
 #                          Loughborough University                            #
 #                              D.Stevens.ac.uk                                #
 ###############################################################################
+
+my %Inst_Label;
+my %Data_Label;
+my @output;
+my %testing_calls;
+my $debug = 0;
+
+
+my $call = '';
+my $entry_caller = '';
+my $clock = 0;
+
 $total_1 = 0;
 $ok = 1;
 $return_count = 0;
 
-$debug = 0;
 $mem_align = 0;
 $dram_base_offset = 0;
 
-my %testing_calls;
 
 if($ARGV[0] eq "")
 {
@@ -86,6 +96,7 @@ else
 	    if(!(-e 'microblaze')) {
 		mkdir('microblaze');
 	    }
+	    @output = &clean_up_output();
 	    &print_instructions($output_file_inst, $output_file_inst_readable, $output_header_file_inst);
 	    &print_data($output_file_data, $output_file_data_readable, $output_header_file_data, $output_data_le1_vars);
 	    print "Second Pass Completed\n";
@@ -103,77 +114,63 @@ else
 	exit(-1);
     }
 }
-sub grab_data()
-{
-    $file = @_[0];
-    open INPUT, "< $file" or die
-	"Second Pass Failed\nCould not open file ($file): $!\n";
-    @in_file = <INPUT>;
+
+# populate @Operations, @Memory, %Data_Label, %Inst_Label and @Imports
+sub grab_data {
+    open INPUT, "< $_[0]" or die
+	"Second Pass Failed\nCould not open file ($_[0]): $!\n";
+    my @in_file = <INPUT>;
     close INPUT;
-    for($i=0;$i<=$#in_file;$i++)
-    {
-	if($in_file[$i] =~ /Operations - \d+$/)
-	{
+    for(my $i=0;$i<=$#in_file;$i++) {
+	if($in_file[$i] =~ /Operations - \d+$/) {
 	    $i++;
-	    while($in_file[$i] !~ /^\n/)
-	    {
+	    while($in_file[$i] !~ /^\n/) {
 		chomp($in_file[$i]);
 		push @Operations, $in_file[$i];
 		$i++;
 	    }
 	}
 	# just need to skip over this section now
-	elsif($in_file[$i] =~ /Instruction Labels$/)
-	{
+	elsif($in_file[$i] =~ /Instruction Labels$/) {
 	    $i++;
-	    while($in_file[$i] !~ /^\n/)
-	    {
+	    while($in_file[$i] !~ /^\n/) {
 		$i++;
 	    }
 	}
-	elsif($in_file[$i] =~ /Data Labels$/)
-	{
+	elsif($in_file[$i] =~ /Data Labels$/) {
 	    $i++;
-	    while($in_file[$i] !~ /^\n/)
-	    {
+	    while($in_file[$i] !~ /^\n/) {
 		chomp($in_file[$i]);
 		($address, $label) = split(/ \- /, $in_file[$i]);
-		if(defined($label))
-		{
+		if(defined($label)) {
 		    $Data_Label{$label} = hex($address) + $dram_base_offset;
 		    undef($label);
 		}
 		$i++;
 	    }
 	}
-	elsif($in_file[$i] =~  /Import$/)
-	{
+	elsif($in_file[$i] =~  /Import$/) {
 	    $i++;
-	    while($in_file[$i] !~ /^\n/)
-	    {
+	    while($in_file[$i] !~ /^\n/) {
 		chomp($in_file[$i]);
 		push (@Import, $in_file[$i]);
 		$i++;
 	    }
 	}
-	elsif($in_file[$i] =~ /Data Section - (\d+) - Data_align=(\d+)$/)
-	{
+	elsif($in_file[$i] =~ /Data Section - (\d+) - Data_align=(\d+)$/) {
 	    $data_align = $2;
 	    $total_data = $1;
 	    $i++;
-	    while(($in_file[$i] !~ /^\n/) && ($i <= $#in_file))
-	    {
+	    while(($in_file[$i] !~ /^\n/) && ($i <= $#in_file)) {
 		chomp($in_file[$i]);
 		($address, $value_hex, $value_bin) = split(/ \- /, $in_file[$i]);
-		if(defined($value_hex))
-		{
+		if(defined($value_hex)) {
 		    push @Memory, $value_hex;
 		}
 		$i++;
 	    }
 	}
-	elsif($in_file[$i] =~ /BSS Labels - (\d+) - Bss_align=(\d+)/)
-	{
+	elsif($in_file[$i] =~ /BSS Labels - (\d+) - Bss_align=(\d+)/) {
 	    $total_bss = $1;
 	    $bss_align = $2;
 	    $i++;
@@ -190,8 +187,7 @@ sub grab_data()
 	    }
 	}
     }
-    for($q=0;$q<$total_bss;$q+=4)
-    {
+    for(my $q=0;$q<$total_bss;$q+=4) {
 	push @Memory, "00000000";
     }
     print "Size of data area : $total_data\n";
@@ -199,22 +195,19 @@ sub grab_data()
     $end_of_memory = ($total_data + $total_bss) * 8;
     print "End of memory: $end_of_memory\n";
 
-    $counter = 0;
-    foreach $op (@Operations)
-    {
-	if($op =~ /^\w+\.\d+/)
-	{
+    my $counter = 0;
+    foreach my $op (@Operations) {
+	if($op =~ /^\w+\.\d+/) {
 	    $counter++;
 	}
-	if($op =~ /^--\s+(.+)/)
-	{
+	if($op =~ /^--\s+(.+)/) {
 	    $Inst_Label{$1} = $counter;
 	}
     }
-
 }
-sub second_pass()
-{
+
+# populate @output array with instructions array with data section
+sub second_pass {
     @opcode = (
 	'2,5,RR(i|I)L',             # for RETURN
 	'1,5,^RR$',                 # sign|zero extension
@@ -260,32 +253,20 @@ sub second_pass()
     $syllable |= $1 << 10;
     $instruction_address = 0;
     $current_cluster = 0;
-    $clock = 0;
-    $call = 0;
-    for($i=0;$i<=$#Operations;$i++)
-    {
+    for(my $i=0;$i<@Operations;$i++) {
 	undef($syllable);
-	if($Operations[$i+1] =~ /\;/)
-	{
+	if($Operations[$i+1] =~ /\;/) {
 	    $clock = 1;
 	}
-	elsif($Operations[$i+1] =~ /xnop/)
-	{
+	elsif($Operations[$i+1] =~ /xnop/) {
 	    $clock = 1;
 	}
-	if(($Operations[$i+1] =~ /\;/) && ($Operations[$i] =~ /^\-/))
-	{
+	if(($Operations[$i+1] =~ /\;/) && ($Operations[$i] =~ /^\-/)) {
 	    $syllable = 1 << 31;
 	    push @output, "$instruction_address - $syllable - Auto Inserted NOP2|NOP";
-	    foreach $key (%Inst_Label)
-	    {
-		if($Inst_Label{$key} >= $instruction_address)
-		{
-		    if($Operations[$i] eq "-- $key")
-		    {
-		    }
-		    else
-		    {
+	    foreach my $key (%Inst_Label) {
+		if($Inst_Label{$key} >= $instruction_address) {
+		    if($Operations[$i] ne "-- $key") {
 			$Inst_Label{$key}++;
 		    }
 		}
@@ -293,60 +274,53 @@ sub second_pass()
 	    $instruction_address++;
 	    $clock = 0;
 	}
-	if(($Operations[$i] =~ /\;/) && ($Operations[$i+1] =~ /\;/))
-	{
+	if(($Operations[$i] =~ /\;/) && ($Operations[$i+1] =~ /\;/)) {
 	    $syllable = 1 << 31;
 	    push @output, "$instruction_address - $syllable - Auto Inserted NOP|NOP";
-	    foreach $key (%Inst_Label)
-	    {
-		if($Inst_Label{$key} >= $instruction_address)
-		{
+	    foreach my $key (%Inst_Label) {
+		if($Inst_Label{$key} >= $instruction_address) {
 		    $Inst_Label{$key}++;
 		}
 	    }
 	    $instruction_address++;
 	    $clock = 0;
 	}
-	if($Operations[$i] =~ /\.entry/)
-	{
-	    &entry_caller($Operations[$i]);
+	if($Operations[$i] =~ /\.entry/) {
+	    $entry_caller = $Operations[$i];
 	}
-	elsif($Operations[$i] =~ /\.return/)
-	{
-	    &return_args($Operations[$i]);
+	elsif($Operations[$i] =~ /\.return/) {
+	    #$return_args[$return_count++] = $Operations[$i];
 	}
-	elsif($Operations[$i] =~ /\.call/)
-	{
-	    &call_caller($Operations[$i]);
+	elsif($Operations[$i] =~ /\.call/) {
+	    $call = $Operations[$i];
+	    $call =~ /\.call\s+(\w+)\s+arg\((.+)\)\s/;
+	    $testing_calls{$1} = $2;
+	    push @output, $Operations[$i];
 	}
-	elsif($Operations[$i] =~ /^\-/)
-	{
-	    &label($Operations[$i]);
+	elsif($Operations[$i] =~ /^\-/) {
+	    #&label($Operations[$i]);
+	    my $function = $Operations[$i];
+	    $function =~ /--\s+(.+)/;
+	    $function =~ s/\./X/g;
+	    $function =~ s/\?/X/g;
+	    push @output, $function;
 	}
-	elsif($Operations[$i] =~ /^\./)
-	{
-	    &other($Operations[$i]);
+	elsif($Operations[$i] =~ /^\./) {
 	}
-	elsif($Operations[$i] =~ /\;/)
-	{
+	elsif($Operations[$i] =~ /\;/) {
 	}
-	elsif($Operations[$i] =~ /^(ENDOF)?FILE/)
-	{
-	    if($Operations[$i] =~ /^FILE/)
-	    {
-		$Operations[$i] =~ /FILE: (.+)/;
-		$filename_ = $1;
-		$Operations[$i+2] =~ /-- (.+)/;
-		$functionname_ = $1;
-		$fileStart{$functionname_} = $filename_;
-		#print $functionname_, " => ", $fileStart{$functionname_}, "\n";
-	    }
+	elsif($Operations[$i] =~ /^(ENDOF)?FILE/) {
+#	    if($Operations[$i] =~ /^FILE/) {
+#		$Operations[$i] =~ /FILE: (.+)/;
+#		my $filename_ = $1;
+#		$Operations[$i+2] =~ /-- (.+)/;
+#		my $functionname_ = $1;
+#		$fileStart{$functionname_} = $filename_;
+#	    }
 	}
-	else
-	{
+	else {
 	    push @output, &operation($Operations[$i]);
-	    if($clock == 1)
-	    {
+	    if($clock == 1) {
 		$current_cluster = 0;
 	    }
 	    undef($line);
@@ -360,85 +334,8 @@ sub second_pass()
 	undef(@customs);
     }
 }
-sub entry_caller()
-{
-    $entry_caller = $_[0];
-}
-sub return_args()
-{
-    $return_args[$return_count++] = $_[0];
-}
-sub call_caller()
-{
-    $call = @_[0];
-    $call =~ /\.call\s+(\w+)\s+arg\((.+)\)\s/;
-    $testing_calls{$1} = $2;
-    push @output, $_[0];
-}
-sub clock()
-{
-}
-sub label()
-{
-    $function = $_[0];
-    if($function =~ /FUNC_/)
-    {
-	$function =~ /--\s+(.+)/;
-	$function = $1;
-	$function =~ s/\./X/g;
-	$function =~ s/\?/X/g;
-	$function_head = "/* FUNCTION *$function */\n";
-	$entry_caller =~ /arg\((.*)\)/;
-	@sim_args = split(/,/, $1);
-	$args_count = 0;
 
-	if($function eq "FUNC_main")
-	{
-	    $function_head .= "\t" . '/* CLOCK */' . "\n";
-	    $function_head .= "\t" . 'void *label0x0(void)' . "\n";
-	    $function_head .= "\t" . '{'. "\n";
-	}
-	foreach $sim_arg (@sim_args)
-	{
-	    if($sim_arg =~ /\$([rbl])(\d+)\.(\d+):\w+/)
-	    {
-		$function_head .= "sim_$1" . "\[cntxt\]\[hcntxt\]\[$2\]\[$3\] = pass_arguments[cntxt][hcntxt].args.arg[$args_count];\n";
-		$function_head .= "sim_$1" . "_prev\[cntxt\]\[hcntxt\]\[$2\]\[$3\] = pass_arguments[cntxt][hcntxt].args.arg[$args_count];\n";
-		$args_count++;
-	    }
-	}
-	if($function eq "FUNC_main")
-	{
-$current_label_for_hash_define = "label0x0";
-$function_head .=<<FUNCHEAD;
-\t\tif(!checked[cntxt][hcntxt])
-\t\t{
-\t\t\tif(check_bundles(cntxt, hcntxt, label0x0_start, label0x0_end))
-\t\t\t{
-\t\t\t\tchecked[cntxt][hcntxt] = 1;
-\t\t\t\treturn 0;
-\t\t\t}
-\t\t}
-\t\tchecked[cntxt][hcntxt] = 0;
-\t\tCYCLE_INCREMENT(cntxt, hcntxt);
-FUNCHEAD
-    push @Functions, "void *label0x0(void);";
-}
-    push @output, $function_head;
-    }
-    else
-    {
-	$function =~ /--\s+(.+)/;
-	$function =~ s/\./X/g;
-	$function =~ s/\?/X/g;
-	push @output, $function;
-    }
-}
-sub other()
-{
-}
-sub operation()
-{
+sub operation {
     @ops = split(/\s+/, @_[0]);
     if($clock == 1)
     {
@@ -1320,19 +1217,17 @@ sub operation()
 	return("$instruction_address - $syllable  - $opcode_name|@_[0]");
     }
 }
-sub bin2dec()
-{
-    @bin = split(//, @_[0]);
-    @bin_rev = reverse(@bin);
-    $total = 0;
-    $current = 1;
-    foreach $bit (@bin_rev)
-    {
+sub bin2dec {
+    my @bin = reverse(split(//, $_[0]));
+    my $total = 0;
+    my $current = 1;
+    foreach my $bit (@bin) {
 	$total += ($current * $bit);
 	$current *= 2;
     }
-    return($total);
+    return $total;
 }
+
 sub return_layout()
 {
     @layout = split(/\s+/, @_[0]);
@@ -1580,102 +1475,103 @@ sub return_layout()
     }
     return($type . ":" . $value);
 }
-sub nine_or_thritytwo()
-{
-    if((@_[0] < 256) && (@_[0] > -257))
-    {
-	return("i");
+
+# cacluate if a value can fit withing 9 bits of a syllable or if it requires an extra 32 bit immediate
+sub nine_or_thritytwo {
+    if(($_[0] < 256) && ($_[0] > -257)) {
+	return "i";
     }
-    elsif(@_[0] > 0xFFFFFFFF)
-    {
+    elsif($_[0] > 0xFFFFFFFF) {
 	print "Second Pass Failed
 There has been an issue somewhere :(\ncalled &nine_or_thritytwo(@_[0])\n";
 	exit(-1);
     }
-    else
-    {
-	return("I");
+    else {
+	return "I";
     }
 }
-sub twoscomp()
-{
-    $power = (2 ** @_[1]);
-    if(@_[0] > 2147483647)
-    {
-	@_[0] = @_[0] - $power;
+
+# generate the twoscompliment given a number and the bits to fit in
+# used to populating signed values for within syllable
+sub twoscomp {
+    my $power = (2 ** $_[1]);
+    if($_[0] > 2147483647) {
+	$_[0] = $_[0] - $power;
     }
-    if((@_[0] >= 0) && (@_[0] < ($power/2)))
-    {
-	return(1, @_[0]);
+    if(($_[0] >= 0) && ($_[0] < ($power/2))) {
+	return(1, $_[0]);
     }
-    elsif((@_[0] < 0) && (@_[0] > ((($power/2)+1)*-1)))
-    {
-	$twoscom = (($power-1) - ((@_[0]*-1) - 1));
+    elsif(($_[0] < 0) && ($_[0] > ((($power/2)+1)*-1))) {
+	my $twoscom = (($power-1) - ((@_[0]*-1) - 1));
 	return(1, $twoscom);
     }
-    else
-    {
+    else {
 	return(0, 0);
     }
 }
-sub hex_to_ascii()
-{
-    $h2a = @_[0];
+
+sub hex_to_ascii {
+    my $h2a = @_[0];
     ($h2a = shift) =~ s/([a-fA-F0-9]{2})/chr(hex $1)/eg;
     return($h2a);
 }
-sub print_instructions()
-{
-    $instruction_size = 0;
-    $test_address = 0;
-    $return_count = 0;
+
+sub clean_up_output {
+    my @_output;
+    foreach (@output) {
+	if(/^\d+\s+\-/) {
+	    push (@_output, $_);
+	}
+    }
+    return @_output;
+}
+
+sub print_instructions {
+    goto loop_for_printing;
+    # this label is used because of the inclusion of the call abs operation
+    # if a call does not fit into 20 bits a new operation is required
+    # come back here and do it again
+  do_it_again_a_tribute_to_call_abs:
+    # close all the files
+    close BIG_ENDIAN_INSTRUCTION;
+    close IRAM_HEADER;
+    close INST_TXT_FILE;
+    close CALLS_LIST;
+
+  loop_for_printing:
     open BIG_ENDIAN_INSTRUCTION, "> binaries/iram0.bin" or die
 	"Second Pass Failed\nCould not open file (binaries/iram0.bin : $!)\n";
 
-#    open LITTLE_ENDIAN_INSTRUCTION, "> @_[0]\.little" or die
-#	"Second Pass Failed\nCould not open file (@_[0].little : $!)\n";
-
-    open IRAM_HEADER, "> @_[2]" or die
-	"Second Pass Failed\nCould not open file (@_[2]): $!\n";
+    open IRAM_HEADER, "> $_[2]" or die
+	"Second Pass Failed\nCould not open file ($_[2]): $!\n";
     $_[2] =~ /^(\w+)/;
     print IRAM_HEADER "/* inst area */\nchar le1_iram[] = {\n";
 
-    open INST_TXT_FILE, "> @_[1]" or die
-	"Second Pass Failed\nCould not open file (@_[1] : $!)\n";
+    open INST_TXT_FILE, "> $_[1]" or die
+	"Second Pass Failed\nCould not open file ($_[1] : $!)\n";
 
     open CALLS_LIST, "> microblaze/calls_list.dat" or die
 	"Second Pass Failed\nCould not open file (microblaze/calls_list.dat : $!)\n";
 
-    for($outting=0;$outting<=$#output;$outting++)
-    {
-	$syllable = 0;
+    my $instruction_size = 0;
+    my $test_address = 0;
+    my $return_count = 0;
+    for(my $outting=0;$outting<=$#output;$outting++) {
+	my $syllable = 0;
 
-	if($output[$outting] =~ /\/\* FUNCTION \*(.+) \*\//)
-	{
-	}
-	elsif($output[$outting] =~ /^--/)
-	{
+	if($output[$outting] =~ /^--/) {
 	    $output[$outting] =~ s/^\-\-(.+)/$1:/;
 	    $output[$outting] =~ s/^\s+//;
 	}
-	elsif($output[$outting] =~ /^\.call/)
-	{
-	    $where_to_call = $output[$outting];
-	    $this_was_a_call = 1;
-	}
-	else
-	{
-	    ($address,$syllable,$comment) = split(/\s+-\s+/, $output[$outting]);
-	    ($type, $operation) = split(/\|/, $comment);
+	else {
+	    my ($address,$syllable,$comment) = split(/\s+-\s+/, $output[$outting]);
+	    my ($type, $operation) = split(/\|/, $comment);
 
 	    # need to remove this part.
-	    ($operation, $pthread_thing) = split(/\s+:STOP:\s+/, $operation);
+	    my ($operation, $pthread_thing) = split(/\s+:STOP:\s+/, $operation);
 
-	    if(($type eq "CALL") && ($operation ne 'CALLTOLINKREG'))
-	    {
-		#print $operation . "\n";
-		#if(0) {
-		foreach $key (%testing_calls) {
+	    if(($type eq "CALL") && ($operation ne 'CALLTOLINKREG')) {
+		foreach my $key (%testing_calls) {
 		    if($operation =~ /$key/) {
 			printf(CALLS_LIST "%d %s ", ($address*4),$operation);
 			if($testing_calls{$key} ne '') {
@@ -1697,61 +1593,41 @@ sub print_instructions()
 			printf(CALLS_LIST "\n");
 			last;
 		    }
-		#}
 		}
-		if($operation !~ /\.call/)
-		{
+		if($operation !~ /\.call/) {
 		    my ($success, $twos_comp) = &twoscomp((($Inst_Label{$operation} - $test_address) * 4),20);
 		    if($success) {
 			$syllable |= $twos_comp;
+			$operation = "call " . $operation;
 		    }
 		    else {
-			print 'Second Pass failed' . "\n";
-			print '12Attempted to call twoscomp(' . (($Inst_Label{$operation} - $test_address) * 4) . ', ' . 20 . ')' . "\n";
-			exit(-1);
+			# switch to callabs opcode
+			$syllable |= 1 << 20;
+			$output[$outting] = $test_address . ' - ' . $syllable . ' - ' . 'CALLABS' . '|' . $operation;
+			# splice in a 32bit
+			$operation =~ s/^FUNC_//g;
+			my $next_syll = ($test_address+1) . ' - MOVFUNCNAME' . $operation . ' - 32bit|imm MOVFUNCNAME' . $operation;
+			splice(@output, $outting+1, 0, $next_syll);
+
+			# push all inst_labels >= $test_address 1 syllable
+			foreach my $value (sort {$Inst_Label{$a} <=> $Inst_Label{$b} } keys %Inst_Label) {
+			    if($Inst_Label{$value} > $outting) {
+				$Inst_Label{$value}++;
+			    }
+			}
+			goto do_it_again_a_tribute_to_call_abs;
 		    }
-		    $operation = "call " . $operation;
 		}
-		else
-		{
+		else {
 		    $syllable &= 3 << 30;
-		    if($operation =~ /exit/)
-		    {
+		    if($operation =~ /exit/) {
 			$syllable |= 0x17A1 << 15;
 			$operation = "HALT";
 		    }
-		    else
-		    {
-			$operation =~ s/.call//g;
-			$syllable |= 1 << 26;
-			$syllable |= 20 << 21;
-			$syllable |= 1 << 7;
-			@call = split(//, $operation);
-			for($k=0;$k<=$#call;$k++)
-			{
-			    $total_1 = &check_total($total_1);
-			    $data_line .= sprintf("%02x", ord($call[$k]));
-			    $total_1 += 1;
-			    $total_1 = &check_total($total_1);
-			}
-			while($total_1 != 0)
-			{
-			    $total_1 = &check_total($total_1);
-			    $data_line = sprintf("%02x", 0) . $data_line;
-			    $total_1 += 1;
-			    $total_1 = &check_total($total_1);
-			}
-			$operation = "call " . $operation;
-		    }
 		}
 	    }
-	    elsif($type eq "GOTO")
-	    {
-		if($operation eq "LINK")
-		{
-		}
-		else
-		{
+	    elsif($type eq "GOTO") {
+		if($operation ne "LINK") {
 		    my ($success, $twos_comp) = &twoscomp((($Inst_Label{$operation} - $test_address) * 4),20);
 		    if($success) {
 			$syllable |= $twos_comp;
@@ -1764,38 +1640,42 @@ sub print_instructions()
 		    $operation = "goto " . $operation;
 		}
 	    }
-	    elsif($type =~ /BRF?/)
-	    {
-		($label_temp, $clus_temp) = split(/ \^ /, $operation);
+	    elsif($type =~ /BRF?/) {
+		my ($label_temp, $clus_temp) = split(/ \^ /, $operation);
                 my ($success, $twos_comp) = &twoscomp((($Inst_Label{$label_temp} - $test_address) * 4),16);
 		if($success) {
 		    $syllable |= $twos_comp;
+		    $syllable |= $clus_temp << 16;
+		    $operation .= " " . $type;
+		    my $abbs_addr = sprintf("0x%x", $Inst_Label{$label_temp} * 4);
+		    $operation .= " ABS ADDR: $abbs_addr";
 		}
 		else {
-		    print 'Second Pass failed' . "\n";
-		    print '14Attempted to call twoscomp(' . (($Inst_Label{$label_temp} - $test_address) * 4) . ', ' . 16 . ')' . "\n";
-		    exit(-1);
+		    # add a branch to instruction below and add a goto
+		    $Inst_Label{$label_temp . '_FAKEBRANCH'} = $outting+1;
+		    $syllable |= 1 << 31;
+		    $output[$outting] = $test_address . ' - ' . $syllable . ' - ' . $type . '|' . $label_temp . '_FAKEBRANCH ^ ' . $clus_temp;
+
+		    my $syll_added = 1 << 31;
+		    $syll_added |= 3 << 26;
+		    $syll_added |= 17 << 21;
+		    my $next_syll = ($test_address+1) . ' - ' . $syll_added . ' - GOTO|' . $label_temp;
+		    splice(@output, $outting+1, 0, $next_syll);
+		    # push all inst_labels >= $test_address 1 syllable
+		    foreach my $value (sort {$Inst_Label{$a} <=> $Inst_Label{$b} } keys %Inst_Label) {
+			if($Inst_Label{$value} > $outting) {
+			    $Inst_Label{$value}++;
+			}
+		    }
+		    goto do_it_again_a_tribute_to_call_abs;
 		}
-		$syllable |= $clus_temp << 16;
-		$operation .= " " . $type;
-		$abbs_addr = sprintf("0x%x", $Inst_Label{$label_temp} * 4);
-		$operation .= " ABS ADDR: $abbs_addr";
 	    }
 	    $operation =~ s/\0//g;
-	    if($debug == 1)
-	    {
+	    if($debug == 1) {
 		printf("%04x - %032b - %08x - %s %s\n", ($address*4),$syllable, $syllable, $type, $operation);
 	    }
-	    if($type =~ /^NOP/)
-	    {
-	    }
-	    elsif($type =~ /NOP/)
-	    {
-	    }
-	    if($type =~ /32bit/)
-	    {
-		if($operation =~ /MOVFUNCNAME(.+)/)
-		{
+	    if($type =~ /32bit/) {
+		if($operation =~ /MOVFUNCNAME(.+)/) {
 		    if(!defined($Inst_Label{"FUNC_$1"})) {
 			$syllable = ($Data_Label{$1});
 		    } else {
@@ -1803,9 +1683,9 @@ sub print_instructions()
 		    }
 		}
 	    }
-	    printf(INST_TXT_FILE "%04x - %032b - %08x - %s %s\n", ($address*4),$syllable, $syllable, $type, $operation);
+	    printf(INST_TXT_FILE "%04x - %032b - %08x - %s %s\n", ($test_address*4),$syllable, $syllable, $type, $operation);
 
-	    $test = sprintf("%08x", $syllable);
+	    my $test = sprintf("%08x", $syllable);
 	    print BIG_ENDIAN_INSTRUCTION &hex_to_ascii($test);
 
 	    $test = sprintf("0x%02x,", ($syllable >> 24) & 0xff);
@@ -1819,29 +1699,25 @@ sub print_instructions()
 
 	    $test = sprintf("%08x", $syllable);
 	    $test =~ s/(.{2})/$1\;/g;
-	    @str = split(/\;/, $test);
+	    my @str = split(/\;/, $test);
 	    @str = reverse(@str);
 	    undef($test);
-	    foreach $str (@str)
-	    {
+	    foreach my $str (@str) {
 		$test .= $str;
 	    }
 	    $instruction_size += 4;
-#	    print LITTLE_ENDIAN_INSTRUCTION &hex_to_ascii($test);
 	    $test_address++;
 	}
     }
     close INST_TXT_FILE;
     close BIG_ENDIAN_INSTRUCTION;
-#    close LITTLE_ENDIAN_INSTRUCTION;
     $_[3] =~ /^(\w+)/;
     print IRAM_HEADER "};\n#define LE1_INST_SIZE $instruction_size\n";
     close IRAM_HEADER;
     close CALLS_LIST;
 }
 
-sub print_data()
-{
+sub print_data {
     open BIG_ENDIAN_DATA, "> binaries/dram.bin" or die
 	"Second Pass Failed\nCould not open file (binaries/dram.bin): $!\n";
 
@@ -1866,27 +1742,19 @@ sub print_data()
 	"Second Pass failed\nCould not open file (@_[3]: $!\n";
 
     print LE1OBJECTS "/* data memory labels for host */\n\n";
-    foreach $key (sort sortdatalabel (keys(%Data_Label)))
-    {
-	if($Data_Label{$key} ne "")
-	{
-	    $temp = $key;
-	    $temp =~ s/[?\.]/X/g;
-	    printf(LE1OBJECTS "#define le1var_%s 0x%x\n", $temp, $Data_Label{$key});
-	}
+    foreach my $value (sort {$Data_Label{$a} <=> $Data_Label{$b} } keys %Data_Label) {
+	my $tmp = $value;
+	$tmp =~ s/[?\.]/X/g;
+	printf(LE1OBJECTS "#define le1var_%s 0x%x\n", $tmp, $Data_Label{$value});
     }
 
     print LE1OBJECTS "\n/* function labels for the host */\n\n";
 
-    foreach $key (sort sortinstlabel (keys(%Inst_Label)))
-    {
-	if($Inst_Label{$key} ne "")
-	{
-	    $temp = $key;
-	    $temp =~ s/[?\.]/X/g;
-	    $temp =~ s/^FUNC_//g;
-	    printf(LE1OBJECTS "#define le1func_%s 0x%x\n", $temp, ($Inst_Label{$key} * 4));
-	}
+    foreach my $value (sort {$Inst_Label{$a} <=> $Inst_Label{$b} } keys %Inst_Label) {
+	my $tmp = $value;
+	$tmp =~ s/[?\.]/X/g;
+	$tmp =~ s/^FUNC_//g;
+	printf(LE1OBJECTS "#define le1func_%s 0x%x\n", $tmp, ($Inst_Label{$value} * 4));
     }
     close LE1OBJECTS;
 
@@ -1971,86 +1839,14 @@ sub print_data()
     close BIG_ENDIAN_DATA;
 }
 
-sub check_total()
-{
-    if(@_[0] == ($data_align/8))
-    {
+sub check_total {
+    if($_[0] == ($data_align/8)) {
 	push @Memory, $data_line;
 	undef($data_line);
 	$end_of_memory += ($data_align/8);
-	return(0);
+	return 0;
     }
-    else
-    {
-	return(@_[0]);
+    else {
+	return $_[0];
     }
-}
-
-sub check_calls()
-{
-    for($call_check=0;$call_check<=$#output;$call_check++)
-    {
-	($inst_add, $syll, $opc_na) = split(/ - /, $output[$call_check]);
-	if(($opc_na =~ /^CALL\|/) && ($opc_na !~ /exit/))
-	{
-	    $syll_check = $syll >> 31;
-	    if($syll_check != 1)
-	    {
-		if($output[$call_check+1] =~ /32bit/)
-		{
-		    push @stored, splice(@output, $call_check, 1);
-		    push @stored, splice(@output, $call_check, 1);
-		}
-		else
-		{
-		    push @stored, splice(@output, $call_check, 1);
-		}
-		($inst_add, $syll, $opc_na) = split(/ - /, $stored[0]);
-		$start_check = hex($inst_add);
-		$times_round = 0;
-		while($#stored >= 0)
-		{
-		    ($inst_add, $syll, $opc_na) = split(/ - /, $output[$call_check]);
-		    $syll_check = $syll >> 31;
-		    if($syll_check == 1)
-		    {
-			$syll &= 0x7FFFFFFF;
-			$inst_add = sprintf("%04x", ($start_check + $times_round));
-			splice(@output, $call_check, 1, "$inst_add - $syll - $opc_na");
-			($inst_add, $syll, $opc_na) = split(/ - /, $stored[0]);
-			$syll |= 0x80000000;
-			$inst_add = sprintf("%04x", ($start_check + $times_round + 1));
-			$stored[0] = "$inst_add - $syll - $opc_na";
-			if($#stored > 0)
-			{
-			    ($inst_add, $syll, $opc_na) = split(/ - /, $stored[1]);
-			    $inst_add = sprintf("%04x", ($start_check + $times_round + 2));
-			    $stored[1] = "$inst_add - $syll - $opc_na";
-			}
-			splice(@output, $call_check+1, 0, @stored);
-			@stored = @empty;
-		    }
-		    else
-		    {
-			$inst_add = sprintf("%04x", ($start_check + $times_round));
-			splice(@output, $call_check, 1, "$inst_add - $syll - $opc_na");
-		    }
-		    $call_check++;
-		    $times_round += 4;
-		}
-		undef($times_round);
-		undef($call_check);
-	    }
-	}
-    }
-}
-
-sub sortdatalabel()
-{
-    $Data_Label{$a} <=> $Data_Label{$b};
-}
-
-sub sortinstlabel()
-{
-    $Inst_Label{$a} <=> $Inst_Label{$b};
 }
