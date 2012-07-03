@@ -114,7 +114,7 @@ sub walk {
 
 	    # remove all files
 	    if (!$err) {
-		$cmd = 'rm -rf assembler_output binaries ins_out ins_std_out machinemodel memoryDump_0.dat microblaze stdioio_diff fileio_diff memcheck_diff ins_temp ' . uc($dir->{'name'}) . ' output/output;
+		$cmd = 'rm -rf assembler_output binaries ins_out ins_std_out machinemodel memoryDump_0.dat microblaze stdioio_diff fileio_diff memcheck_diff ins_temp ' . uc($dir->{'name'}) . ' output/output';
 		&exe($cmd);
 	    }
 	}
