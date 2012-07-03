@@ -1235,8 +1235,8 @@ sub return_layout()
     undef($value);
     $reg = '([rbl])(\d+)\.(\d+)';
     $hex_num = '([-~]?)0x(\w+)';
-    $label = '(\w+\??\.?\w*\.?\d*)';
-    $label2 = '(\w+\?\w+(\.\w+)+)';
+    $label = '(\$?\.?\w+\??\.?\w*\.?\d*)';
+    $label2 = '(\$?\.?\w+\?\w+(\.\w+)+)';
     $sim_imm = '(-?\d+)';
     $func = '(\$?\.?\w+[\?\.]?\w*)';
     for($lay=1;$lay<=$#layout;$lay++)
@@ -1384,7 +1384,7 @@ sub return_layout()
 		$value .= $1 . ",";
 	    }
 	    #elsif($layout[$lay] =~ /\($label\+$sim_imm\)\[$reg\]/)
-	    elsif($layout[$lay] =~ /$reg\[\($label\+$sim_imm\)\]/)
+	    elsif($layout[$lay] =~ /$reg\[\(\(?$label\)?\+$sim_imm\)\]/)
 	    {
 		$size = ($Data_Label{$4} + $5);
 		$reg_num = $3;
@@ -1766,9 +1766,11 @@ sub print_data {
 #	    print "NO NUMERICAL DATA: $data\n";
 	    if($data =~ /LABEL: (.+)/)
 	    {
-		if(defined($Inst_Label{"FUNC_$1"}))
+		my $l = $1;
+		$l =~ /FUNC_(.+)/;
+		if(defined($Inst_Label{"FUNC_$l"}))
 		{
-		    $temp_value = $Inst_Label{"FUNC_$1"} * 4;
+		    $temp_value = $Inst_Label{"FUNC_$l"} * 4;
 ##		    print "Found it: FUNC_$1 - $temp_value - ";
 #		    $data = "00000000";
 		    $data = sprintf("%08x", $temp_value);
@@ -1783,9 +1785,9 @@ sub print_data {
 ###		    }
 #		    print "data: $data\n";
 		}
-		elsif(defined($Inst_Label{"$1"}))
+		elsif(defined($Inst_Label{"$l"}))
 		{
-		    $temp_value = $Inst_Label{"$1"} * 4;
+		    $temp_value = $Inst_Label{"$l"} * 4;
 ##		    print "Found it: $1 - $temp_value - ";
 #		    $data = "00000000";
 		    $data = sprintf("%08x", $temp_value);
@@ -1799,6 +1801,10 @@ sub print_data {
 ###			$data .= $str;
 ###		    }
 #		    print "data: $data\n";
+		}
+		elsif(defined($Data_Label{$1})) {
+		    $temp_value = $Data_Label{$1};
+		    $data = sprintf("%08x", $temp_value);
 		}
 		else
 		{
