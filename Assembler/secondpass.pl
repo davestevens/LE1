@@ -1148,7 +1148,15 @@ sub operation()
 	{
 	    if(($values[2] <= 0x7FFFF) && ($values[2] >= -0x8000))
 	    {
-		$syllable |= &twoscomp($values[2],20);
+		my ($success, $twos_comp) = &twoscomp($values[2],20);
+		if($success) {
+		    $syllable |= $twos_comp;
+		}
+		else {
+		    print 'Second Pass failed' . "\n";
+		    print '1Attempted to call twoscomp(' . $values[2] . ', ' . 20 . ')' . "\n";
+		    exit(-1);
+		}
 	    }
 	    else
 	    {
@@ -1158,18 +1166,42 @@ sub operation()
 	    return("$instruction_address - $syllable - $opcode_name|@_[0]");
 	}
 	if($opcode_name eq "SYSCALL") {
-	    $syllable |= &twoscomp($values[0],20);
+	    my ($success, $twos_comp) = &twoscomp($values[0],20);
+	    if($success) {
+		$syllable |= $twos_comp;
+	    }
+	    else {
+		print 'Second Pass failed' . "\n";
+		print '2Attempted to call twoscomp(' . $values[0] . ', ' . 20 . ')' . "\n";
+		exit(-1);
+	    }
 	    return("$instruction_address - $syllable - $opcode_name|@_[0]");
 	}
 
 	$syllable |= $values[0] << 15;
 	if($types[1] eq "I")
 	{
-	    $next_instruction = &twoscomp($values[1],32);
+	    my ($success, $twos_comp) = &twoscomp($values[1],32);
+	    if($success) {
+		$next_instruction = $twos_comp;
+	    }
+	    else {
+		print 'Second Pass failed' . "\n";
+		print '3Attempted to call twoscomp(' . $values[1] . ', ' . 32 . ')' . "\n";
+		exit(-1);
+	    }
 	}
 	elsif($types[1] eq "i")
 	{
-	    $syllable |= &twoscomp($values[1],9) << 6;
+	    my ($success, $twos_comp) = &twoscomp($values[1],9);
+	    if($success) {
+		$syllable |=  $twos_comp << 6;
+	    }
+	    else {
+		print 'Second Pass failed' . "\n";
+		print '4Attempted to call twoscomp(' . $values[1] . ', ' . 9 . ')' . "\n";
+		exit(-1);
+	    }
 	}
 	elsif($types[1] eq "B")
 	{
@@ -1191,7 +1223,15 @@ sub operation()
 	}
 	if($types[2] eq "i")
 	{
-	    $syllable |= &twoscomp($values[2],9) << 6;
+	    my ($success, $twos_comp) = &twoscomp($values[2],9);
+	    if($success) {
+		$syllable |= $twos_comp << 6;
+	    }
+	    else {
+		print 'Second Pass failed' . "\n";
+		print '5Attempted to call twoscomp(' . $values[2] . ', ' . 9 . ')' . "\n";
+		exit(-1);
+	    }
 	}
 	elsif($types[2] eq "R")
 	{
@@ -1206,7 +1246,15 @@ sub operation()
 	}
 	elsif($types[2] eq "I")
 	{
-	    $next_instruction = &twoscomp($values[2],32);
+	    my ($success, $twos_comp) = &twoscomp($values[2],32);
+	    if($success) {
+		$next_instruction = $twos_comp;
+	    }
+	    else {
+		print 'Second Pass failed' . "\n";
+		print '6Attempted to call twoscomp(' . $values[2] . ', ' . 32 . ')' . "\n";
+		exit(-1);
+	    }
 	}
 	elsif($types[2] eq "")
 	{
@@ -1233,7 +1281,15 @@ sub operation()
 	    }
 	    elsif($types[3] eq "I")
 	    {
-		$next_instruction = &twoscomp($values[3],32);
+		my ($success, $twos_comp) = &twoscomp($values[3],32);
+		if($success) {
+		    $next_instruction = $twos_comp;
+		}
+		else {
+		    print 'Second Pass failed' . "\n";
+		    print '7Attempted to call twoscomp(' . $values[3] . ', ' . 32 . ')' . "\n";
+		    exit(-1);
+		}
 	    }
 	    elsif($types[3] eq "F") { # SXBT/F operation with label
 		$temp_op = $_[0];
@@ -1326,13 +1382,29 @@ sub return_layout()
 		if(($dec > 0x7FF) || ($dec < -0xFFF))
 		{
 		    $type .= "O";
-		    $dec = &twoscomp($dec,32);
+		    my ($success, $twos_comp) = &twoscomp($dec,32);
+		    if($success) {
+			$dec = $twos_comp;
+		    }
+		    else {
+			print 'Second Pass failed' . "\n";
+			print '8Attempted to call twoscomp(' . $dec . ', ' . 32 . ')' . "\n";
+			exit(-1);
+		    }
 		    $value .= "$dec^$reg_num,";
 		}
 		else
 		{
 		    $type .= "o";
-		    $dec = &twoscomp($dec,12);
+		    my ($success, $twos_comp) = &twoscomp($dec,12);
+		    if($success) {
+			$dec = $twos_comp;
+		    }
+		    else {
+			print 'Second Pass failed' . "\n";
+			print '9Attempted to call twoscomp(' . $dec . ', ' . 12 . ')' . "\n";
+			exit(-1);
+		    }
 		    $value .= "$dec^$reg_num,";
 		}
 		undef($dec);
@@ -1376,13 +1448,29 @@ sub return_layout()
 		if(($dec > 0x7FF) || ($dec < -0xFFF))
 		{
 		    $type .= "O";
-		    $dec = &twoscomp($dec,32);
+		    my ($success, $twos_comp) = &twoscomp($dec,32);
+		    if($success) {
+			$dec = $twos_comp;
+		    }
+		    else {
+			print 'Second Pass failed' . "\n";
+			print '10Attempted to call twoscomp(' . $dec . ', ' . 32 . ')' . "\n";
+			exit(-1);
+		    }
 		    $value .= "$dec^$reg_num,";
 		}
 		else
 		{
 		    $type .= "o";
-		    $dec = &twoscomp($dec,12);
+		    my ($success, $twos_comp) = &twoscomp($dec,12);
+		    if($success) {
+			$dec = $twos_comp;
+		    }
+		    else {
+			print 'Second Pass failed' . "\n";
+			print '11Attempted to call twoscomp(' . $dec . ', ' . 12 . ')' . "\n";
+			exit(-1);
+		    }
 		    $value .= "$dec^$reg_num,";
 		}
 		undef($dec);
@@ -1518,21 +1606,16 @@ sub twoscomp()
     }
     if((@_[0] >= 0) && (@_[0] < ($power/2)))
     {
-	return(@_[0]);
+	return(1, @_[0]);
     }
     elsif((@_[0] < 0) && (@_[0] > ((($power/2)+1)*-1)))
     {
 	$twoscom = (($power-1) - ((@_[0]*-1) - 1));
-	return($twoscom);
+	return(1, $twoscom);
     }
     else
     {
-	print "Second Pass Failed
-There has been an issue somewhere :(\ncalled &twoscomp(@_[0],@_[1])\n";
-	printf("0x%x\n", @_[0]);
-	print "$Operations[$i]\n";
-	print "$out\n";
-	exit(-1);
+	return(0, 0);
     }
 }
 sub hex_to_ascii()
@@ -1618,7 +1701,15 @@ sub print_instructions()
 		}
 		if($operation !~ /\.call/)
 		{
-		    $syllable |= &twoscomp((($Inst_Label{$operation} - $test_address) * 4),20);
+		    my ($success, $twos_comp) = &twoscomp((($Inst_Label{$operation} - $test_address) * 4),20);
+		    if($success) {
+			$syllable |= $twos_comp;
+		    }
+		    else {
+			print 'Second Pass failed' . "\n";
+			print '12Attempted to call twoscomp(' . (($Inst_Label{$operation} - $test_address) * 4) . ', ' . 20 . ')' . "\n";
+			exit(-1);
+		    }
 		    $operation = "call " . $operation;
 		}
 		else
@@ -1661,14 +1752,30 @@ sub print_instructions()
 		}
 		else
 		{
-		    $syllable |= &twoscomp((($Inst_Label{$operation} - $test_address) * 4),20);
+		    my ($success, $twos_comp) = &twoscomp((($Inst_Label{$operation} - $test_address) * 4),20);
+		    if($success) {
+			$syllable |= $twos_comp;
+		    }
+		    else {
+			print 'Second Pass failed' . "\n";
+			print '13Attempted to call twoscomp(' . (($Inst_Label{$operation} - $test_address) * 4) . ', ' . 20 . ')' . "\n";
+			exit(-1);
+		    }
 		    $operation = "goto " . $operation;
 		}
 	    }
 	    elsif($type =~ /BRF?/)
 	    {
 		($label_temp, $clus_temp) = split(/ \^ /, $operation);
-		$syllable |= &twoscomp((($Inst_Label{$label_temp} - $test_address) * 4),16);
+                my ($success, $twos_comp) = &twoscomp((($Inst_Label{$label_temp} - $test_address) * 4),16);
+		if($success) {
+		    $syllable |= $twos_comp;
+		}
+		else {
+		    print 'Second Pass failed' . "\n";
+		    print '14Attempted to call twoscomp(' . (($Inst_Label{$label_temp} - $test_address) * 4) . ', ' . 16 . ')' . "\n";
+		    exit(-1);
+		}
 		$syllable |= $clus_temp << 16;
 		$operation .= " " . $type;
 		$abbs_addr = sprintf("0x%x", $Inst_Label{$label_temp} * 4);
