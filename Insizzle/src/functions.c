@@ -466,6 +466,11 @@ instructionPacket fetchInstruction(contextT *context, unsigned programCounter, c
       inst.immValid = 1;
       inst.nextPC = programCounter + 8;
     }
+  else if(((inst.op >> 20) & 0x7ff) == 0xe5) {
+    inst.imm = (unsigned)*(context->iram + ((programCounter >> 2) + 1));
+    inst.immValid = 1;
+    inst.nextPC = programCounter + 8;
+  }
   else
     {
       inst.immValid = 0;
