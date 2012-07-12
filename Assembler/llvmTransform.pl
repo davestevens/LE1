@@ -75,9 +75,26 @@ for($i=0;$i<=$#inFile;$i++) {
 for(my $j=0;$j<=$#oper;$j++) {
     # replace labels in instructions
     if($oper[$j] !~ /^--/) {
-	while(my ($key, $value) = each(%instLabels)) {
-	    # TODO: this may need to be altered
-	    $oper[$j] =~ s/(\W+)\(?$key\)?\s*$/$1$value\)/g;
+	# TODO: the section below is not fully tested
+	# the transform now take 1.6% of the time as using the code in the if(0) section
+	if(0) {
+	    while(my ($key, $value) = each(%instLabels)) {
+		# TODO: this may need to be altered
+		$oper[$j] =~ s/(\W+)\(?$key\)?\s*$/$1$value\)/g;
+	    }
+	}
+	else {
+	    $oper[$j] =~ s/\$BB(\d+)_(\d+)/$filename\_L$1\?$2/g;
+	    my @o = split(/\s+/, $oper[$j]);
+	    for(my $i=0;$i<@o;$i++) {
+		if($o[$i] =~ /^([a-zA-Z]\w+)$/) {
+		    # check if it is in %instLabels
+		    if(defined($instLabels{$1})) {
+			$o[$i] = $instLabels{$1};
+		    }
+		}
+	    }
+	    $oper[$j] = join(' ', @o);
 	}
     }
     # rename multiply instructions
