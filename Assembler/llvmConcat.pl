@@ -90,16 +90,7 @@ foreach my $file (@order) {
 # now print it back out
 print '## Operations - ' . $operationCount . "\n";
 foreach my $op (@operations) {
-    $op .= "\n";
-    if($op !~ /^--/) {
-	while(my ($key, $value) = each(%instLabels)) {
-	    # check if its not a static variable
-	    if($op !~ /\W+$key\.(\w+)/) { # test this
-		$op =~ s/(\W+)$key(\W+)/$1$value$2/g;
-	    }
-	}
-    }
-    print $op;
+    print $op . "\n";
 }
 print "\n";
 print '##Data Labels' . "\n";
