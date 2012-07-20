@@ -87,7 +87,7 @@ for(my $j=0;$j<=$#oper;$j++) {
 	    $oper[$j] =~ s/\$BB(\d+)_(\d+)/$filename\_L$1\?$2/g;
 	    my @o = split(/\s+/, $oper[$j]);
 	    for(my $i=0;$i<@o;$i++) {
-		if($o[$i] =~ /^([a-zA-Z]\w+)$/) {
+		if($o[$i] =~ /^([a-zA-Z_]\w+)$/) {
 		    # check if it is in %instLabels
 		    if(defined($instLabels{$1})) {
 			$o[$i] = $instLabels{$1};
