@@ -38,3 +38,6 @@
       + This contains cycle count, register, program counters and internal state for each context along with full DRAM dump
     : File - stateDump.dat
     : Similar file is created in the event of a segmentation fault
+
+d.stevens@lboro.ac.uk
+
