@@ -160,6 +160,9 @@ void syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long long
       char filemode[256] = {'\0'};
       getString(&filemode[0], 256, *(S_GPR + 4) + dram);
 
+      printf("filename: %s\n", filename);
+      printf("filemode: %s\n", filemode);
+
       FILE *fp = fopen(filename, filemode);
 
       *(S_GPR + 3) = (unsigned)fp;
@@ -670,8 +673,9 @@ void syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long long
       char filename[256] = {'\0'};
       getString(&filename[0], 256, *(S_GPR + 3) + dram);
       int flags = (int)*(S_GPR + 4);
+      int permissions = (int)*(S_GPR + 5);
 
-      int ret = open(filename, flags);
+      int ret = open(filename, flags, permissions);
 
       *(S_GPR + 3) = (unsigned)ret;
     }
@@ -760,6 +764,51 @@ void syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long long
       *(buf + 7) = bufLittle.st_size;
       
       *(S_GPR + 3) = (unsigned)ret;
+    }
+    break;
+  case STRTOL:
+    /* r3 = strtol(r3, r4, r5) */
+    {
+      char str[256] = {'\0'};
+      getString(&str[0], 256, *(S_GPR + 3) + dram);
+      int base = (int)*(S_GPR + 5);
+
+      char *endptr;
+      long ret = strtol(str, &endptr, base);
+
+      /* then set the value of endptr in the LE1 */
+      if(endptr == NULL) {
+	/* leave it? */
+      }
+      else {
+	unsigned *end_addr = (unsigned *)(*(S_GPR + 4) + dram);
+	*end_addr = (*(S_GPR + 3) + (&(*endptr) - &str[0]));
+      }
+
+      *(S_GPR + 3) = (unsigned)ret;
+    }
+    break;
+  case STRTOD:
+    /* r3 = strtod(r3, r4) */
+    /* TODO: THIS IS BROKEN */
+    {
+      char str[256] = {'\0'};
+      getString(&str[0], 256, *(S_GPR + 3) + dram);
+
+      char *endptr;
+      float ret = strtof(str, &endptr);
+
+      /* then set the value of endptr in the LE1 */
+      if(endptr == NULL) {
+	/* leave it? */
+      }
+      else {
+	unsigned *end_addr = (unsigned *)(*(S_GPR + 4) + dram);
+	*end_addr = (*(S_GPR + 3) + (&(*endptr) - &str[0]));
+      }
+
+      int *retP = (int *)&ret;
+      *(S_GPR + 3) = (unsigned)*retP;
     }
     break;
   default:

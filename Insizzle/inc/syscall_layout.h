@@ -24,3 +24,5 @@
 #define WRITE     22
 #define LSEEK     23
 #define FSTAT     24
+#define STRTOL    25
+#define STRTOD    26
