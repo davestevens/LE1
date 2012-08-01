@@ -143,12 +143,6 @@ Boolean_T crc32file(char *name, DWORD *crc, long *charcnt)
             ++*charcnt;
             oldcrc32 = UPDC32(c, oldcrc32);
       }
-
-      if (ferror(fin))
-	{
-	/*perror(name);*/
-            *charcnt = -1;
-      }
       fclose(fin);
 
       *crc = oldcrc32 = ~oldcrc32;

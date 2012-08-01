@@ -67,10 +67,10 @@ int main_test(int argc, char *argv[])
   iterations=atoi(argv[1]);
   
   printf("Bit counter algorithm benchmark\n");
-  
+  srand(0);
   for (i = 0; i < FUNCS; i++) {
     start = clock();
-    
+
     for (j = n = 0, seed = rand(); j < iterations; j++, seed += 13)
 	 n += pBitCntFunc[i](seed);
     
