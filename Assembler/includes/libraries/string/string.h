@@ -29,6 +29,8 @@ int my_strcoll(char *, char *);
 char *my_strerror(int);
 size_t my_strspn(char *, char*);
 size_t my_strcspn(char *, char*);
+int my_strcasecmp(char *, char *);
+int my_strncasecmp(char *, char *, size_t);
 #else
 void _bcopy(const void *, void *, size_t);
 void *memcpy(void *, void *, size_t);
@@ -49,4 +51,6 @@ int strcoll(char *, char *);
 char *strerror(int);
 size_t strspn(char *, char*);
 size_t strcspn(char *, char*);
+int strcasecmp(char *, char *);
+int strncasecmp(char *, char *, size_t);
 #endif

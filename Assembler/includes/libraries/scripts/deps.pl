@@ -91,6 +91,8 @@
 @strncpy = ("string/strncpy.c");
 @strrchr = ("string/strrchr.c");
 @strspn = ("string/strspn.c");
+@strcasecmp = ("string/strcasecmp.c", "ctype/tolower.c");
+@strncasecmp = ("string/strncasecmp.c", "ctype/tolower.c");
 
 
 # STDLIB
