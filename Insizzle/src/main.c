@@ -205,6 +205,11 @@ int main(int argc, char *argv[])
   start = time(NULL);
 #endif
 
+  /* all setup perfomed
+     reset rand()
+  */
+  srand(1);
+
 #ifdef API
   int insizzleAPIClock(galaxyConfigT *galaxyConfig, hcTracePacketT gTracePacket[][MASTERCFG_CONTEXTS_MAX][MASTERCFG_HYPERCONTEXTS_MAX])
   {
