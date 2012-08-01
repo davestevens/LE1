@@ -71,7 +71,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
   /* TODO: this is max 2 at the moment */
   for(clust=0;clust<hypercontext->numClusters;clust++)
     {
-      cluster = (clusterT *)((unsigned)hypercontext->registers + (clust * sizeof(clusterT)));
+      cluster = (clusterT *)((size_t)hypercontext->registers + (clust * sizeof(clusterT)));
 
       /* set up register pointers */
       S_GPR = cluster->S_GPR;
@@ -744,12 +744,12 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
 		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
 #ifdef DEBUGmem
-		      printf("loading from: 0x%x\n", ((ret.source[0].value + ret.source[1].value) + (unsigned)(system->dram)));
+		      printf("loading from: 0x%lx\n", ((ret.source[0].value + ret.source[1].value) + (size_t)(system->dram)));
 #endif
 		      if((ret.source[0].value + ret.source[1].value) >= dramSize)
 			{ if(suppressOOB != 1) { printf("ERROR: OOB\n"); } }
 		      else
-			_LDSB_iss(&ldsbVal, ((unsigned)system->dram + (ret.source[0].value + ret.source[1].value)));
+			_LDSB_iss(&ldsbVal, ((size_t)system->dram + (ret.source[0].value + ret.source[1].value)));
 		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, ldsbVal);
 		      ret.maddr = ret.source[0].value + ret.source[1].value;
 		      ret.maddrValid = 1;
@@ -761,12 +761,12 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
 		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
 #ifdef DEBUGmem
-		      printf("loading from: 0x%x\n", ((ret.source[0].value + ret.source[1].value) + (unsigned)(system->dram)));
+		      printf("loading from: 0x%lx\n", ((ret.source[0].value + ret.source[1].value) + (size_t)(system->dram)));
 #endif
 		      if((ret.source[0].value + ret.source[1].value) >= dramSize)
 			{ if(suppressOOB != 1) { printf("ERROR: OOB\n"); } }
 		      else
-			_LDSB_iss(&ldsbVal, ((unsigned)system->dram + (ret.source[0].value + ret.source[1].value)));
+			_LDSB_iss(&ldsbVal, ((size_t)system->dram + (ret.source[0].value + ret.source[1].value)));
 		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, ldsbVal);
 		      ret.maddr = ret.source[0].value + ret.source[1].value;
 		      ret.maddrValid = 1;
@@ -778,12 +778,12 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
 		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
 #ifdef DEBUGmem
-		      printf("loading from: 0x%x\n", ((ret.source[0].value + ret.source[1].value) + (unsigned)(system->dram)));
+		      printf("loading from: 0x%lx\n", ((ret.source[0].value + ret.source[1].value) + (size_t)(system->dram)));
 #endif
 		      if((ret.source[0].value + ret.source[1].value) >= dramSize)
 			{ if(suppressOOB != 1) { printf("ERROR: OOB\n"); } }
 		      else
-			_LDUB_iss(&ldubVal, ((unsigned)system->dram + (ret.source[0].value + ret.source[1].value)));
+			_LDUB_iss(&ldubVal, ((size_t)system->dram + (ret.source[0].value + ret.source[1].value)));
 		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, ldubVal);
 		      ret.maddr = ret.source[0].value + ret.source[1].value;
 		      ret.maddrValid = 1;
@@ -795,12 +795,12 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
 		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
 #ifdef DEBUGmem
-		      printf("loading from: 0x%x\n", ((ret.source[0].value + ret.source[1].value) + (unsigned)(system->dram)));
+		      printf("loading from: 0x%lx\n", ((ret.source[0].value + ret.source[1].value) + (size_t)(system->dram)));
 #endif
 		      if((ret.source[0].value + ret.source[1].value) >= dramSize)
 			{ if(suppressOOB != 1) { printf("ERROR: OOB\n"); } }
 		      else
-			_LDUB_iss(&ldubVal, ((unsigned)system->dram + (ret.source[0].value + ret.source[1].value)));
+			_LDUB_iss(&ldubVal, ((size_t)system->dram + (ret.source[0].value + ret.source[1].value)));
 		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, ldubVal);
 		      ret.maddr = ret.source[0].value + ret.source[1].value;
 		      ret.maddrValid = 1;
@@ -812,12 +812,12 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
 		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
 #ifdef DEBUGmem
-		      printf("loading from: 0x%x\n", ((ret.source[0].value + ret.source[1].value) + (unsigned)(system->dram)));
+		      printf("loading from: 0x%lx\n", ((ret.source[0].value + ret.source[1].value) + (size_t)(system->dram)));
 #endif
 		      if((ret.source[0].value + ret.source[1].value) >= dramSize)
 			{ if(suppressOOB != 1) { printf("ERROR: OOB\n"); } }
 		      else
-			_LDSH_iss(&ldshVal, ((unsigned)system->dram + (ret.source[0].value + ret.source[1].value)));
+			_LDSH_iss(&ldshVal, ((size_t)system->dram + (ret.source[0].value + ret.source[1].value)));
 		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, ldshVal);
 		      ret.maddr = ret.source[0].value + ret.source[1].value;
 		      ret.maddrValid = 1;
@@ -829,12 +829,12 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
 		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
 #ifdef DEBUGmem
-		      printf("loading from: 0x%x\n", ((ret.source[0].value + ret.source[1].value) + (unsigned)(system->dram)));
+		      printf("loading from: 0x%lx\n", ((ret.source[0].value + ret.source[1].value) + (size_t)(system->dram)));
 #endif
 		      if((ret.source[0].value + ret.source[1].value) >= dramSize)
 			{ if(suppressOOB != 1) { printf("ERROR: OOB\n"); } }
 		      else
-			_LDSH_iss(&ldshVal, ((unsigned)system->dram + (ret.source[0].value + ret.source[1].value)));
+			_LDSH_iss(&ldshVal, ((size_t)system->dram + (ret.source[0].value + ret.source[1].value)));
 		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, ldshVal);
 		      ret.maddr = ret.source[0].value + ret.source[1].value;
 		      ret.maddrValid = 1;
@@ -846,12 +846,12 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
 		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
 #ifdef DEBUGmem
-		      printf("loading from: 0x%x\n", ((ret.source[0].value + ret.source[1].value) + (unsigned)(system->dram)));
+		      printf("loading from: 0x%lx\n", ((ret.source[0].value + ret.source[1].value) + (size_t)(system->dram)));
 #endif
 		      if((ret.source[0].value + ret.source[1].value) >= dramSize)
 			{ if(suppressOOB != 1) { printf("ERROR: OOB\n"); } }
 		      else
-			_LDUH_iss(&lduhVal, ((unsigned)system->dram + (ret.source[0].value + ret.source[1].value)));
+			_LDUH_iss(&lduhVal, ((size_t)system->dram + (ret.source[0].value + ret.source[1].value)));
 		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, lduhVal);
 		      ret.maddr = ret.source[0].value + ret.source[1].value;
 		      ret.maddrValid = 1;
@@ -863,12 +863,12 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
 		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
 #ifdef DEBUGmem
-		      printf("loading from: 0x%x\n", ((ret.source[0].value + ret.source[1].value) + (unsigned)(system->dram)));
+		      printf("loading from: 0x%lx\n", ((ret.source[0].value + ret.source[1].value) + (size_t)(system->dram)));
 #endif
 		      if((ret.source[0].value + ret.source[1].value) >= dramSize)
 			{ if(suppressOOB != 1) { printf("ERROR: OOB\n"); } }
 		      else
-			_LDUH_iss(&ldshVal, ((unsigned)system->dram + (ret.source[0].value + ret.source[1].value)));
+			_LDUH_iss(&ldshVal, ((size_t)system->dram + (ret.source[0].value + ret.source[1].value)));
 		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, lduhVal);
 		      ret.maddr = ret.source[0].value + ret.source[1].value;
 		      ret.maddrValid = 1;
@@ -880,12 +880,12 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
 		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
 #ifdef DEBUGmem
-		      printf("loading from: 0x%x\n", ((ret.source[0].value + ret.source[1].value) + (unsigned)(system->dram)));
+		      printf("loading from: 0x%lx\n", ((ret.source[0].value + ret.source[1].value) + (size_t)(system->dram)));
 #endif
 		      if((ret.source[0].value + ret.source[1].value) >= dramSize)
 			{ if(suppressOOB != 1) { printf("ERROR: OOB\n"); } }
 		      else
-			_LDW_iss(&ldwVal, ((int)system->dram + (ret.source[0].value + ret.source[1].value)));
+			_LDW_iss(&ldwVal, ((size_t)system->dram + (ret.source[0].value + ret.source[1].value)));
 		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, ldwVal);
 		      ret.maddr = ret.source[0].value + ret.source[1].value;
 		      ret.maddrValid = 1;
@@ -897,12 +897,12 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
 		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
 #ifdef DEBUGmem
-		      printf("loading from: 0x%x\n", ((ret.source[0].value + ret.source[1].value) + (unsigned)(system->dram)));
+		      printf("loading from: 0x%lx\n", ((ret.source[0].value + ret.source[1].value) + (size_t)(system->dram)));
 #endif
 		      if((ret.source[0].value + ret.source[1].value) >= dramSize)
 			{ if(suppressOOB != 1) { printf("ERROR: OOB\n"); } }
 		      else
-			_LDW_iss(&ldwVal, ((int)system->dram + (ret.source[0].value + ret.source[1].value)));
+			_LDW_iss(&ldwVal, ((size_t)system->dram + (ret.source[0].value + ret.source[1].value)));
 		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, ldwVal);
 		      ret.maddr = ret.source[0].value + ret.source[1].value;
 		      ret.maddrValid = 1;
@@ -920,12 +920,12 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		      insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
 		      insertSource(&(ret.source[1]), IMM32, 0, 1, immediate, 0);
 #ifdef DEBUGmem
-		      printf("loading from: 0x%x\n", ((ret.source[0].value + ret.source[1].value) + (unsigned)(system->dram)));
+		      printf("loading from: 0x%lx\n", ((ret.source[0].value + ret.source[1].value) + (size_t)(system->dram)));
 #endif
 		      if((ret.source[0].value + ret.source[1].value) >= dramSize)
 			{ if(suppressOOB != 1) { printf("ERROR: OOB\n"); } }
 		      else
-			_LDW_iss(&ldlVal, ((int)system->dram + (ret.source[0].value + ret.source[1].value)));
+			_LDW_iss(&ldlVal, ((size_t)system->dram + (ret.source[0].value + ret.source[1].value)));
 		      insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 15) & 0x3f), 1, clust, ldlVal);
 		      ret.maddr = ret.source[0].value + ret.source[1].value;
 		      ret.maddrValid = 1;
@@ -1007,7 +1007,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 #ifdef INSDEBUG
 				    printf("\thypercontext: %d\n", i);
 #endif
-				    hcnt = (hyperContextT *)((unsigned)context->hypercontext + (i * sizeof(hyperContextT)));
+				    hcnt = (hyperContextT *)((size_t)context->hypercontext + (i * sizeof(hyperContextT)));
 #ifdef INSDEBUG
 				    printf("\t0x%08x\n", hcnt->VT_CTRL);
 #endif
@@ -1083,14 +1083,14 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 #ifdef INSDEBUG
 				    printf("\tcontext: %d\n", i);
 #endif
-				    cnt = (contextT *)((unsigned)system->context + (i * sizeof(contextT)));
+				    cnt = (contextT *)((size_t)system->context + (i * sizeof(contextT)));
 
 				    for(j=0;j<cnt->numHyperContext;j++)
 				      {
 #ifdef INSDEBUG
 					printf("\thypercontext: %d\n", j);
 #endif
-					hcnt = (hyperContextT *)((unsigned)cnt->hypercontext + (j * sizeof(hyperContextT)));
+					hcnt = (hyperContextT *)((size_t)cnt->hypercontext + (j * sizeof(hyperContextT)));
 #ifdef INSDEBUG
 					printf("\t0x%08x\n", hcnt->VT_CTRL);
 #endif
@@ -1801,7 +1801,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		  ret.source1 = ((inst & 0xffff) ^ (1 << 15)) - (1 << 15);
 
 		  clusterT *clusterForBranch;
-		  clusterForBranch = (clusterT *)((unsigned)hypercontext->registers + (ret.target2 * sizeof(clusterT)));
+		  clusterForBranch = (clusterT *)((size_t)hypercontext->registers + (ret.target2 * sizeof(clusterT)));
 
 		  switch(extra)
 		    {
@@ -2014,9 +2014,9 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 			unsigned destCluster = (inst >> 10) & 0xf;
 
 			clusterT *sourceClusterP;
-			sourceClusterP = (clusterT *)((unsigned)hypercontext->registers + (sourceCluster * sizeof(clusterT)));
+			sourceClusterP = (clusterT *)((size_t)hypercontext->registers + (sourceCluster * sizeof(clusterT)));
 			clusterT *destClusterP;
-			destClusterP = (clusterT *)((unsigned)hypercontext->registers + (destCluster * sizeof(clusterT)));
+			destClusterP = (clusterT *)((size_t)hypercontext->registers + (destCluster * sizeof(clusterT)));
 
 			ADD(*(destClusterP->S_GPR + (ret.target)), *(sourceClusterP->pS_GPR + (ret.source1)), 0);
 			insertSource(&(ret.source[0]), S_PRED, (inst & 0x3f), 1, *(sourceClusterP->pS_GPR + (inst & 0x3f)), sourceCluster);
@@ -2876,12 +2876,12 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
 		  insertSource(&(ret.source[1]), IMM12, 0, 1, (((inst >> 12) & 0xfff) ^ (1 << 11)) - (1 << 11), 0);
 #ifdef DEBUGmem
-		  printf("loading from: 0x%x\n", ((ret.source[0].value + ret.source[1].value) + (unsigned)(system->dram)));
+		  printf("loading from: 0x%lx\n", ((ret.source[0].value + ret.source[1].value) + (size_t)(system->dram)));
 #endif
 		  if((ret.source[0].value + ret.source[1].value) >= dramSize)
 		    { if(suppressOOB != 1) { printf("ERROR: OOB\n"); } }
 		  else
-		    _LDSB_iss(&ldsbVal, ((int)system->dram + (ret.source[0].value + ret.source[1].value)));
+		    _LDSB_iss(&ldsbVal, ((size_t)system->dram + (ret.source[0].value + ret.source[1].value)));
 		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 6) & 0x3f), 1, clust, ldsbVal);
 		  ret.maddr = ret.source[0].value + ret.source[1].value;
 		  ret.maddrValid = 1;
@@ -2894,12 +2894,12 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
 		  insertSource(&(ret.source[1]), IMM12, 0, 1, (((inst >> 12) & 0xfff) ^ (1 << 11)) - (1 << 11), 0);
 #ifdef DEBUGmem
-		  printf("loading from: 0x%x\n", ((ret.source[0].value + ret.source[1].value) + (unsigned)(system->dram)));
+		  printf("loading from: 0x%lx\n", ((ret.source[0].value + ret.source[1].value) + (size_t)(system->dram)));
 #endif
 		  if((ret.source[0].value + ret.source[1].value) >= dramSize)
 		    { if(suppressOOB != 1) { printf("ERROR: OOB\n"); } }
 		  else
-		    _LDSB_iss(&ldsbVal, ((int)system->dram + (ret.source[0].value + ret.source[1].value)));
+		    _LDSB_iss(&ldsbVal, ((size_t)system->dram + (ret.source[0].value + ret.source[1].value)));
 		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 6) & 0x3f), 1, clust, ldsbVal);
 		  ret.maddr = ret.source[0].value + ret.source[1].value;
 		  ret.maddrValid = 1;
@@ -2933,12 +2933,12 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
 		  insertSource(&(ret.source[1]), IMM12, 0, 1, (((inst >> 12) & 0xfff) ^ (1 << 11)) - (1 << 11), 0);
 #ifdef DEBUGmem
-		  printf("loading from: 0x%x\n", ((ret.source[0].value + ret.source[1].value) + (unsigned)(system->dram)));
+		  printf("loading from: 0x%lx\n", ((ret.source[0].value + ret.source[1].value) + (size_t)(system->dram)));
 #endif
 		  if((ret.source[0].value + ret.source[1].value) >= dramSize)
 		    { if(suppressOOB != 1) { printf("ERROR: OOB\n"); } }
 		  else
-		    _LDUB_iss(&ldubVal, ((int)system->dram + (ret.source[0].value + ret.source[1].value)));
+		    _LDUB_iss(&ldubVal, ((size_t)system->dram + (ret.source[0].value + ret.source[1].value)));
 		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 6) & 0x3f), 1, clust, ldubVal);
 		  ret.maddr = ret.source[0].value + ret.source[1].value;
 		  ret.maddrValid = 1;
@@ -2951,12 +2951,12 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
 		  insertSource(&(ret.source[1]), IMM12, 0, 1, (((inst >> 12) & 0xfff) ^ (1 << 11)) - (1 << 11), 0);
 #ifdef DEBUGmem
-		  printf("loading from: 0x%x\n", ((ret.source[0].value + ret.source[1].value) + (unsigned)(system->dram)));
+		  printf("loading from: 0x%lx\n", ((ret.source[0].value + ret.source[1].value) + (size_t)(system->dram)));
 #endif
 		  if((ret.source[0].value + ret.source[1].value) >= dramSize)
 		    { if(suppressOOB != 1) { printf("ERROR: OOB\n"); } }
 		  else
-		    _LDUB_iss(&ldubVal, ((int)system->dram + (ret.source[0].value + ret.source[1].value)));
+		    _LDUB_iss(&ldubVal, ((size_t)system->dram + (ret.source[0].value + ret.source[1].value)));
 		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 6) & 0x3f), 1, clust, ldubVal);
 		  ret.maddr = ret.source[0].value + ret.source[1].value;
 		  ret.maddrValid = 1;
@@ -2989,12 +2989,12 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
 		  insertSource(&(ret.source[1]), IMM12, 0, 1, (((inst >> 12) & 0xfff) ^ (1 << 11)) - (1 << 11), 0);
 #ifdef DEBUGmem
-		  printf("loading from: 0x%x\n", ((ret.source[0].value + ret.source[1].value) + (unsigned)(system->dram)));
+		  printf("loading from: 0x%lx\n", ((ret.source[0].value + ret.source[1].value) + (size_t)(system->dram)));
 #endif
 		  if((ret.source[0].value + ret.source[1].value) >= dramSize)
 		    { if(suppressOOB != 1) { printf("ERROR: OOB\n"); } }
 		  else
-		    _LDSH_iss(&ldshVal, ((int)system->dram + (ret.source[0].value + ret.source[1].value)));
+		    _LDSH_iss(&ldshVal, ((size_t)system->dram + (ret.source[0].value + ret.source[1].value)));
 		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 6) & 0x3f), 1, clust, ldshVal);
 		  ret.maddr = ret.source[0].value + ret.source[1].value;
 		  ret.maddrValid = 1;
@@ -3007,12 +3007,12 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
 		  insertSource(&(ret.source[1]), IMM12, 0, 1, (((inst >> 12) & 0xfff) ^ (1 << 11)) - (1 << 11), 0);
 #ifdef DEBUGmem
-		  printf("loading from: 0x%x\n", ((ret.source[0].value + ret.source[1].value) + (unsigned)(system->dram)));
+		  printf("loading from: 0x%lx\n", ((ret.source[0].value + ret.source[1].value) + (size_t)(system->dram)));
 #endif
 		  if((ret.source[0].value + ret.source[1].value) >= dramSize)
 		    { if(suppressOOB != 1) { printf("ERROR: OOB\n"); } }
 		  else
-		    _LDSH_iss(&ldshVal, ((int)system->dram + (ret.source[0].value + ret.source[1].value)));
+		    _LDSH_iss(&ldshVal, ((size_t)system->dram + (ret.source[0].value + ret.source[1].value)));
 		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 6) & 0x3f), 1, clust, ldshVal);
 		  ret.maddr = ret.source[0].value + ret.source[1].value;
 		  ret.maddrValid = 1;
@@ -3041,12 +3041,12 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
 		  insertSource(&(ret.source[1]), IMM12, 0, 1, (((inst >> 12) & 0xfff) ^ (1 << 11)) - (1 << 11), 0);
 #ifdef DEBUGmem
-		  printf("loading from: 0x%x\n", ((ret.source[0].value + ret.source[1].value) + (unsigned)(system->dram)));
+		  printf("loading from: 0x%lx\n", ((ret.source[0].value + ret.source[1].value) + (size_t)(system->dram)));
 #endif
 		  if((ret.source[0].value + ret.source[1].value) >= dramSize)
 		    { if(suppressOOB != 1) { printf("ERROR: OOB\n"); } }
 		  else
-		    _LDUH_iss(&lduhVal, ((int)system->dram + (ret.source[0].value + ret.source[1].value)));
+		    _LDUH_iss(&lduhVal, ((size_t)system->dram + (ret.source[0].value + ret.source[1].value)));
 		  ret.maddr = ret.source[0].value + ret.source[1].value;
 		  ret.maddrValid = 1;
 		  break;
@@ -3058,12 +3058,12 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
 		  insertSource(&(ret.source[1]), IMM12, 0, 1, (((inst >> 12) & 0xfff) ^ (1 << 11)) - (1 << 11), 0);
 #ifdef DEBUGmem
-		  printf("loading from: 0x%x\n", ((ret.source[0].value + ret.source[1].value) + (unsigned)(system->dram)));
+		  printf("loading from: 0x%lx\n", ((ret.source[0].value + ret.source[1].value) + (size_t)(system->dram)));
 #endif
 		  if((ret.source[0].value + ret.source[1].value) >= dramSize)
 		    { if(suppressOOB != 1) { printf("ERROR: OOB\n"); } }
 		  else
-		    _LDUH_iss(&lduhVal, ((int)system->dram + (ret.source[0].value + ret.source[1].value)));
+		    _LDUH_iss(&lduhVal, ((size_t)system->dram + (ret.source[0].value + ret.source[1].value)));
 		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 6) & 0x3f), 1, clust, lduhVal);
 		  ret.maddr = ret.source[0].value + ret.source[1].value;
 		  ret.maddrValid = 1;
@@ -3092,12 +3092,12 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
 		  insertSource(&(ret.source[1]), IMM12, 0, 1, (((inst >> 12) & 0xfff) ^ (1 << 11)) - (1 << 11), 0);
 #ifdef DEBUGmem
-		  printf("loading from: 0x%x\n", ((ret.source[0].value + ret.source[1].value) + (unsigned)(system->dram)));
+		  printf("loading from: 0x%lx\n", ((ret.source[0].value + ret.source[1].value) + (size_t)(system->dram)));
 #endif
 		  if((ret.source[0].value + ret.source[1].value) >= dramSize)
 		    { if(suppressOOB != 1) { printf("ERROR: OOB\n"); } }
 		  else
-		    _LDW_iss(&ldwVal, ((int)system->dram + (ret.source[0].value + ret.source[1].value)));
+		    _LDW_iss(&ldwVal, ((size_t)system->dram + (ret.source[0].value + ret.source[1].value)));
 		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 6) & 0x3f), 1, clust, ldwVal);
 		  ret.maddr = ret.source[0].value + ret.source[1].value;
 		  ret.maddrValid = 1;
@@ -3110,12 +3110,12 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
 		  insertSource(&(ret.source[1]), IMM12, 0, 1, (((inst >> 12) & 0xfff) ^ (1 << 11)) - (1 << 11), 0);
 #ifdef DEBUGmem
-		  printf("loading from: 0x%x\n", ((ret.source[0].value + ret.source[1].value) + (unsigned)(system->dram)));
+		  printf("loading from: 0x%lx\n", ((ret.source[0].value + ret.source[1].value) + (size_t)(system->dram)));
 #endif
 		  if((ret.source[0].value + ret.source[1].value) >= dramSize)
 		    { if(suppressOOB != 1) { printf("ERROR: OOB\n"); } }
 		  else
-		    _LDW_iss(&ldwVal, ((int)system->dram + (ret.source[0].value + ret.source[1].value)));
+		    _LDW_iss(&ldwVal, ((size_t)system->dram + (ret.source[0].value + ret.source[1].value)));
 		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 6) & 0x3f), 1, clust, ldwVal);
 		  ret.maddr = ret.source[0].value + ret.source[1].value;
 		  ret.maddrValid = 1;
@@ -3148,12 +3148,12 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
 		  insertSource(&(ret.source[1]), IMM8, 0, 1, (((inst >> 12) & 0xff) ^ (1 << 7)) - (1 << 7), 0);
 #ifdef DEBUGmem
-		  printf("loading from: 0x%x\n", ((ret.source[0].value + ret.source[1].value) + (unsigned)(system->dram)));
+		  printf("loading from: 0x%lx\n", ((ret.source[0].value + ret.source[1].value) + (size_t)(system->dram)));
 #endif
 		  if((ret.source[0].value + ret.source[1].value) >= dramSize)
 		    { if(suppressOOB != 1) { printf("ERROR: OOB\n"); } }
 		  else
-		    _LDUB_iss(&ldubVal, ((int)system->dram + (ret.source[0].value + ret.source[1].value)));
+		    _LDUB_iss(&ldubVal, ((size_t)system->dram + (ret.source[0].value + ret.source[1].value)));
 		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 6) & 0x3f), 1, clust, ldubVal);
 		  ret.maddr = ret.source[0].value + ret.source[1].value;
 		  ret.maddrValid = 1;
@@ -3166,12 +3166,12 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
 		  insertSource(&(ret.source[1]), IMM8, 0, 1, (((inst >> 12) & 0xff) ^ (1 << 7)) - (1 << 7), 0);
 #ifdef DEBUGmem
-		  printf("loading from: 0x%x\n", ((ret.source[0].value + ret.source[1].value) + (unsigned)(system->dram)));
+		  printf("loading from: 0x%lx\n", ((ret.source[0].value + ret.source[1].value) + (size_t)(system->dram)));
 #endif
 		  if((ret.source[0].value + ret.source[1].value) >= dramSize)
 		    { if(suppressOOB != 1) { printf("ERROR: OOB\n"); } }
 		  else
-		    _LDSB_iss(&ldsbVal, ((int)system->dram + (ret.source[0].value + ret.source[1].value)));
+		    _LDSB_iss(&ldsbVal, ((size_t)system->dram + (ret.source[0].value + ret.source[1].value)));
 		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 6) & 0x3f), 1, clust, ldsbVal);
 		  ret.maddr = ret.source[0].value + ret.source[1].value;
 		  ret.maddrValid = 1;
@@ -3184,12 +3184,12 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
 		  insertSource(&(ret.source[1]), IMM8, 0, 1, (((inst >> 12) & 0xff) ^ (1 << 7)) - (1 << 7), 0);
 #ifdef DEBUGmem
-		  printf("loading from: 0x%x\n", ((ret.source[0].value + ret.source[1].value) + (unsigned)(system->dram)));
+		  printf("loading from: 0x%lx\n", ((ret.source[0].value + ret.source[1].value) + (size_t)(system->dram)));
 #endif
 		  if((ret.source[0].value + ret.source[1].value) >= dramSize)
 		    { if(suppressOOB != 1) { printf("ERROR: OOB\n"); } }
 		  else
-		    _LDUH_iss(&lduhVal, ((int)system->dram + (ret.source[0].value + ret.source[1].value)));
+		    _LDUH_iss(&lduhVal, ((size_t)system->dram + (ret.source[0].value + ret.source[1].value)));
 		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 6) & 0x3f), 1, clust, lduhVal);
 		  ret.maddr = ret.source[0].value + ret.source[1].value;
 		  ret.maddrValid = 1;
@@ -3202,12 +3202,12 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
 		  insertSource(&(ret.source[1]), IMM8, 0, 1, (((inst >> 12) & 0xff) ^ (1 << 7)) - (1 << 7), 0);
 #ifdef DEBUGmem
-		  printf("loading from: 0x%x\n", ((ret.source[0].value + ret.source[1].value) + (unsigned)(system->dram)));
+		  printf("loading from: 0x%lx\n", ((ret.source[0].value + ret.source[1].value) + (size_t)(system->dram)));
 #endif
 		  if((ret.source[0].value + ret.source[1].value) >= dramSize)
 		    { if(suppressOOB != 1) { printf("ERROR: OOB\n"); } }
 		  else
-		    _LDSH_iss(&ldshVal, ((int)system->dram + (ret.source[0].value + ret.source[1].value)));
+		    _LDSH_iss(&ldshVal, ((size_t)system->dram + (ret.source[0].value + ret.source[1].value)));
 		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 6) & 0x3f), 1, clust, ldshVal);
 		  ret.maddr = ret.source[0].value + ret.source[1].value;
 		  ret.maddrValid = 1;
@@ -3220,12 +3220,12 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		  insertSource(&(ret.source[0]), GPR, (inst & 0x3f), 1, *(pS_GPR + (inst & 0x3f)), clust);
 		  insertSource(&(ret.source[1]), IMM8, 0, 1, (((inst >> 12) & 0xff) ^ (1 << 7)) - (1 << 7), 0);
 #ifdef DEBUGmem
-		  printf("loading from: 0x%x\n", ((ret.source[0].value + ret.source[1].value) + (unsigned)(system->dram)));
+		  printf("loading from: 0x%lx\n", ((ret.source[0].value + ret.source[1].value) + (size_t)(system->dram)));
 #endif
 		  if((ret.source[0].value + ret.source[1].value) >= dramSize)
 		    { if(suppressOOB != 1) { printf("ERROR: OOB\n"); } }
 		  else
-		    _LDW_iss(&ldwVal, ((int)system->dram + (ret.source[0].value + ret.source[1].value)));
+		    _LDW_iss(&ldwVal, ((size_t)system->dram + (ret.source[0].value + ret.source[1].value)));
 		  insertDest(&(ret.dest[0]), GPR, 1, ((inst >> 6) & 0x3f), 1, clust, ldwVal);
 		  ret.maddr = ret.source[0].value + ret.source[1].value;
 		  ret.maddrValid = 1;

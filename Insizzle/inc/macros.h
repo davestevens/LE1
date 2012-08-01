@@ -139,35 +139,35 @@
 #define _LDUB_iss(t,s1)	  \
 	do { \
 		unsigned int* addr; \
-		addr = (unsigned int*)((((unsigned int)s1) - (((unsigned int)s1) % 4)) + (3 - (((unsigned int)s1) % 4))); \
+		addr = (unsigned int*)((((size_t)s1) - (((size_t)s1) % 4)) + (3 - (((size_t)s1) % 4))); \
 		*(t) = _UINT8_iss(*((unsigned char*)(addr)));		\
 	} while(0)
 
 #define _LDSB_iss(t,s1)	  \
 	do { \
 		unsigned int* addr; \
-		addr = (unsigned int*)((((unsigned int)s1) - (((unsigned int)s1) % 4)) + (3 - (((unsigned int)s1) % 4))); \
+		addr = (unsigned int*)((((size_t)s1) - (((size_t)s1) % 4)) + (3 - (((size_t)s1) % 4))); \
 		*(t) = _INT8_iss(*((unsigned char*)(addr)));		\
 	} while(0)
 
 #define _LDBs_iss(t,s1)	  \
 	do { \
 		unsigned int* addr; \
-		addr = (unsigned int*)((((unsigned int)s1) - (((unsigned int)s1) % 4)) + (3 - (((unsigned int)s1) % 4))); \
+		addr = (unsigned int*)((((size_t)s1) - (((size_t)s1) % 4)) + (3 - (((size_t)s1) % 4))); \
 		*(t) = _UINT8_iss(*((unsigned char*)(addr)));		\
 	} while(0)
 
 #define _LDUH_iss(t,s1)	  \
 	do { \
 		unsigned int* addr; \
-		addr = (unsigned int*)((((unsigned int)s1) - (((unsigned int)s1) % 4)) + (2 - (((unsigned int)s1) % 4))); \
+		addr = (unsigned int*)((((size_t)s1) - (((size_t)s1) % 4)) + (2 - (((size_t)s1) % 4))); \
 		*(t) = _UINT16_iss(*((unsigned short*)(addr)));		\
 	} while(0)
 
 #define _LDSH_iss(t,s1)	  \
 	do { \
 		unsigned int* addr; \
-		addr = (unsigned int*)((((unsigned int)s1) - (((unsigned int)s1) % 4)) + (2 - (((unsigned int)s1) % 4))); \
+		addr = (unsigned int*)((((size_t)s1) - (((size_t)s1) % 4)) + (2 - (((size_t)s1) % 4))); \
 		*(t) = _INT16_iss(*((unsigned short*)(addr)));		\
 	} while(0)
 
@@ -180,14 +180,14 @@
 #define _STB_iss(t,s1)							\
   do {									\
     unsigned int* addr;							\
-    addr = (unsigned int*)((((unsigned int)t) - (((unsigned int)t) % 4)) + (3 - (((unsigned int)t) % 4))); \
+    addr = (unsigned int*)((((size_t)t) - (((size_t)t) % 4)) + (3 - (((size_t)t) % 4))); \
     *((unsigned char*)(addr)) = (unsigned char)_UINT8_iss(*s1);		\
   } while(0)
 
 #define _STH_iss(t,s1)							\
   do {									\
     unsigned int* addr;							\
-    addr = (unsigned int*)((((unsigned int)t) - (((unsigned int)t) % 4)) + (2 - (((unsigned int)t) % 4))); \
+    addr = (unsigned int*)((((size_t)t) - (((size_t)t) % 4)) + (2 - (((size_t)t) % 4))); \
     *((unsigned short*)(addr)) = (unsigned short)_UINT16_iss(*s1);	\
   } while(0)
 

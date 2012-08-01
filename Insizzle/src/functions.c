@@ -103,19 +103,19 @@ void stateDump(void) {
   fprintf(fp, "CycleCount: %lld\n", cycleCount);
   for(i=0;i<(GALAXY_CONFIG & 0xff);i++)
     {
-      SYS = (systemConfig *)((unsigned)SYSTEM + (i * sizeof(systemConfig)));
-      system = (systemT *)((unsigned)galaxyT + (i * sizeof(systemT)));
+      SYS = (systemConfig *)((size_t)SYSTEM + (i * sizeof(systemConfig)));
+      system = (systemT *)((size_t)galaxyT + (i * sizeof(systemT)));
       fprintf(fp, "System: %d\n", i);
       for(j=0;j<(SYS->SYSTEM_CONFIG & 0xff);j++)
 	{
-	  CNT = (contextConfig *)((unsigned)SYS->CONTEXT + (j * sizeof(contextConfig)));
-	  context = (contextT *)((unsigned)system->context + (j * sizeof(contextT)));
+	  CNT = (contextConfig *)((size_t)SYS->CONTEXT + (j * sizeof(contextConfig)));
+	  context = (contextT *)((size_t)system->context + (j * sizeof(contextT)));
 	  fprintf(fp, "\tContext: %d\n", j);
 
 	  for(k=0;k<((CNT->CONTEXT_CONFIG >> 4) & 0xf);k++)
 	    {
-	      HCNT = (hyperContextConfig *)((unsigned)CNT->HCONTEXT + (k * sizeof(hyperContextConfig)));
-	      hypercontext = (hyperContextT *)((unsigned)context->hypercontext + (k * sizeof(hyperContextT)));
+	      HCNT = (hyperContextConfig *)((size_t)CNT->HCONTEXT + (k * sizeof(hyperContextConfig)));
+	      hypercontext = (hyperContextT *)((size_t)context->hypercontext + (k * sizeof(hyperContextT)));
 	      fprintf(fp, "\t\tHypercontext: %d\n", k);
 	      /* print VT_CTRL */
 	      fprintf(fp, "\t\t\tVT_CTRL: 0x%08x\n", hypercontext->VT_CTRL);
@@ -327,7 +327,7 @@ int cycle(contextT *context, hyperContextT *hypercontext, unsigned numClusters)
   unsigned c;
 
   /* this will need to get all the details of the current cycle */
-  printf("\tiram:           0x%0x\n", (unsigned)context->iram);
+  printf("\tiram:           0x%0lx\n", (size_t)context->iram);
   printf("\ttotalWidth:     %d\n", hypercontext->totalWidth);
   printf("\tprogramCounter: 0x%x\n", (unsigned)hypercontext->programCounter);
   printf("\t\tinstruction:  0x%08x\n", *(context->iram + (hypercontext->programCounter)));
@@ -335,11 +335,11 @@ int cycle(contextT *context, hyperContextT *hypercontext, unsigned numClusters)
   for(c=0;c<numClusters;c++)
     {
       printf("\t\tcluster %d\n", c);
-      cluster = (clusterT *)((unsigned)hypercontext->registers + (c * sizeof(clusterT)));
-      printf("\t\t\tS_GPR: 0x%x\n", (unsigned)cluster->S_GPR);
-      printf("\t\t\tS_FPR: 0x%x\n", (unsigned)cluster->S_FPR);
-      printf("\t\t\tS_VR:  0x%x\n", (unsigned)cluster->S_VR);
-      printf("\t\t\tS_PR:  0x%x\n", (unsigned)cluster->S_PR);
+      cluster = (clusterT *)((size_t)hypercontext->registers + (c * sizeof(clusterT)));
+      printf("\t\t\tS_GPR: 0x%lx\n", (size_t)cluster->S_GPR);
+      printf("\t\t\tS_FPR: 0x%lx\n", (size_t)cluster->S_FPR);
+      printf("\t\t\tS_VR:  0x%lx\n", (size_t)cluster->S_VR);
+      printf("\t\t\tS_PR:  0x%lx\n", (size_t)cluster->S_PR);
     }
 
   /* TODO: call the operation! */
@@ -370,7 +370,7 @@ int printCounts(hyperContextT *hypercontext)
   printf("\t\tidleCount:        %lld\n", hypercontext->idleCount);
    for(c=0;c<hypercontext->totalWidth+1;c++)
     {
-      bundleCount = (unsigned long long *)((unsigned)hypercontext->bundleCount + (sizeof(unsigned long long) * c));
+      bundleCount = (unsigned long long *)((size_t)hypercontext->bundleCount + (sizeof(unsigned long long) * c));
       printf("\t\t\t[%d] = %lld\n", c, *bundleCount);
     }
 
@@ -399,22 +399,22 @@ unsigned checkActive(void)
   for(i=0;i<(GALAXY_CONFIG & 0xff);i++)
     {
       /*printf("\tsystem: %d\n", i);*/
-      SYS = (systemConfig *)((unsigned)SYSTEM + (i * sizeof(systemConfig)));
-      system = (systemT *)((unsigned)galaxyT + (i * sizeof(systemT)));
+      SYS = (systemConfig *)((size_t)SYSTEM + (i * sizeof(systemConfig)));
+      system = (systemT *)((size_t)galaxyT + (i * sizeof(systemT)));
 
       /* loop through contexts */
       for(j=0;j<(SYS->SYSTEM_CONFIG & 0xff);j++)
 	{
 	  /*printf("\t\tcontext: %d\n", j);*/
-	  CNT = (contextConfig *)((unsigned)SYS->CONTEXT + (j * sizeof(contextConfig)));
-	  context = (contextT *)((unsigned)system->context + (j * sizeof(contextT)));
+	  CNT = (contextConfig *)((size_t)SYS->CONTEXT + (j * sizeof(contextConfig)));
+	  context = (contextT *)((size_t)system->context + (j * sizeof(contextT)));
 
 	  /* loop through hypercontexts */
 	  for(k=0;k<((CNT->CONTEXT_CONFIG >> 4) & 0xf);k++)
 	    {
 	      /*printf("\t\t\thypercontext: %d\n", k);*/
-	      HCNT = (hyperContextConfig *)((unsigned)CNT->HCONTEXT + (k * sizeof(hyperContextConfig)));
-	      hypercontext = (hyperContextT *)((unsigned)context->hypercontext + (k * sizeof(hyperContextT)));
+	      HCNT = (hyperContextConfig *)((size_t)CNT->HCONTEXT + (k * sizeof(hyperContextConfig)));
+	      hypercontext = (hyperContextT *)((size_t)context->hypercontext + (k * sizeof(hyperContextT)));
 
 	      /*printf("\t\t\t\thypercontext totalWidth: %d\n", hypercontext->totalWidth);*/
 
@@ -765,8 +765,8 @@ int serviceThreadRequests(systemT *system)
 #ifdef INSDEBUG
 	printf("context[%d] hypercontext[%d]\n", context, hypercontext);
 #endif
-	cnt = (contextT *)((unsigned)system->context + (context * sizeof(contextT)));
-	hcnt = (hyperContextT *)((unsigned)cnt->hypercontext + (hypercontext * sizeof(hyperContextT)));
+	cnt = (contextT *)((size_t)system->context + (context * sizeof(contextT)));
+	hcnt = (hyperContextT *)((size_t)cnt->hypercontext + (hypercontext * sizeof(hyperContextT)));
 
 	hcnt->VT_CTRL |= RUNNING << 3;
 #ifdef INSDEBUG
@@ -829,8 +829,8 @@ void serviceMemRequest(systemT *system, unsigned findBank, unsigned numBanks, un
 #endif
 		context = (temp->ctrlReg >> 16) & 0xff;
 		hypercontext = (temp->ctrlReg >> 12) & 0xf;
-		cnt = (contextT *)((unsigned)system->context + (context * sizeof(contextT)));
-		hcnt = (hyperContextT *)((unsigned)cnt->hypercontext + (hypercontext * sizeof(hyperContextT)));
+		cnt = (contextT *)((size_t)system->context + (context * sizeof(contextT)));
+		hcnt = (hyperContextT *)((size_t)cnt->hypercontext + (hypercontext * sizeof(hyperContextT)));
 
 #ifdef DEBUGmem
 		printf("context: %d, hypercontext: %d\n", context, hypercontext);
@@ -863,7 +863,7 @@ void serviceMemRequest(systemT *system, unsigned findBank, unsigned numBanks, un
 			    *(temp->pointer) = 0;
 			  }
 			else
-			  _LDSB_iss(temp->pointer, (temp->value + (unsigned)(system->dram)));
+			  _LDSB_iss(temp->pointer, (temp->value + (size_t)(system->dram)));
 			break;
 		      case mLDBs:
 			if(temp->value >= dramSize)
@@ -872,13 +872,13 @@ void serviceMemRequest(systemT *system, unsigned findBank, unsigned numBanks, un
 			    *(temp->pointer) = 0;
 			  }
 			else
-			  _LDBs_iss(temp->pointer, (temp->value + (unsigned)(system->dram)));
+			  _LDBs_iss(temp->pointer, (temp->value + (size_t)(system->dram)));
 			break;
 		      case mLDUB:
 #ifdef DEBUGmem
 			printf("LDUB\n");
 			printf("temp->value: %d\n", temp->value);
-			printf("0x%08x\n", *(unsigned *)((unsigned)system->dram + temp->value));
+			printf("0x%08x\n", *(unsigned *)((size_t)system->dram + temp->value));
 #endif
 			if(temp->value >= dramSize)
 			  {
@@ -886,7 +886,7 @@ void serviceMemRequest(systemT *system, unsigned findBank, unsigned numBanks, un
 			    *(temp->pointer) = 0;
 			  }
 			else
-			  _LDUB_iss(temp->pointer, (temp->value + (unsigned)(system->dram)));
+			  _LDUB_iss(temp->pointer, (temp->value + (size_t)(system->dram)));
 #ifdef DEBUGmem
 			printf("%p -> 0x%x\n", (void *)temp->pointer, *(temp->pointer));
 #endif
@@ -898,7 +898,7 @@ void serviceMemRequest(systemT *system, unsigned findBank, unsigned numBanks, un
 			    *(temp->pointer) = 0;
 			  }
 			else
-			  _LDSH_iss(temp->pointer, (temp->value + (unsigned)(system->dram)));
+			  _LDSH_iss(temp->pointer, (temp->value + (size_t)(system->dram)));
 #ifdef DEBUGmem
 			printf("value: 0x%x\n", *(unsigned *)(temp->pointer));
 #endif
@@ -910,7 +910,7 @@ void serviceMemRequest(systemT *system, unsigned findBank, unsigned numBanks, un
 			    *(temp->pointer) = 0;
 			  }
 			else
-			  _LDUH_iss(temp->pointer, (temp->value + (unsigned)(system->dram)));
+			  _LDUH_iss(temp->pointer, (temp->value + (size_t)(system->dram)));
 			break;
 		      case mLDW:
 #ifdef DEBUGmem
@@ -918,7 +918,7 @@ void serviceMemRequest(systemT *system, unsigned findBank, unsigned numBanks, un
 #endif
 #ifdef DEBUGmem
 			printf("loading from: 0x%x\n", (temp->value));
-			printf("loading from: 0x%x\n", (temp->value + (unsigned)(system->dram)));
+			printf("loading from: 0x%lx\n", (temp->value + (size_t)(system->dram)));
 #endif
 			if(temp->value >= dramSize)
 			  {
@@ -926,7 +926,7 @@ void serviceMemRequest(systemT *system, unsigned findBank, unsigned numBanks, un
 			    *(temp->pointer) = 0;
 			  }
 			else
-			  _LDW_iss(temp->pointer, (temp->value + (unsigned)(system->dram)));
+			  _LDW_iss(temp->pointer, (temp->value + (size_t)(system->dram)));
 #ifdef DEBUGmem
 			printf("value: 0x%x\n", *(unsigned *)(temp->pointer));
 #endif
@@ -940,18 +940,18 @@ void serviceMemRequest(systemT *system, unsigned findBank, unsigned numBanks, un
 			if(temp->value >= dramSize)
 			  {
 			    unsigned fZero = 0;
-			    unsigned *fuckingZero = &fZero;
+			    unsigned *zero = &fZero;
 			    if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
-			    _STB_iss((temp->value + (unsigned)(system->dram)), fuckingZero);
+			    _STB_iss((temp->value + (size_t)(system->dram)), zero);
 			  }
 			else {
 			  unsigned *tempP = (unsigned *)malloc(sizeof(int));
 			  *tempP = temp->pointerV;
-			  _STB_iss((temp->value + (unsigned)(system->dram)), tempP);
+			  _STB_iss((temp->value + (size_t)(system->dram)), tempP);
 			  free(tempP);
 			}
 #ifdef DEBUGmem
-			printf("memory now: 0x%x\n", *(unsigned *)((unsigned)system->dram + temp->value));
+			printf("memory now: 0x%x\n", *(unsigned *)((size_t)system->dram + temp->value));
 #endif
 			break;
 		      case mSTBs:
@@ -964,17 +964,17 @@ void serviceMemRequest(systemT *system, unsigned findBank, unsigned numBanks, un
 			  {
 			    if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
 			    unsigned fZero = 0;
-			    unsigned *fuckingZero = &fZero;
-			    _STB_iss((temp->value + (unsigned)(system->dram)), fuckingZero);
+			    unsigned *zero = &fZero;
+			    _STB_iss((temp->value + (size_t)(system->dram)), zero);
 			  }
 			else {
 			  unsigned *tempP = (unsigned *)malloc(sizeof(int));
 			  *tempP = temp->pointerV;
-			  _STB_iss((temp->value + (unsigned)(system->dram)), tempP);
+			  _STB_iss((temp->value + (size_t)(system->dram)), tempP);
 			  free(tempP);
 			}
 #ifdef DEBUGmem
-			printf("memory now: 0x%x\n", *(unsigned *)((unsigned)system->dram + temp->value));
+			printf("memory now: 0x%x\n", *(unsigned *)((size_t)system->dram + temp->value));
 #endif
 			break;
 		      case mSTH:
@@ -987,17 +987,17 @@ void serviceMemRequest(systemT *system, unsigned findBank, unsigned numBanks, un
 			  {
 			    if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
 			    unsigned fZero = 0;
-			    unsigned *fuckingZero = &fZero;
-			    _STH_iss((temp->value + (unsigned)(system->dram)), fuckingZero);
+			    unsigned *zero = &fZero;
+			    _STH_iss((temp->value + (size_t)(system->dram)), zero);
 			  }
 			else {
 			  unsigned *tempP = (unsigned *)malloc(sizeof(int));
 			  *tempP = temp->pointerV;
-			  _STH_iss((temp->value + (unsigned)(system->dram)), tempP);
+			  _STH_iss((temp->value + (size_t)(system->dram)), tempP);
 			  free(tempP);
 			}
 #ifdef DEBUGmem
-			printf("memory now: 0x%x\n", *(unsigned *)((unsigned)system->dram + temp->value));
+			printf("memory now: 0x%x\n", *(unsigned *)((size_t)system->dram + temp->value));
 #endif
 
 			break;
@@ -1012,17 +1012,17 @@ void serviceMemRequest(systemT *system, unsigned findBank, unsigned numBanks, un
 			    {
 			      if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
 			      unsigned fZero = 0;
-			      unsigned *fuckingZero = &fZero;
-			      _STW_iss((temp->value + (unsigned)(system->dram)), fuckingZero);
+			      unsigned *zero = &fZero;
+			      _STW_iss((temp->value + (size_t)(system->dram)), zero);
 			    }
 			  else {
 			    unsigned *tempP = (unsigned *)malloc(sizeof(int));
 			    *tempP = temp->pointerV;
-			    _STW_iss((temp->value + (unsigned)(system->dram)), tempP);
+			    _STW_iss((temp->value + (size_t)(system->dram)), tempP);
 			    free(tempP);
 			  }
 #ifdef DEBUGmem
-			  printf("memory now: 0x%x\n", *(unsigned *)((unsigned)system->dram + temp->value));
+			  printf("memory now: 0x%x\n", *(unsigned *)((size_t)system->dram + temp->value));
 #endif
 			}
 			break;
@@ -1106,8 +1106,8 @@ void serviceMemRequestNOSTALLS(systemT *system, unsigned findBank, unsigned numB
 #endif
 		context = (temp->ctrlReg >> 16) & 0xff;
 		hypercontext = (temp->ctrlReg >> 12) & 0xf;
-		cnt = (contextT *)((unsigned)system->context + (context * sizeof(contextT)));
-		hcnt = (hyperContextT *)((unsigned)cnt->hypercontext + (hypercontext * sizeof(hyperContextT)));
+		cnt = (contextT *)((size_t)system->context + (context * sizeof(contextT)));
+		hcnt = (hyperContextT *)((size_t)cnt->hypercontext + (hypercontext * sizeof(hyperContextT)));
 
 #ifdef DEBUGmem
 		printf("context: %d, hypercontext: %d\n", context, hypercontext);
@@ -1141,7 +1141,7 @@ void serviceMemRequestNOSTALLS(systemT *system, unsigned findBank, unsigned numB
 			    *(temp->pointer) = 0;
 			  }
 			else
-			  _LDSB_iss(temp->pointer, (temp->value + (unsigned)(system->dram)));
+			  _LDSB_iss(temp->pointer, (temp->value + (size_t)(system->dram)));
 			break;
 		      case mLDBs:
 			if(temp->value >= dramSize)
@@ -1150,7 +1150,7 @@ void serviceMemRequestNOSTALLS(systemT *system, unsigned findBank, unsigned numB
 			    *(temp->pointer) = 0;
 			  }
 			else
-			  _LDBs_iss(temp->pointer, (temp->value + (unsigned)(system->dram)));
+			  _LDBs_iss(temp->pointer, (temp->value + (size_t)(system->dram)));
 			break;
 		      case mLDUB:
 #ifdef DEBUGmem
@@ -1165,7 +1165,7 @@ void serviceMemRequestNOSTALLS(systemT *system, unsigned findBank, unsigned numB
 			    *(temp->pointer) = 0;
 			  }
 			else
-			  _LDUB_iss(temp->pointer, (temp->value + (unsigned)(system->dram)));
+			  _LDUB_iss(temp->pointer, (temp->value + (size_t)(system->dram)));
 #ifdef DEBUGmem
 			printf("%p -> 0x%x\n", (void *)temp->pointer, *(temp->pointer));
 #endif
@@ -1177,7 +1177,7 @@ void serviceMemRequestNOSTALLS(systemT *system, unsigned findBank, unsigned numB
 			    *(temp->pointer) = 0;
 			  }
 			else
-			  _LDSH_iss(temp->pointer, (temp->value + (unsigned)(system->dram)));
+			  _LDSH_iss(temp->pointer, (temp->value + (size_t)(system->dram)));
 #ifdef DEBUGmem
 			printf("value: 0x%x\n", *(unsigned *)(temp->pointer));
 #endif
@@ -1189,14 +1189,14 @@ void serviceMemRequestNOSTALLS(systemT *system, unsigned findBank, unsigned numB
 			    *(temp->pointer) = 0;
 			  }
 			else
-			  _LDUH_iss(temp->pointer, (temp->value + (unsigned)(system->dram)));
+			  _LDUH_iss(temp->pointer, (temp->value + (size_t)(system->dram)));
 			break;
 		      case mLDW:
 #ifdef DEBUGmem
 			printf("LDW!!!\n");
 #endif
 #ifdef DEBUGmem
-			printf("loading from: 0x%x\n", (temp->value + (unsigned)(system->dram)));
+			printf("loading from: 0x%lx\n", (temp->value + (size_t)(system->dram)));
 #endif
 			if(temp->value >= dramSize)
 			  {
@@ -1204,7 +1204,7 @@ void serviceMemRequestNOSTALLS(systemT *system, unsigned findBank, unsigned numB
 			    *(temp->pointer) = 0;
 			  }
 			else
-			  _LDW_iss(temp->pointer, (temp->value + (unsigned)(system->dram)));
+			  _LDW_iss(temp->pointer, (temp->value + (size_t)(system->dram)));
 #ifdef DEBUGmem
 			printf("value: 0x%x\n", *(unsigned *)(temp->pointer));
 #endif
@@ -1218,18 +1218,18 @@ void serviceMemRequestNOSTALLS(systemT *system, unsigned findBank, unsigned numB
 			if(temp->value >= dramSize)
 			  {
 			    unsigned fZero = 0;
-			    unsigned *fuckingZero = &fZero;
+			    unsigned *zero = &fZero;
 			    if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
-			    _STB_iss((temp->value + (unsigned)(system->dram)), fuckingZero);
+			    _STB_iss((temp->value + (size_t)(system->dram)), zero);
 			  }
 			else {
 			  unsigned *tempP = (unsigned *)malloc(sizeof(int));
 			  *tempP = temp->pointerV;
-			  _STB_iss((temp->value + (unsigned)(system->dram)), tempP);
+			  _STB_iss((temp->value + (size_t)(system->dram)), tempP);
 			  free(tempP);
 			}
 #ifdef DEBUGmem
-			printf("memory now: 0x%x\n", *(unsigned *)((unsigned)system->dram + temp->value));
+			printf("memory now: 0x%x\n", *(unsigned *)((size_t)system->dram + temp->value));
 #endif
 			break;
 		      case mSTBs:
@@ -1242,17 +1242,17 @@ void serviceMemRequestNOSTALLS(systemT *system, unsigned findBank, unsigned numB
 			  {
 			    if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
 			    unsigned fZero = 0;
-			    unsigned *fuckingZero = &fZero;
-			    _STB_iss((temp->value + (unsigned)(system->dram)), fuckingZero);
+			    unsigned *zero = &fZero;
+			    _STB_iss((temp->value + (size_t)(system->dram)), zero);
 			  }
 			else {
 			  unsigned *tempP = (unsigned *)malloc(sizeof(int));
 			  *tempP = temp->pointerV;
-			  _STB_iss((temp->value + (unsigned)(system->dram)), tempP);
+			  _STB_iss((temp->value + (size_t)(system->dram)), tempP);
 			  free(tempP);
 			}
 #ifdef DEBUGmem
-			printf("memory now: 0x%x\n", *(unsigned *)((unsigned)system->dram + temp->value));
+			printf("memory now: 0x%x\n", *(unsigned *)((size_t)system->dram + temp->value));
 #endif
 			break;
 		      case mSTH:
@@ -1265,17 +1265,17 @@ void serviceMemRequestNOSTALLS(systemT *system, unsigned findBank, unsigned numB
 			  {
 			    if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
 			    unsigned fZero = 0;
-			    unsigned *fuckingZero = &fZero;
-			    _STH_iss((temp->value + (unsigned)(system->dram)), fuckingZero);
+			    unsigned *zero = &fZero;
+			    _STH_iss((temp->value + (size_t)(system->dram)), zero);
 			  }
 			else {
 			  unsigned *tempP = (unsigned *)malloc(sizeof(int));
 			  *tempP = temp->pointerV;
-			  _STH_iss((temp->value + (unsigned)(system->dram)), tempP);
+			  _STH_iss((temp->value + (size_t)(system->dram)), tempP);
 			  free(tempP);
 			}
 #ifdef DEBUGmem
-			printf("memory now: 0x%x\n", *(unsigned *)((unsigned)system->dram + temp->value));
+			printf("memory now: 0x%x\n", *(unsigned *)((size_t)system->dram + temp->value));
 #endif
 
 			break;
@@ -1290,17 +1290,17 @@ void serviceMemRequestNOSTALLS(systemT *system, unsigned findBank, unsigned numB
 			    {
 			      if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
 			      unsigned fZero = 0;
-			      unsigned *fuckingZero = &fZero;
-			      _STW_iss((temp->value + (unsigned)(system->dram)), fuckingZero);
+			      unsigned *zero = &fZero;
+			      _STW_iss((temp->value + (size_t)(system->dram)), zero);
 			    }
 			  else {
 			    unsigned *tempP = (unsigned *)malloc(sizeof(int));
 			    *tempP = temp->pointerV;
-			    _STW_iss((temp->value + (unsigned)(system->dram)), tempP);
+			    _STW_iss((temp->value + (size_t)(system->dram)), tempP);
 			    free(tempP);
 			  }
 #ifdef DEBUGmem
-			  printf("memory now: 0x%x\n", *(unsigned *)((unsigned)system->dram + temp->value));
+			  printf("memory now: 0x%x\n", *(unsigned *)((size_t)system->dram + temp->value));
 #endif
 			}
 			break;
@@ -1358,8 +1358,8 @@ void serviceMemRequestPERFECT(systemT *system, unsigned dramSize)
       do {
 	context = (temp->ctrlReg >> 16) & 0xff;
 	hypercontext = (temp->ctrlReg >> 12) & 0xf;
-	cnt = (contextT *)((unsigned)system->context + (context * sizeof(contextT)));
-	hcnt = (hyperContextT *)((unsigned)cnt->hypercontext + (hypercontext * sizeof(hyperContextT)));
+	cnt = (contextT *)((size_t)system->context + (context * sizeof(contextT)));
+	hcnt = (hyperContextT *)((size_t)cnt->hypercontext + (hypercontext * sizeof(hyperContextT)));
 
 	switch(temp->memOp)
 	  {
@@ -1371,7 +1371,7 @@ void serviceMemRequestPERFECT(systemT *system, unsigned dramSize)
 	      }
 	    else
 	      {
-		_LDSB_iss(temp->pointer, (temp->value + (unsigned)(system->dram)));
+		_LDSB_iss(temp->pointer, (temp->value + (size_t)(system->dram)));
 #ifdef DEBUGmem
 		printf("LDSB: 0x%x\n", *(unsigned *)temp->pointer);
 #endif
@@ -1385,7 +1385,7 @@ void serviceMemRequestPERFECT(systemT *system, unsigned dramSize)
 	      }
 	    else
 	      {
-		_LDBs_iss(temp->pointer, (temp->value + (unsigned)(system->dram)));
+		_LDBs_iss(temp->pointer, (temp->value + (size_t)(system->dram)));
 #ifdef DEBUGmem
 		printf("LDBs: 0x%x\n", *(unsigned *)temp->pointer);
 #endif
@@ -1399,7 +1399,7 @@ void serviceMemRequestPERFECT(systemT *system, unsigned dramSize)
 	      }
 	    else
 	      {
-		_LDUB_iss(temp->pointer, (temp->value + (unsigned)(system->dram)));
+		_LDUB_iss(temp->pointer, (temp->value + (size_t)(system->dram)));
 #ifdef DEBUGmem
 		printf("LDUB: 0x%x\n", *(unsigned *)temp->pointer);
 #endif
@@ -1413,7 +1413,7 @@ void serviceMemRequestPERFECT(systemT *system, unsigned dramSize)
 	      }
 	    else
 	      {
-		_LDSH_iss(temp->pointer, (temp->value + (unsigned)(system->dram)));
+		_LDSH_iss(temp->pointer, (temp->value + (size_t)(system->dram)));
 #ifdef DEBUGmem
 		printf("LDSH: 0x%x\n", *(unsigned *)temp->pointer);
 #endif
@@ -1427,7 +1427,7 @@ void serviceMemRequestPERFECT(systemT *system, unsigned dramSize)
 	      }
 	    else
 	      {
-		_LDUH_iss(temp->pointer, (temp->value + (unsigned)(system->dram)));
+		_LDUH_iss(temp->pointer, (temp->value + (size_t)(system->dram)));
 #ifdef DEBUGmem
 		printf("LDUH: 0x%x\n", *(unsigned *)temp->pointer);
 #endif
@@ -1441,7 +1441,7 @@ void serviceMemRequestPERFECT(systemT *system, unsigned dramSize)
 	      }
 	    else
 	      {
-		_LDW_iss(temp->pointer, (temp->value + (unsigned)(system->dram)));
+		_LDW_iss(temp->pointer, (temp->value + (size_t)(system->dram)));
 #ifdef DEBUGmem
 		printf("LDW: 0x%x\n", *(unsigned *)temp->pointer);
 #endif
@@ -1451,19 +1451,19 @@ void serviceMemRequestPERFECT(systemT *system, unsigned dramSize)
 	    if(temp->value >= dramSize)
 	      {
 		unsigned fZero = 0;
-		unsigned *fuckingZero = &fZero;
+		unsigned *zero = &fZero;
 		/*if(suppressOOB != 1) { printf("ERROR: OOB\n"); }*/
-		_STB_iss((temp->value + (unsigned)(system->dram)), fuckingZero);
+		_STB_iss((temp->value + (size_t)(system->dram)), zero);
 	      }
 	    else
 	      {
 		unsigned *tempP = (unsigned *)malloc(sizeof(int));
 		*tempP = temp->pointerV;
-		_STB_iss((temp->value + (unsigned)(system->dram)), tempP);
+		_STB_iss((temp->value + (size_t)(system->dram)), tempP);
 		free(tempP);
 	      }
 #ifdef DEBUGmem
-	    printf("STB: 0x%x\n", *(unsigned *)((unsigned)system->dram + temp->value));
+	    printf("STB: 0x%x\n", *(unsigned *)((size_t)system->dram + temp->value));
 #endif
 	    break;
 	  case mSTBs:
@@ -1471,18 +1471,18 @@ void serviceMemRequestPERFECT(systemT *system, unsigned dramSize)
 	      {
 		/*if(suppressOOB != 1) { printf("ERROR: OOB\n"); }*/
 		unsigned fZero = 0;
-		unsigned *fuckingZero = &fZero;
-		_STB_iss((temp->value + (unsigned)(system->dram)), fuckingZero);
+		unsigned *zero = &fZero;
+		_STB_iss((temp->value + (size_t)(system->dram)), zero);
 	      }
 	    else
 	      {
 		unsigned *tempP = (unsigned *)malloc(sizeof(int));
 		*tempP = temp->pointerV;
-		_STB_iss((temp->value + (unsigned)(system->dram)), tempP);
+		_STB_iss((temp->value + (size_t)(system->dram)), tempP);
 		free(tempP);
 	      }
 #ifdef DEBUGmem
-	    printf("STBs: 0x%x\n", *(unsigned *)((unsigned)system->dram + temp->value));
+	    printf("STBs: 0x%x\n", *(unsigned *)((size_t)system->dram + temp->value));
 #endif
 	    break;
 	  case mSTH:
@@ -1490,18 +1490,18 @@ void serviceMemRequestPERFECT(systemT *system, unsigned dramSize)
 	      {
 		/*if(suppressOOB != 1) { printf("ERROR: OOB\n"); }*/
 		unsigned fZero = 0;
-		unsigned *fuckingZero = &fZero;
-		_STH_iss((temp->value + (unsigned)(system->dram)), fuckingZero);
+		unsigned *zero = &fZero;
+		_STH_iss((temp->value + (size_t)(system->dram)), zero);
 	      }
 	    else
 	      {
 		unsigned *tempP = (unsigned *)malloc(sizeof(int));
 		*tempP = temp->pointerV;
-		_STH_iss((temp->value + (unsigned)(system->dram)), tempP);
+		_STH_iss((temp->value + (size_t)(system->dram)), tempP);
 		free(tempP);
 	      }
 #ifdef DEBUGmem
-	    printf("STH: 0x%x\n", *(unsigned *)((unsigned)system->dram + temp->value));
+	    printf("STH: 0x%x\n", *(unsigned *)((size_t)system->dram + temp->value));
 #endif
 	    break;
 	  case mSTW:
@@ -1510,18 +1510,18 @@ void serviceMemRequestPERFECT(systemT *system, unsigned dramSize)
 		{
 		  /*if(suppressOOB != 1) { printf("ERROR: OOB\n"); }*/
 		  unsigned fZero = 0;
-		  unsigned *fuckingZero = &fZero;
-		  _STW_iss((temp->value + (unsigned)(system->dram)), fuckingZero);
+		  unsigned *zero = &fZero;
+		  _STW_iss((temp->value + (size_t)(system->dram)), zero);
 		}
 	      else
 		{
 		  unsigned *tempP = (unsigned *)malloc(sizeof(int));
 		  *tempP = temp->pointerV;
-		  _STW_iss((temp->value + (unsigned)(system->dram)), tempP);
+		  _STW_iss((temp->value + (size_t)(system->dram)), tempP);
 		  free(tempP);
 		}
 #ifdef DEBUGmem
-	      printf("STW: 0x%x\n", *(unsigned *)((unsigned)system->dram + temp->value));
+	      printf("STW: 0x%x\n", *(unsigned *)((size_t)system->dram + temp->value));
 #endif
 	    }
 	    break;
@@ -1636,9 +1636,9 @@ int insizzleAPISetCurrent(unsigned system, unsigned context, unsigned hyperconte
     printf("\tcluster %d >= MASTERCFG_CLUSTERS: %d\n", cluster, MASTERCFG_CLUSTERS);
     return -1;
   }
-  globalS = (systemT *)((unsigned)galaxyT + (system * sizeof(systemT)));
-  globalC = (contextT *)((unsigned)globalS->context + (context * sizeof(contextT)));
-  globalHC = (hyperContextT *)((unsigned)globalC->hypercontext + (hypercontext * sizeof(hyperContextT)));
+  globalS = (systemT *)((size_t)galaxyT + (system * sizeof(systemT)));
+  globalC = (contextT *)((size_t)globalS->context + (context * sizeof(contextT)));
+  globalHC = (hyperContextT *)((size_t)globalC->hypercontext + (hypercontext * sizeof(hyperContextT)));
   globalSid = system;
   globalCid = context;
   globalHCid = hypercontext;

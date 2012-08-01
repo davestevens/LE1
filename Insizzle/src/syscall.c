@@ -10,9 +10,42 @@
 #include <sys/types.h>
 
 #define OUT stderr
+/* hacky way around 64 -> 32 bit file pointers */
+typedef struct {
+  FILE *file;
+  char valid;
+} filepointer_t;
+
+filepointer_t filepointer[5] = {{NULL, 0}, {NULL, 0}, {NULL, 0}, {NULL, 0}, {NULL, 0}};
+
+/* find a free space in the filepointer array */
+int setFilePointer(FILE *fp) {
+  int i;
+  for(i=0;i<5;i++) {
+    if(!(filepointer[i].valid)) {
+      filepointer[i].file = fp;
+      filepointer[i].valid = 1;
+      return i;
+    }
+  }
+  fprintf(stderr, "No free space for file pointer\n");
+  return -1;
+}
+/* retreive a filepointer from array */
+FILE *getFilePointer(int i) {
+  if(filepointer[i-1].valid) {
+    return filepointer[i-1].file;
+  }
+  return NULL;
+}
+/* free a filepointer space */
+void freeFilePointer(int i) {
+  filepointer[i-1].file = NULL;
+  filepointer[i-1].valid = 0;
+}
 
 void syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long long cycleCount) {
-  unsigned dram = (unsigned)system->dram;
+  unsigned long dram = (size_t)system->dram;
 
   if(llvm) {
     /* check whether there are any memory operations waiting on the registers required */
@@ -27,27 +60,27 @@ void syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long long
       found = 0;
       if(temp != NULL) {
 	do {
-	  if((unsigned)temp->pointer == (unsigned)(S_GPR + i)) {
+	  if((size_t)temp->pointer == (size_t)(S_GPR + i)) {
 	    /* need to get it from memory (only loads) */
 	    found = 1;
 	    switch(temp->memOp) {
 	    case mLDSB:
-	      _LDSB_iss(&_reg[i], (temp->value + (unsigned)(system->dram)));
+	      _LDSB_iss(&_reg[i], (temp->value + (size_t)(system->dram)));
 	      break;
 	    case mLDBs:
-	      _LDBs_iss(&_reg[i], (temp->value + (unsigned)(system->dram)));
+	      _LDBs_iss(&_reg[i], (temp->value + (size_t)(system->dram)));
 	      break;
 	    case mLDUB:
-	      _LDUB_iss(&_reg[i], (temp->value + (unsigned)(system->dram)));
+	      _LDUB_iss(&_reg[i], (temp->value + (size_t)(system->dram)));
 	      break;
 	    case mLDSH:
-	      _LDSH_iss(&_reg[i], (temp->value + (unsigned)(system->dram)));
+	      _LDSH_iss(&_reg[i], (temp->value + (size_t)(system->dram)));
 	      break;
 	    case mLDUH:
-	      _LDUH_iss(&_reg[i], (temp->value + (unsigned)(system->dram)));
+	      _LDUH_iss(&_reg[i], (temp->value + (size_t)(system->dram)));
 	      break;
 	    case mLDW:
-	      _LDW_iss(&_reg[i], (temp->value + (unsigned)(system->dram)));
+	      _LDW_iss(&_reg[i], (temp->value + (size_t)(system->dram)));
 	      break;
 	    default:
 	      /* ignore i guess */
@@ -79,7 +112,7 @@ void syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long long
     /* r3 = printf(r3, r4...r10);*/
     {
       char format[256] = {'\0'};
-      getString(&format[0], 256, *(S_GPR + 3) + dram);
+      getString(&format[0], 256, (*(S_GPR + 3) + dram));
       /* PCRE section */
       split_t *_test;
       split_t *_temp;
@@ -95,7 +128,7 @@ void syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long long
 	    fprintf(OUT, "%s", _test->string);
 			      
 	  if(_test->match != NULL) {
-	    switch(*(char *)((unsigned)_test->match + strlen(_test->match) - 1)) {
+	    switch(*(char *)((size_t)_test->match + strlen(_test->match) - 1)) {
 	    case 's':
 	    case 'S':
 	      {
@@ -160,18 +193,24 @@ void syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long long
       char filemode[256] = {'\0'};
       getString(&filemode[0], 256, *(S_GPR + 4) + dram);
 
-      printf("filename: %s\n", filename);
-      printf("filemode: %s\n", filemode);
+      /*printf("filename: %s\n", filename);
+	printf("filemode: %s\n", filemode);*/
 
       FILE *fp = fopen(filename, filemode);
-
-      *(S_GPR + 3) = (unsigned)fp;
+      int _fp = setFilePointer(fp);
+      if(_fp != -1) {
+	*(S_GPR + 3) = (unsigned)_fp + 1;
+      }
+      else {
+	*(S_GPR + 3) = 0;
+      }
     }
     break;
   case FCLOSE:
     /* r3 = fclose(r3) */
     {
-      FILE *stream = (FILE *)*(S_GPR + 3);
+      /* TODO: this will break in 64 bit mode */
+      FILE *stream = getFilePointer(*(S_GPR + 3));
 
       int ret = fclose(stream);
 
@@ -184,7 +223,7 @@ void syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long long
       void *ptr = (void *)(*(S_GPR + 3) + dram);
       size_t size = (size_t)*(S_GPR + 4);
       size_t nitems = (size_t)*(S_GPR + 5);
-      FILE *stream = (FILE *)*(S_GPR + 6);
+      FILE *stream = getFilePointer(*(S_GPR + 6));
 
       char *ptrLittle = (char *)calloc((size * nitems), 1);
       endianSwapBig2Little(ptrLittle, size, nitems, ptr);
@@ -199,7 +238,7 @@ void syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long long
       void *ptr = (void *)(*(S_GPR + 3) + dram);
       size_t size = (size_t)*(S_GPR + 4);
       size_t nitems = (size_t)*(S_GPR + 5);
-      FILE *stream = (FILE *)*(S_GPR + 6);
+      FILE *stream = getFilePointer(*(S_GPR + 6));
 			  
       /* copy into local memory, then perform endian switch into LE1 space */
       char *ptrLittle = (char *)calloc((size * nitems), 1);
@@ -211,7 +250,7 @@ void syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long long
   case FPRINTF:
     /* r3 = fprintf(r3, r4, r5...r10) */
     {
-      FILE *stream = (FILE *)*(S_GPR + 3);
+      FILE *stream = getFilePointer(*(S_GPR + 3));
       char format[256] = {'\0'};
       getString(&format[0], 256, *(S_GPR + 4) + dram);
 
@@ -230,7 +269,7 @@ void syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long long
 	    fprintf(stream, "%s", _test->string);
 			      
 	  if(_test->match != NULL) {
-	    switch(*(char *)((unsigned)_test->match + strlen(_test->match) - 1)) {
+	    switch(*(char *)((size_t)_test->match + strlen(_test->match) - 1)) {
 	    case 's':
 	    case 'S':
 	      {
@@ -275,7 +314,7 @@ void syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long long
   case FSEEK:
     /* r3 = fseek(r3, r4, r5) */
     {
-      FILE *stream = (FILE *)*(S_GPR + 3);
+      FILE *stream = getFilePointer(*(S_GPR + 3));
       long offset = (long)*(S_GPR + 4);
       int whence = (int)*(S_GPR + 5);
 
@@ -287,7 +326,7 @@ void syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long long
   case FTELL:
     /* r3 = ftell(r3) */
     {
-      FILE *stream = (FILE *)*(S_GPR + 3);
+      FILE *stream = getFilePointer(*(S_GPR + 3));
 
       long ret = ftell(stream);
 
@@ -297,7 +336,7 @@ void syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long long
   case SNPRINTF:
     /* r3 = snprintf(r3, r4, r5, ...) */
     {
-      char *s = (char *)*(S_GPR + 3) + dram;
+      char *s = (char *)(*(S_GPR + 3) + dram);
       size_t n = (size_t)*(S_GPR + 4);
       char format[256] = {'\0'};
       getString(&format[0], 256, *(S_GPR + 5) + dram);
@@ -321,7 +360,7 @@ void syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long long
 	    strcat(sLittle, _test->string);
 			      
 	  if(_test->match != NULL) {
-	    switch(*(char *)((unsigned)_test->match + strlen(_test->match) - 1)) {
+	    switch(*(char *)((size_t)_test->match + strlen(_test->match) - 1)) {
 	    case 's':
 	    case 'S':
 	      {
@@ -378,7 +417,7 @@ void syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long long
   case FSCANF:
     /* r3 = fscanf(r3, r4, ...) */
     {
-      FILE *stream = (FILE *)*(S_GPR + 3);
+      FILE *stream = getFilePointer(*(S_GPR + 3));
       char format[256] = {'\0'};
       getString(&format[0], 256, *(S_GPR + 4) + dram);
       /* PCRE section */
@@ -401,19 +440,19 @@ void syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long long
 
 	  if(_test->match != NULL) {
 	    strcat(_str, _test->match);
-	    switch(*(char *)((unsigned)_test->match + strlen(_test->match) - 1)) {
+	    switch(*(char *)((size_t)_test->match + strlen(_test->match) - 1)) {
 	    case 's':
 	    case 'S':
 	      {
 		char str[256] = {'\0'};
 		ret += fscanf(stream, _str, str);
-		endianSwapLittle2Big((char *)*(S_GPR + _count++) + dram, 1, strlen(str), str);
+		endianSwapLittle2Big((char *)(*(S_GPR + _count++) + dram), 1, strlen(str), str);
 	      }
 	    break;
 	    case 'f':
 	    case 'F':
 	      {
-		switch(*(char *)((unsigned)_test->match + strlen(_test->match) - 2)) {
+		switch(*(char *)((size_t)_test->match + strlen(_test->match) - 2)) {
 		case 'l':
 		  {
 		    double d;
@@ -458,7 +497,7 @@ void syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long long
   case FGETC:
     /* r3 = fgetc(r3, r4) */
     {
-      FILE *stream = (FILE *)*(S_GPR + 3);
+      FILE *stream = getFilePointer(*(S_GPR + 3));
 
       int ret = fgetc(stream);
 
@@ -469,7 +508,7 @@ void syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long long
     /* r3 = ungetc(r3) */
     {
       int c = (int)*(S_GPR + 3);
-      FILE *stream = (FILE *)*(S_GPR + 4);
+      FILE *stream = getFilePointer(*(S_GPR + 4));
 
       int ret = ungetc(c, stream);
 
@@ -508,7 +547,7 @@ void syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long long
   case SPRINTF:
     /* r3 = sprintf(r3, r4, ...) */
     {
-      char *s = (char *)*(S_GPR + 3) + dram;
+      char *s = (char *)(*(S_GPR + 3) + dram);
       char format[256] = {'\0'};
       getString(&format[0], 256, *(S_GPR + 4) + dram);
 
@@ -530,7 +569,7 @@ void syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long long
 	    strcat(sLittle, _test->string);
 			      
 	  if(_test->match != NULL) {
-	    switch(*(char *)((unsigned)_test->match + strlen(_test->match) - 1)) {
+	    switch(*(char *)((size_t)_test->match + strlen(_test->match) - 1)) {
 	    case 's':
 	    case 'S':
 	      {
@@ -606,19 +645,19 @@ void syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long long
 
 	  if(_test->match != NULL) {
 	    strcat(_str, _test->match);
-	    switch(*(char *)((unsigned)_test->match + strlen(_test->match) - 1)) {
+	    switch(*(char *)((size_t)_test->match + strlen(_test->match) - 1)) {
 	    case 's':
 	    case 'S':
 	      {
 		char str[256] = {'\0'};
 		sscanf(s, _str, str);
-		endianSwapLittle2Big((char *)*(S_GPR + _count++) + dram, 1, strlen(str), str);
+		endianSwapLittle2Big((char *)(*(S_GPR + _count++) + dram), 1, strlen(str), str);
 	      }
 	    break;
 	    case 'f':
 	    case 'F':
 	      {
-		switch(*(char *)((unsigned)_test->match + strlen(_test->match) - 2)) {
+		switch(*(char *)((size_t)_test->match + strlen(_test->match) - 2)) {
 		case 'l':
 		  {
 		    double d;
@@ -660,7 +699,7 @@ void syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long long
     /* r3 = fputc(r3, r4) */
     {
       int c = (int)*(S_GPR + 3);
-      FILE *stream = (FILE *)*(S_GPR + 4);
+      FILE *stream = getFilePointer(*(S_GPR + 4));
 
       int ret = fputc(c, stream);
 
@@ -821,7 +860,7 @@ void syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long long
 /* switching endian, dependent on size */
 void endianSwapLittle2Big(char *out, unsigned size, unsigned nitems, char *in) {
   /* data is in x86 endian, need to switch to LE1 */
-  unsigned memI = 0;
+  unsigned long memI = 0;
   unsigned i = 0;
   while(i < (nitems * size)) {
     switch(size) {
@@ -870,11 +909,11 @@ void endianSwapBig2Little(char *out, unsigned size, unsigned nitems, char *in) {
 
 /* get a string from memory
    requires function due to endian stuff */
-void getString(char *out, unsigned length, unsigned memAddr) {
+void getString(char *out, unsigned length, unsigned long memAddr) {
   unsigned stringI = 0;
   char c[2] = {'\0','\0'};
   while(stringI < length) {
-    _LDUB_iss(&c[0], memAddr + stringI);
+    _LDUB_iss(&c[0], (memAddr + stringI));
     if(!c[0]) {
       return;
     }

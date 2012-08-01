@@ -62,7 +62,7 @@ int readConf(char *filename) {
 	    return -1;
 	  }
 	  else {
-	    SYS = (systemConfig *)((unsigned)SYSTEM + (currentSystem * sizeof(systemConfig)));
+	    SYS = (systemConfig *)((size_t)SYSTEM + (currentSystem * sizeof(systemConfig)));
 	    SYS->SYSTEM_CONFIG = 0;
 	    SYS->PERIPH_WRAP_CONFIG = 0;
 	    SYS->DRAM_SHARED_CONFIG = 0;
@@ -176,7 +176,7 @@ int readConf(char *filename) {
 	    return -1;
 	  }
 	  else {
-	    CNT = (contextConfig *)((unsigned)SYS->CONTEXT + (currentContext * sizeof(contextConfig)));
+	    CNT = (contextConfig *)((size_t)SYS->CONTEXT + (currentContext * sizeof(contextConfig)));
 
 	    CNT->CONTEXT_CONFIG = 0;
 	    CNT->CONTEXT_CTRL = 0;
@@ -302,7 +302,7 @@ int readConf(char *filename) {
 	    return -1;
 	  }
 	  else {
-	    CLUT = (clusterTemplateConfig *)((unsigned)CNT->CLUSTER_TEMPL + (currentClusterTemplate * sizeof(clusterTemplateConfig)));
+	    CLUT = (clusterTemplateConfig *)((size_t)CNT->CLUSTER_TEMPL + (currentClusterTemplate * sizeof(clusterTemplateConfig)));
 
 	    CLUT->CLUST_TEMPL_CONFIG = 0;
 	    CLUT->CLUST_TEMPL_STATIC_REGFILE_CONFIG = 0;
@@ -483,7 +483,7 @@ int readConf(char *filename) {
 	    return -1;
 	  }
 	  else {
-	    HCNT = (hyperContextConfig *)((unsigned)CNT->HCONTEXT + (currentHyperContext * sizeof(hyperContextConfig)));
+	    HCNT = (hyperContextConfig *)((size_t)CNT->HCONTEXT + (currentHyperContext * sizeof(hyperContextConfig)));
 
 	    HCNT->HCONTEXT_CONFIG = 0;
 	    HCNT->HCONTEXT_CLUST_TEMPL0_1.hi = 0;
@@ -540,14 +540,14 @@ int readConf(char *filename) {
     /* loop through each available hypercontext */
     for(i=0;i<(GALAXY_CONFIG & 0xff);i++)
       {
-	SYS = (systemConfig *)((unsigned)SYSTEM + (i * sizeof(systemConfig)));
+	SYS = (systemConfig *)((size_t)SYSTEM + (i * sizeof(systemConfig)));
 	
 	if((SYS->SYSTEM_CONFIG & 0xff) > 1) {
-	  CNT = (contextConfig *)((unsigned)SYS->CONTEXT + (0 * sizeof(contextConfig)));
+	  CNT = (contextConfig *)((size_t)SYS->CONTEXT + (0 * sizeof(contextConfig)));
 
 	  /* need to copy context 0 to all of these */
 	  for(j=1;j<(SYS->SYSTEM_CONFIG & 0xff);j++) {
-	    CNT_homogeneous = (contextConfig *)((unsigned)SYS->CONTEXT + (j * sizeof(contextConfig)));
+	    CNT_homogeneous = (contextConfig *)((size_t)SYS->CONTEXT + (j * sizeof(contextConfig)));
 	    CNT_homogeneous->CONTEXT_CONFIG = CNT->CONTEXT_CONFIG;
 	    CNT_homogeneous->CONTEXT_CTRL = CNT->CONTEXT_CTRL = 0;
 	    CNT_homogeneous->IFE_SIMPLE_IRAM_PRIV_CONFIG = CNT->IFE_SIMPLE_IRAM_PRIV_CONFIG;
@@ -559,8 +559,8 @@ int readConf(char *filename) {
 
 	    /* loop through hypercontexts and copy info */
 	    for(k=0;k<((CNT->CONTEXT_CONFIG >> 4) & 0xf);k++) {
-	      HCNT = (hyperContextConfig *)((unsigned)CNT->HCONTEXT + (k * sizeof(hyperContextConfig)));
-	      HCNT_homogeneous = (hyperContextConfig *)((unsigned)CNT_homogeneous->HCONTEXT + (k * sizeof(hyperContextConfig)));
+	      HCNT = (hyperContextConfig *)((size_t)CNT->HCONTEXT + (k * sizeof(hyperContextConfig)));
+	      HCNT_homogeneous = (hyperContextConfig *)((size_t)CNT_homogeneous->HCONTEXT + (k * sizeof(hyperContextConfig)));
 
 	      HCNT_homogeneous->HCONTEXT_CONFIG = HCNT->HCONTEXT_CONFIG;
 	      HCNT_homogeneous->HCONTEXT_CLUST_TEMPL0_1.hi = HCNT->HCONTEXT_CLUST_TEMPL0_1.hi;
@@ -576,8 +576,8 @@ int readConf(char *filename) {
 	      return -1;
 	    /* loop through clusterTemplates and copy info */
 	    for(k=0;k<((CNT->CONTEXT_CONFIG >> 8) & 0xf);k++) {
-	      CLUT = (clusterTemplateConfig *)((unsigned)CNT->CLUSTER_TEMPL + (k * sizeof(clusterTemplateConfig)));
-	      CLUT_homogeneous = (clusterTemplateConfig *)((unsigned)CNT_homogeneous->CLUSTER_TEMPL + (k * sizeof(clusterTemplateConfig)));
+	      CLUT = (clusterTemplateConfig *)((size_t)CNT->CLUSTER_TEMPL + (k * sizeof(clusterTemplateConfig)));
+	      CLUT_homogeneous = (clusterTemplateConfig *)((size_t)CNT_homogeneous->CLUSTER_TEMPL + (k * sizeof(clusterTemplateConfig)));
 
 	      CLUT_homogeneous->CLUST_TEMPL_CONFIG = CLUT->CLUST_TEMPL_CONFIG;
 	      CLUT_homogeneous->CLUST_TEMPL_STATIC_REGFILE_CONFIG = CLUT->CLUST_TEMPL_STATIC_REGFILE_CONFIG;

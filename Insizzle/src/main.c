@@ -120,9 +120,9 @@ int main(int argc, char *argv[])
   */
 
 
-  SYS = (systemConfig *)((unsigned)SYSTEM + (0 * sizeof(systemConfig)));
-  system = (systemT *)((unsigned)galaxyT + (0 * sizeof(systemT)));
-  context = (contextT *)((unsigned)system->context + (0 * sizeof(contextT)));
+  SYS = (systemConfig *)((size_t)SYSTEM + (0 * sizeof(systemConfig)));
+  system = (systemT *)((size_t)galaxyT + (0 * sizeof(systemT)));
+  context = (contextT *)((size_t)system->context + (0 * sizeof(contextT)));
 
   /* check stack size */
   if((SYS->STACK_SIZE == 0) && (STACK_SIZE_ARG == 0)) {
@@ -149,20 +149,20 @@ int main(int argc, char *argv[])
   */
   for(i=0;i<(GALAXY_CONFIG & 0xff);i++)
     {
-      SYS = (systemConfig *)((unsigned)SYSTEM + (i * sizeof(systemConfig)));
-      system = (systemT *)((unsigned)galaxyT + (i * sizeof(systemT)));
+      SYS = (systemConfig *)((size_t)SYSTEM + (i * sizeof(systemConfig)));
+      system = (systemT *)((size_t)galaxyT + (i * sizeof(systemT)));
 
       /* loop through contexts */
 #if 0
       for(j=0;j<(SYS->SYSTEM_CONFIG & 0xff);j++)
 	{
-	  context = (contextT *)((unsigned)system->context + (j * sizeof(contextT)));
-	  hypercontext = (hyperContextT *)((unsigned)context->hypercontext + (0 * sizeof(hyperContextT)));
+	  context = (contextT *)((size_t)system->context + (j * sizeof(contextT)));
+	  hypercontext = (hyperContextT *)((size_t)context->hypercontext + (0 * sizeof(hyperContextT)));
 	  hypercontext->VT_CTRL |= RUNNING << 3;
 	}
 #else
-      context = (contextT *)((unsigned)system->context + (0 * sizeof(contextT)));
-      hypercontext = (hyperContextT *)((unsigned)context->hypercontext + (0 * sizeof(hyperContextT)));
+      context = (contextT *)((size_t)system->context + (0 * sizeof(contextT)));
+      hypercontext = (hyperContextT *)((size_t)context->hypercontext + (0 * sizeof(hyperContextT)));
       hypercontext->VT_CTRL |= RUNNING << 3;
 #endif
     }
@@ -173,26 +173,26 @@ int main(int argc, char *argv[])
   /* loop through systems in the galaxy */
   for(i=0;i<(GALAXY_CONFIG & 0xff);i++)
     {
-      SYS = (systemConfig *)((unsigned)SYSTEM + (i * sizeof(systemConfig)));
-      system = (systemT *)((unsigned)galaxyT + (i * sizeof(systemT)));
+      SYS = (systemConfig *)((size_t)SYSTEM + (i * sizeof(systemConfig)));
+      system = (systemT *)((size_t)galaxyT + (i * sizeof(systemT)));
       /*printf("dram_size: 0x%x\n", (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1024));*/
 
       /* loop through contexts */
       for(j=0;j<(SYS->SYSTEM_CONFIG & 0xff);j++)
 	{
-	  CNT = (contextConfig *)((unsigned)SYS->CONTEXT + (j * sizeof(contextConfig)));
-	  context = (contextT *)((unsigned)system->context + (j * sizeof(contextT)));
+	  CNT = (contextConfig *)((size_t)SYS->CONTEXT + (j * sizeof(contextConfig)));
+	  context = (contextT *)((size_t)system->context + (j * sizeof(contextT)));
 
 	  /* loop through hypercontexts */
 	  for(k=0;k<((CNT->CONTEXT_CONFIG >> 4) & 0xf);k++)
 	    {
-	      HCNT = (hyperContextConfig *)((unsigned)CNT->HCONTEXT + (k * sizeof(hyperContextConfig)));
-	      hypercontext = (hyperContextT *)((unsigned)context->hypercontext + (k * sizeof(hyperContextT)));
+	      HCNT = (hyperContextConfig *)((size_t)CNT->HCONTEXT + (k * sizeof(hyperContextConfig)));
+	      hypercontext = (hyperContextT *)((size_t)context->hypercontext + (k * sizeof(hyperContextT)));
 
 	      /*printf("hypercontext: %d\n", k);*/
 	      hypercontext->initialStackPointer = (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1024) - ((STACK_SIZE * 1024) * totalHC);
-	      *(hypercontext->S_GPR + (unsigned)1) = ((((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1024) - 256) - ((STACK_SIZE * 1024) * totalHC);
-	      *(hypercontext->pS_GPR + (unsigned)1) = ((((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1024) - 256) - ((STACK_SIZE * 1024) * totalHC);
+	      *(hypercontext->S_GPR + (size_t)1) = ((((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1024) - 256) - ((STACK_SIZE * 1024) * totalHC);
+	      *(hypercontext->pS_GPR + (size_t)1) = ((((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1024) - 256) - ((STACK_SIZE * 1024) * totalHC);
 	      /*printf("\tr1: 0x%x\n", *(hypercontext->S_GPR + (unsigned)1));*/
 	      /*printf("\tr1: 0x%x\n", *(hypercontext->pS_GPR + (unsigned)1));*/
 	      totalHC++;
@@ -240,8 +240,8 @@ int main(int argc, char *argv[])
 #ifdef INSDEBUG
 	  printf("\tsystem: %d\n", i);
 #endif
-	  SYS = (systemConfig *)((unsigned)SYSTEM + (i * sizeof(systemConfig)));
-	  system = (systemT *)((unsigned)galaxyT + (i * sizeof(systemT)));
+	  SYS = (systemConfig *)((size_t)SYSTEM + (i * sizeof(systemConfig)));
+	  system = (systemT *)((size_t)galaxyT + (i * sizeof(systemT)));
 
 	  /* loop through contexts */
 	  for(j=0;j<(SYS->SYSTEM_CONFIG & 0xff);j++)
@@ -249,8 +249,8 @@ int main(int argc, char *argv[])
 #ifdef INSDEBUG
 	      printf("\t\tcontext: %d\n", j);
 #endif
-	      CNT = (contextConfig *)((unsigned)SYS->CONTEXT + (j * sizeof(contextConfig)));
-	      context = (contextT *)((unsigned)system->context + (j * sizeof(contextT)));
+	      CNT = (contextConfig *)((size_t)SYS->CONTEXT + (j * sizeof(contextConfig)));
+	      context = (contextT *)((size_t)system->context + (j * sizeof(contextT)));
 
 	      /* loop through hypercontexts */
 	      for(k=0;k<((CNT->CONTEXT_CONFIG >> 4) & 0xf);k++)
@@ -259,8 +259,8 @@ int main(int argc, char *argv[])
 		  printf("\t\t\thypercontext: %d\n", k);
 #endif
 
-		  HCNT = (hyperContextConfig *)((unsigned)CNT->HCONTEXT + (k * sizeof(hyperContextConfig)));
-		  hypercontext = (hyperContextT *)((unsigned)context->hypercontext + (k * sizeof(hyperContextT)));
+		  HCNT = (hyperContextConfig *)((size_t)CNT->HCONTEXT + (k * sizeof(hyperContextConfig)));
+		  hypercontext = (hyperContextT *)((size_t)context->hypercontext + (k * sizeof(hyperContextT)));
 #ifdef API
 		  bundlePos = 0;
 #endif
@@ -393,7 +393,7 @@ int main(int argc, char *argv[])
 					hypercontext->stallCount += cB;
 #else
 					unsigned long long *bundleCountP;
-					bundleCountP = (unsigned long long *)((unsigned)hypercontext->bundleCount);
+					bundleCountP = (unsigned long long *)((size_t)hypercontext->bundleCount);
 					*bundleCountP = *bundleCountP + 1;
 
 					hypercontext->stalled += (cB-1);
@@ -582,7 +582,7 @@ int main(int argc, char *argv[])
 				  } while(!(this.op >> 31) & 0x1);
 				}
 			      /* TODO bundleCount */
-			      bundleCountP = (unsigned long long *)((unsigned)hypercontext->bundleCount + (bundleCount * (sizeof(unsigned long long))));
+			      bundleCountP = (unsigned long long *)((size_t)hypercontext->bundleCount + (bundleCount * (sizeof(unsigned long long))));
 			      *bundleCountP = *bundleCountP + 1;
 			      /**bundleCountP++;*/
 			      hypercontext->cycleCount++;
@@ -605,8 +605,8 @@ int main(int argc, char *argv[])
 				cnt = (hypercontext->joinWaiting >> 4) & 0xff;
 				hcnt = (hypercontext->joinWaiting) & 0xf;
 				/*printf("cnt[%d] hcnt[%d]\n", cnt, hcnt);*/
-				cntP = (contextT *)((unsigned)system->context + (cnt * sizeof(contextT)));
-				hcntP = (hyperContextT *)((unsigned)cntP->hypercontext + (hcnt * sizeof(hyperContextT)));
+				cntP = (contextT *)((size_t)system->context + (cnt * sizeof(contextT)));
+				hcntP = (hyperContextT *)((size_t)cntP->hypercontext + (hcnt * sizeof(hyperContextT)));
 
 				/*printf("VT_CTRL: 0x%x\n", hcntP->VT_CTRL);*/
 				debug = (hcntP->VT_CTRL >> 1) & 0x1;
@@ -671,8 +671,8 @@ int main(int argc, char *argv[])
 #ifdef INSDEBUG
 	      printf("\t\tcontext: %d\n", j);
 #endif
-	      CNT = (contextConfig *)((unsigned)SYS->CONTEXT + (j * sizeof(contextConfig)));
-	      context = (contextT *)((unsigned)system->context + (j * sizeof(contextT)));
+	      CNT = (contextConfig *)((size_t)SYS->CONTEXT + (j * sizeof(contextConfig)));
+	      context = (contextT *)((size_t)system->context + (j * sizeof(contextT)));
 
 	      /* loop through hypercontexts */
 	      for(k=0;k<((CNT->CONTEXT_CONFIG >> 4) & 0xf);k++)
@@ -681,8 +681,8 @@ int main(int argc, char *argv[])
 		  printf("\t\t\thypercontext: %d\n", k);
 #endif
 
-		  HCNT = (hyperContextConfig *)((unsigned)CNT->HCONTEXT + (k * sizeof(hyperContextConfig)));
-		  hypercontext = (hyperContextT *)((unsigned)context->hypercontext + (k * sizeof(hyperContextT)));
+		  HCNT = (hyperContextConfig *)((size_t)CNT->HCONTEXT + (k * sizeof(hyperContextConfig)));
+		  hypercontext = (hyperContextT *)((size_t)context->hypercontext + (k * sizeof(hyperContextT)));
 
 #ifdef INSDEBUG
 		  printf("\t\t\t\thypercontext totalWidth: %d\n", hypercontext->totalWidth);
@@ -738,15 +738,15 @@ int main(int argc, char *argv[])
   for(i=0;i<(GALAXY_CONFIG & 0xff);i++)
     {
    
-      SYS = (systemConfig *)((unsigned)SYSTEM + (i * sizeof(systemConfig)));
-      system = (systemT *)((unsigned)galaxyT + (i * sizeof(systemT)));
+      SYS = (systemConfig *)((size_t)SYSTEM + (i * sizeof(systemConfig)));
+      system = (systemT *)((size_t)galaxyT + (i * sizeof(systemT)));
 
       /* loop through contexts */
       for(j=0;j<(SYS->SYSTEM_CONFIG & 0xff);j++)
 	{
 	 
-	  CNT = (contextConfig *)((unsigned)SYS->CONTEXT + (j * sizeof(contextConfig)));
-	  context = (contextT *)((unsigned)system->context + (j * sizeof(contextT)));
+	  CNT = (contextConfig *)((size_t)SYS->CONTEXT + (j * sizeof(contextConfig)));
+	  context = (contextT *)((size_t)system->context + (j * sizeof(contextT)));
 
 	  /* loop through hypercontexts */
 	  for(k=0;k<((CNT->CONTEXT_CONFIG >> 4) & 0xf);k++)
@@ -756,8 +756,8 @@ int main(int argc, char *argv[])
               printf("\tsystem:         %d\n", i);
  	      printf("\tcontext:        %d\n", j);
 	      printf("\thypercontext: %d\n", k);
-	      HCNT = (hyperContextConfig *)((unsigned)CNT->HCONTEXT + (k * sizeof(hyperContextConfig)));
-	      hypercontext = (hyperContextT *)((unsigned)context->hypercontext + (k * sizeof(hyperContextT)));
+	      HCNT = (hyperContextConfig *)((size_t)CNT->HCONTEXT + (k * sizeof(hyperContextConfig)));
+	      hypercontext = (hyperContextT *)((size_t)context->hypercontext + (k * sizeof(hyperContextT)));
 
 	      if(printCounts(hypercontext) == -1)
 		return -1;
@@ -808,8 +808,8 @@ int setupGalaxy(void)
   /* for each system need to allocate memory for the context and iram */
   for(i=0;i<(GALAXY_CONFIG & 0xff);i++)
     {
-      SYS = (systemConfig *)((unsigned)SYSTEM + (i * sizeof(systemConfig)));
-      system = (systemT *)((unsigned)galaxyT + (i * sizeof(systemT)));
+      SYS = (systemConfig *)((size_t)SYSTEM + (i * sizeof(systemConfig)));
+      system = (systemT *)((size_t)galaxyT + (i * sizeof(systemT)));
 
       system->context = (contextT *)malloc(sizeof(contextT) * (SYS->SYSTEM_CONFIG & 0xff));
       /*system->memQueue = (struct memReqT *)calloc(sizeof(struct memReqT), 1);
@@ -848,8 +848,8 @@ int setupGalaxy(void)
 
       for(j=0;j<(SYS->SYSTEM_CONFIG & 0xff);j++)
 	{
-	  CNT = (contextConfig *)((unsigned)SYS->CONTEXT + (j * sizeof(contextConfig)));
-	  context = (contextT *)((unsigned)system->context + (j * sizeof(contextT)));
+	  CNT = (contextConfig *)((size_t)SYS->CONTEXT + (j * sizeof(contextConfig)));
+	  context = (contextT *)((size_t)system->context + (j * sizeof(contextT)));
 
 #ifndef API
 	  printf("Please specify the location of the iram binary for system %d, context %d\n> ", i, j);
@@ -881,8 +881,8 @@ int setupGalaxy(void)
 
 	  for(k=0;k<((CNT->CONTEXT_CONFIG >> 4) & 0xf);k++)
 	    {
-	      HCNT = (hyperContextConfig *)((unsigned)CNT->HCONTEXT + (k * sizeof(hyperContextConfig)));
-	      hypercontext = (hyperContextT *)((unsigned)context->hypercontext + (k * sizeof(hyperContextT)));
+	      HCNT = (hyperContextConfig *)((size_t)CNT->HCONTEXT + (k * sizeof(hyperContextConfig)));
+	      hypercontext = (hyperContextT *)((size_t)context->hypercontext + (k * sizeof(hyperContextT)));
 
 	      hypercontext->registers = (clusterT *)malloc(sizeof(clusterT) * (HCNT->HCONTEXT_CONFIG & 0xf));
 	      hypercontext->numClusters = (HCNT->HCONTEXT_CONFIG & 0xf);
@@ -917,7 +917,7 @@ int setupGalaxy(void)
 		  /*printf("\t\tcurrent cluster Template: %d\n", curClustTemplate);
 		    printf("\t\tcurrent cluster Instance: %d\n", curClustInstance);*/
 
-		  CLUT = (clusterTemplateConfig *)((unsigned)CNT->CLUSTER_TEMPL + (sizeof(clusterTemplateConfig) * curClustTemplate));
+		  CLUT = (clusterTemplateConfig *)((size_t)CNT->CLUSTER_TEMPL + (sizeof(clusterTemplateConfig) * curClustTemplate));
 
 		  if(!((CLUT->CLUST_TEMPL_CONFIG >> 16) & 0x1))
 		    {
@@ -980,7 +980,7 @@ int setupGalaxy(void)
 	      for(l=0;l<totalWidth+1;l++)
 		{
 		  unsigned long long *bundleCount;
-		  bundleCount = (unsigned long long *)((unsigned int)hypercontext->bundleCount + (sizeof(unsigned long long) * l));
+		  bundleCount = (unsigned long long *)((size_t)hypercontext->bundleCount + (sizeof(unsigned long long) * l));
 		  *bundleCount = 0;
 		}
 
@@ -1022,22 +1022,22 @@ int setupGalaxy(void)
 	      /*printf("hypercontext->S_GPR: 0x%x\n", (unsigned)hypercontext->S_GPR);*/
 	      for(l=0;l<(HCNT->HCONTEXT_CONFIG & 0xf);l++)
 		{
-		  cluster = (clusterT *)((unsigned)hypercontext->registers + (l * sizeof(clusterT)));
+		  cluster = (clusterT *)((size_t)hypercontext->registers + (l * sizeof(clusterT)));
 
-		  cluster->S_GPR = (unsigned *)((unsigned)hypercontext->S_GPR + sGPRCount);
+		  cluster->S_GPR = (unsigned *)((size_t)hypercontext->S_GPR + sGPRCount);
 		  /**(cluster->S_GPR + (unsigned)1) = (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1024) -
 		     (MAX_CONTEXTS * (STACK_SIZE * 1024) * j) - ((STACK_SIZE * 1024) * k);*/
 		  /*printf("[%d][%d][%d] = 0x%x\n", i, j, k, *(cluster->S_GPR + (unsigned)1));*/
-		  cluster->S_FPR = (unsigned *)((unsigned)hypercontext->S_FPR + sFPRCount);
-		  cluster->S_VR = (unsigned *)((unsigned)hypercontext->S_VR + sVRCount);
-		  cluster->S_PR = (unsigned char*)((unsigned)hypercontext->S_PR + sPRCount);
+		  cluster->S_FPR = (unsigned *)((size_t)hypercontext->S_FPR + sFPRCount);
+		  cluster->S_VR = (unsigned *)((size_t)hypercontext->S_VR + sVRCount);
+		  cluster->S_PR = (unsigned char*)((size_t)hypercontext->S_PR + sPRCount);
 
-		  cluster->pS_GPR = (unsigned *)((unsigned)hypercontext->pS_GPR + sGPRCount);
+		  cluster->pS_GPR = (unsigned *)((size_t)hypercontext->pS_GPR + sGPRCount);
 		  /**(cluster->pS_GPR + (unsigned)1) = (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1024) -
 		     (MAX_CONTEXTS * (STACK_SIZE * 1024) * j) - ((STACK_SIZE * 1024) * k);*/
-		  cluster->pS_FPR = (unsigned *)((unsigned)hypercontext->pS_FPR + sFPRCount);
-		  cluster->pS_VR = (unsigned *)((unsigned)hypercontext->pS_VR + sVRCount);
-		  cluster->pS_PR = (unsigned char*)((unsigned)hypercontext->pS_PR + sPRCount);
+		  cluster->pS_FPR = (unsigned *)((size_t)hypercontext->pS_FPR + sFPRCount);
+		  cluster->pS_VR = (unsigned *)((size_t)hypercontext->pS_VR + sVRCount);
+		  cluster->pS_PR = (unsigned char*)((size_t)hypercontext->pS_PR + sPRCount);
 
 		  /*printf("cluster: %d, sGPR 0x%x\n", l, (unsigned)cluster->S_GPR);*/
 
@@ -1046,7 +1046,7 @@ int setupGalaxy(void)
 		  else
 		    curClustTemplate = ((HCNT->HCONTEXT_CLUST_TEMPL0_1.hi >> (l * 4)) & 0xf);
 
-		  CLUT = (clusterTemplateConfig *)((unsigned)CNT->CLUSTER_TEMPL + (sizeof(clusterTemplateConfig) * curClustTemplate));
+		  CLUT = (clusterTemplateConfig *)((size_t)CNT->CLUSTER_TEMPL + (sizeof(clusterTemplateConfig) * curClustTemplate));
 
 		  sGPRCount += CLUT->CLUST_TEMPL_STATIC_REGFILE_CONFIG & 0xff;
 		  sFPRCount += (CLUT->CLUST_TEMPL_STATIC_REGFILE_CONFIG >> 8) & 0xff;
@@ -1076,8 +1076,8 @@ int freeMem(void)
 
   for(i=0;i<(GALAXY_CONFIG & 0xff);i++)
     {
-      SYS = (systemConfig *)((unsigned)SYSTEM + (i * sizeof(systemConfig)));
-      system = (systemT *)((unsigned)galaxyT + (i * sizeof(systemT)));
+      SYS = (systemConfig *)((size_t)SYSTEM + (i * sizeof(systemConfig)));
+      system = (systemT *)((size_t)galaxyT + (i * sizeof(systemT)));
 
 #ifndef SHM
       free((unsigned *)system->dram);
@@ -1085,15 +1085,15 @@ int freeMem(void)
 
       for(j=0;j<(SYS->SYSTEM_CONFIG & 0xff);j++)
 	{
-	  CNT = (contextConfig *)((unsigned)SYS->CONTEXT + (j * sizeof(contextConfig)));
-	  context = (contextT *)((unsigned)system->context + (j * sizeof(contextT)));
+	  CNT = (contextConfig *)((size_t)SYS->CONTEXT + (j * sizeof(contextConfig)));
+	  context = (contextT *)((size_t)system->context + (j * sizeof(contextT)));
 
 	  free((unsigned *)context->iram);
 
 	  for(k=0;k<((CNT->CONTEXT_CONFIG >> 4) & 0xf);k++)
 	    {
-	      HCNT = (hyperContextConfig *)((unsigned)CNT->HCONTEXT + (k * sizeof(hyperContextConfig)));
-	      hypercontext = (hyperContextT *)((unsigned)context->hypercontext + (k * sizeof(hyperContextT)));
+	      HCNT = (hyperContextConfig *)((size_t)CNT->HCONTEXT + (k * sizeof(hyperContextConfig)));
+	      hypercontext = (hyperContextT *)((size_t)context->hypercontext + (k * sizeof(hyperContextT)));
 
 	      free((unsigned *)hypercontext->S_GPR);
 	      free((unsigned *)hypercontext->S_FPR);
