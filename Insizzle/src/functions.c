@@ -327,7 +327,7 @@ int cycle(contextT *context, hyperContextT *hypercontext, unsigned numClusters)
   unsigned c;
 
   /* this will need to get all the details of the current cycle */
-  printf("\tiram:           0x%0lx\n", (size_t)context->iram);
+  printf("\tiram:           %p\n", (void *)(size_t)context->iram);
   printf("\ttotalWidth:     %d\n", hypercontext->totalWidth);
   printf("\tprogramCounter: 0x%x\n", (unsigned)hypercontext->programCounter);
   printf("\t\tinstruction:  0x%08x\n", *(context->iram + (hypercontext->programCounter)));
@@ -336,10 +336,10 @@ int cycle(contextT *context, hyperContextT *hypercontext, unsigned numClusters)
     {
       printf("\t\tcluster %d\n", c);
       cluster = (clusterT *)((size_t)hypercontext->registers + (c * sizeof(clusterT)));
-      printf("\t\t\tS_GPR: 0x%lx\n", (size_t)cluster->S_GPR);
-      printf("\t\t\tS_FPR: 0x%lx\n", (size_t)cluster->S_FPR);
-      printf("\t\t\tS_VR:  0x%lx\n", (size_t)cluster->S_VR);
-      printf("\t\t\tS_PR:  0x%lx\n", (size_t)cluster->S_PR);
+      printf("\t\t\tS_GPR: %p\n", (void *)(size_t)cluster->S_GPR);
+      printf("\t\t\tS_FPR: %p\n", (void *)(size_t)cluster->S_FPR);
+      printf("\t\t\tS_VR:  %p\n", (void *)(size_t)cluster->S_VR);
+      printf("\t\t\tS_PR:  %p\n", (void *)(size_t)cluster->S_PR);
     }
 
   /* TODO: call the operation! */
