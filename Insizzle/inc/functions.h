@@ -150,9 +150,16 @@ struct memReqT {
   struct memReqT *next;
 };
 
+#define VTHREAD_CREATE_LOCAL 1
+#define VTHREAD_CREATE_REMOTE 2
+#define VTHREAD_JOIN 3
+
 struct newThreadT {
   unsigned from;
   unsigned to;
+  unsigned func;
+  unsigned args;
+  unsigned type;
   struct newThreadT *next;
 };
 
@@ -175,7 +182,7 @@ instruction instructionDecode(unsigned, unsigned, /*unsigned *,*/ hyperContextT 
 packetT getOp(unsigned, unsigned, unsigned, unsigned, /*unsigned *,*/ hyperContextT *, systemT *, contextT *, unsigned, unsigned);
 void memRequest(systemT *, unsigned *, unsigned, unsigned, memOpT, unsigned);
 int memoryDump(unsigned, unsigned, unsigned *);
-void newThreadRequest(unsigned, unsigned, systemT *);
+void newThreadRequest(unsigned, unsigned, unsigned, unsigned, systemT *, unsigned);
 
 int serviceThreadRequests(systemT *);
 

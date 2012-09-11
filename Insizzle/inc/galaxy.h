@@ -4,6 +4,7 @@
 /* this is the data storage */
 
 #define PIPELINE_REFILL 3
+#define MEMORY_STALL 2
 
 /* per cluster */
 typedef struct {
@@ -46,6 +47,7 @@ typedef struct {
   unsigned VT_CTRL; /* current state */
   /*unsigned state;*/ /* micro-architecture state */
   unsigned long long stalled;
+  unsigned long long memoryStall;
   int checkedPC;
 
   unsigned long long cycleCount;
@@ -101,5 +103,18 @@ typedef struct {
   unsigned running_cpu;
   unsigned mutex_mask;
 } threadControlUnitT;
+
+/* Thread Control Unit */
+#define PTHREAD_CREATE_STALL 20
+#define PTHREAD_JOIN_STALL    5
+
+typedef struct tcu_t {
+  /* 0 is free, otherwise decrement each cycle
+     Can only create thread/join thread if free
+   */
+  unsigned status;
+} tcu_t;
+
+tcu_t ThreadControlUnit;
 
 #endif
