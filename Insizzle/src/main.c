@@ -166,6 +166,9 @@ int main(int argc, char *argv[])
       hypercontext->VT_CTRL |= RUNNING << 3;
 #endif
     }
+
+  /* Initialise ThreadControlUnit */
+  ThreadControlUnit.status = 0;
 #endif
 
   int totalHC = 0;
@@ -263,7 +266,6 @@ int main(int argc, char *argv[])
 #ifdef INSDEBUG
 		  printf("\t\t\thypercontext: %d\n", k);
 #endif
-
 		  HCNT = (hyperContextConfig *)((size_t)CNT->HCONTEXT + (k * sizeof(hyperContextConfig)));
 		  hypercontext = (hyperContextT *)((size_t)context->hypercontext + (k * sizeof(hyperContextT)));
 #ifdef API
@@ -392,22 +394,33 @@ int main(int argc, char *argv[])
 
 				      unsigned cB = checkBundle(hypercontext, startPC, endPC);
 				      if(cB > 0) {
-					/*printf("This needs to be stalled: %d\n", cB);*/
-					hypercontext->decodeStallCount += cB;
+					if(cB > hypercontext->memoryStall) {
+					  hypercontext->decodeStallCount += cB;
 #ifdef NOSTALLS
-					hypercontext->stallCount += cB;
+					  hypercontext->stallCount += cB;
 #else
-					unsigned long long *bundleCountP;
-					bundleCountP = (unsigned long long *)((size_t)hypercontext->bundleCount);
-					*bundleCountP = *bundleCountP + 1;
+					  unsigned long long *bundleCountP;
+					  bundleCountP = (unsigned long long *)((size_t)hypercontext->bundleCount);
+					  *bundleCountP = *bundleCountP + 1;
 
-					hypercontext->stalled += (cB-1);
-					hypercontext->cycleCount++;
-					hypercontext->stallCount++;
-					continue;
+					  hypercontext->stalled += (cB-1);
+					  hypercontext->cycleCount++;
+					  hypercontext->stallCount++;
+					  continue;
 #endif					
+					}
+					else {
+					  /* don't need to add extra stall, because the memory stalls hides it */
+					}
 				      }
 				    }
+
+				  /* Memory Stalls here */
+				  if(hypercontext->memoryStall > 0) {
+				    hypercontext->memoryStall--;
+				    hypercontext->cycleCount++;
+				    continue;
+				  }
 
 #ifdef INSDEBUG
 				  printf("already checked bundle for PC: 0x%x\n", hypercontext->programCounter);
@@ -581,15 +594,21 @@ int main(int argc, char *argv[])
 				    if(inst.packet.opcode == NOP)
 				      {
 					hypercontext->nopCount++;
-					/*printf("NOP\n");*/
 				      }
-
+#if 0
+				    else {
+				      /* set previous stall count to zero */
+				      if(hypercontext->MemoryStall > 0) {
+					hypercontext->MemoryStall--;
+				      }
+				    }
+#endif
 				  } while(!(this.op >> 31) & 0x1);
 				}
 			      /* TODO bundleCount */
 			      bundleCountP = (unsigned long long *)((size_t)hypercontext->bundleCount + (bundleCount * (sizeof(unsigned long long))));
 			      *bundleCountP = *bundleCountP + 1;
-			      /**bundleCountP++;*/
+
 			      hypercontext->cycleCount++;
 			    }
 			  else if(deepstate == BLOCKED_MUTEX_LOCK)
@@ -602,35 +621,7 @@ int main(int argc, char *argv[])
 			      printf("HC STATE: TERMINATED_ASYNC_HOST\n");
 			      printf("\twaiting for: 0x%x\n", hypercontext->joinWaiting);
 #endif
-			      {
-				unsigned cnt, hcnt;
-				contextT *cntP;
-				hyperContextT *hcntP;
-				unsigned debug, deepstate;
-				cnt = (hypercontext->joinWaiting >> 4) & 0xff;
-				hcnt = (hypercontext->joinWaiting) & 0xf;
-				/*printf("cnt[%d] hcnt[%d]\n", cnt, hcnt);*/
-				cntP = (contextT *)((size_t)system->context + (cnt * sizeof(contextT)));
-				hcntP = (hyperContextT *)((size_t)cntP->hypercontext + (hcnt * sizeof(hyperContextT)));
-
-				/*printf("VT_CTRL: 0x%x\n", hcntP->VT_CTRL);*/
-				debug = (hcntP->VT_CTRL >> 1) & 0x1;
-				deepstate = (hcntP->VT_CTRL >> 3) & 0xff;
-
-				if((deepstate != RUNNING) || (debug))
-				  {
-				    /*printf("this means the join has finished\n");*/
-				    hypercontext->joinWaiting = 0;
-				    hypercontext->VT_CTRL &= 0xfffff807;
-				    hypercontext->VT_CTRL |= RUNNING << 3;
-				  }
-				else
-				  {
-				    /*printf("need to wait for it to finish\n");*/
-				  }
-				hypercontext->stallCount++;
-				hypercontext->cycleCount++;
-			      }
+			      hypercontext->cycleCount++;
 #endif
 			    }
 			  else if(deepstate == TERMINATED_ASYNC)
@@ -666,7 +657,10 @@ int main(int argc, char *argv[])
 	  serviceMemRequestPERFECT(system, (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1024));
 #endif
 
+#ifdef VTHREAD
+	  /* Peform Thread maintenance */
 	  serviceThreadRequests(system);
+#endif
 
 	  /* NEED TO SWAP REGISTERS HERE */
 
