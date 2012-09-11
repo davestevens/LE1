@@ -696,12 +696,13 @@ int memoryDump(unsigned size, unsigned system, unsigned *dram)
 }
 
 /* this should push to a list the thread requests */
-void newThreadRequest(unsigned from, unsigned to, systemT *system)
+void newThreadRequest(unsigned from, unsigned to, unsigned func, unsigned args, systemT *system, unsigned type)
 {
   /* get system */
   struct newThreadT *temp;
+  //#ifdef INSDEBUG
 #ifdef INSDEBUG
-  printf("newThreadRequest: 0x%x, 0x%x\n", from, to);
+  printf("newThreadRequest: 0x%x, 0x%x, %d, %d\n", from, to, func, args);
 #endif
 
   if(system->threadReq == NULL)
@@ -735,58 +736,271 @@ void newThreadRequest(unsigned from, unsigned to, systemT *system)
 
   temp->from = from;
   temp->to = to;
+  temp->func = func;
+  temp->args = args;
+  temp->type = type;
 
   temp->next = NULL;
   return;
 }
 
+/* Check the status of the ThreadControlUnit
+   Stall any other threads which are requesting threads
+ */
 int serviceThreadRequests(systemT *system)
 {
   struct newThreadT *temp;
+  if(ThreadControlUnit.status <= 0) {
 
-  if((temp = system->threadReq) == NULL)
-    return 0;
+    temp = system->threadReq;
 
-  do {
+    if(temp == NULL)
+      return 0;
+
+  ThreadControlUnit_next:
+
 #ifdef INSDEBUG
-      printf("there is a thread request\n");
-      printf("\ttemp->from 0x%x\n", temp->from);
-      printf("\ttemp->to 0x%x\n", temp->to);
+    printf("there is a thread request\n");
+    printf("\ttemp->from 0x%x\n", temp->from);
+    printf("\ttemp->to 0x%x\n", temp->to);
+    printf("\ttemp->func 0x%x\n", temp->func);
+    printf("\ttemp->args 0x%x\n", temp->args);
+    printf("\ttemp->type %d\n", temp->type);
 #endif
 
-      /* start thread running */
+    switch(temp->type) {
+    case VTHREAD_CREATE_LOCAL:
+      /* Find an available hypercontext within the current context */
       {
-	unsigned context, hypercontext;
-	contextT *cnt;
-	hyperContextT *hcnt;
-	context = (temp->to >> 16) & 0xff;
-	hypercontext = (temp->to >> 12) & 0xf;
+	unsigned i, deepstate, debug;
+	contextT *c = (contextT *)((size_t)system->context);
+	hyperContextT *h;
+	unsigned *GPR;
 
-#ifdef INSDEBUG
-	printf("context[%d] hypercontext[%d]\n", context, hypercontext);
-#endif
-	cnt = (contextT *)((size_t)system->context + (context * sizeof(contextT)));
-	hcnt = (hyperContextT *)((size_t)cnt->hypercontext + (hypercontext * sizeof(hyperContextT)));
+	/* Local PTHREAD_CREATE */
+	for(i=0;i<c->numHyperContext;++i) {
+	  h = (hyperContextT *)((size_t)c->hypercontext + (i * sizeof(hyperContextT)));
 
-	hcnt->VT_CTRL |= RUNNING << 3;
-#ifdef INSDEBUG
-	printf("hcnt->VT_CTRL 0x%x\n", hcnt->VT_CTRL);
-#endif
+	  deepstate = (h->VT_CTRL >> 3) & 0xff;
+	  debug = (h->VT_CTRL >> 1) & 0x1;
+
+	  if((deepstate == READY) && (!debug)) {
+	    /* This hypercontext can be used */
+	    /* Set PC and R3 */
+	    h->programCounter = temp->func;
+	    GPR = h->S_GPR;
+	    *(GPR + 3) = temp->args;
+
+	    /* Alter Debug state to running */
+	    h->VT_CTRL |= RUNNING << 3;
+
+	    /* Automatically stalled for PTHREAD_CREATE_STALL cycles */
+	    h->stalled = PTHREAD_CREATE_STALL;
+
+	    /* Stall the requesting hypercontext
+	       Update return register with id of created thread
+	     */
+	    {
+	      unsigned *GPR;
+	      systemT *s = (systemT *)((size_t)galaxyT + (((temp->from >> 24) & 0xff) * sizeof(systemT)));
+	      contextT *c = (contextT *)((size_t)s->context + (((temp->from >> 16) & 0xff) * sizeof(contextT)));
+	      hyperContextT *_h = (hyperContextT *)((size_t)c->hypercontext + (((temp->from >> 12) & 0xf) * sizeof(hyperContextT)));
+
+	      _h->stalled = PTHREAD_CREATE_STALL;
+	      GPR = _h->S_GPR;
+	      *(GPR + 7) = h->VT_CTRL;
+	    }
+	    break;
+	  }
+	}
+	if(i == c->numHyperContext) {
+	  /* Did not find a hypercontext */
+	}
+	else {
+	  /* Remove the top of the list */
+	  if(temp == system->threadReq) {
+	    system->threadReq = temp->next;
+	    free(temp);
+	  }
+	  else {
+	    struct newThreadT *p, *c;
+	    c = system->threadReq;
+	    while(c) {
+	      if(c == temp) {
+		break;
+	      }
+	      p = c;
+	      c = c->next;
+	    }
+	    p->next = c->next;
+	    free(temp);
+	    temp = p;
+	  }
+
+	  /* Set ThreadControlUnit.status */
+	  ThreadControlUnit.status = PTHREAD_CREATE_STALL;
+	}
       }
+      break;
+    case VTHREAD_CREATE_REMOTE:
+      /* Find an available hypercontext within any context */
+      {
+	unsigned i, j, deepstate, debug;
+	contextT *c;// = (contextT *)((size_t)system->context);
+	hyperContextT *h;
+	unsigned *GPR;
+	unsigned found = 0;
 
-      /* remove from list */
-      if(temp == system->threadReq)
-	{
-	  struct newThreadT *toDel = temp;
-	  system->threadReq = temp->next;
-	  temp = temp->next;
-	  free(toDel);
+	/* Remote PTHREAD_CREATE */
+	for(i=0;i<system->numContext;++i) {
+	  c = (contextT *)((size_t)system->context + (i * sizeof(contextT)));
+	  for(j=0;j<c->numHyperContext;++j) {
+	    h = (hyperContextT *)((size_t)c->hypercontext + (j * sizeof(hyperContextT)));
+
+	    deepstate = (h->VT_CTRL >> 3) & 0xff;
+	    debug = (h->VT_CTRL >> 1) & 0x1;
+
+	    if((deepstate == READY) && (!debug)) {
+	      /* This hypercontext can be used */
+	      /* Set PC and R3 */
+	      h->programCounter = temp->func;
+	      GPR = h->S_GPR;
+	      *(GPR + 3) = temp->args;
+
+	      /* Alter Debug state to running */
+	      h->VT_CTRL |= RUNNING << 3;
+
+	      /* Automatically stalled for PTHREAD_CREATE_STALL cycles */
+	      h->stalled = PTHREAD_CREATE_STALL;
+
+	      /* Stall the requesting hypercontext */
+	      {
+		unsigned *GPR;
+		systemT *s = (systemT *)((size_t)galaxyT + (((temp->from >> 24) & 0xff) * sizeof(systemT)));
+		contextT *c = (contextT *)((size_t)s->context + (((temp->from >> 16) & 0xff) * sizeof(contextT)));
+		hyperContextT *_h = (hyperContextT *)((size_t)c->hypercontext + (((temp->from >> 12) & 0xf) * sizeof(hyperContextT)));
+
+		_h->stalled = PTHREAD_CREATE_STALL;
+		GPR = _h->S_GPR;
+		*(GPR + 7) = h->VT_CTRL;
+	      }
+	      found = 1;
+	      break;
+	    }
+	  }
+	  if(found) { break; }
 	}
-      else
-	{
-	  temp = temp->next;
+
+	if(!found) {
+	  /* Did not find a hypercontext */
 	}
-  } while(temp);
+	else {
+	  /* Remove the top of the list */
+	  if(temp == system->threadReq) {
+	    system->threadReq = temp->next;
+	    free(temp);
+	  }
+	  else {
+	    struct newThreadT *p, *c;
+	    c = system->threadReq;
+	    while(c) {
+	      if(c == temp) {
+		break;
+	      }
+	      p = c;
+	      c = c->next;
+	    }
+	    p->next = c->next;
+	    free(temp);
+	    temp = p;
+	  }
+
+	  /* Set ThreadControlUnit.status */
+	  ThreadControlUnit.status = PTHREAD_CREATE_STALL;
+	}
+      }
+      break;
+    case VTHREAD_JOIN:
+      /* Check status of thread attempting to join with */
+      {
+	systemT *to_s = (systemT *)((size_t)galaxyT + (((temp->to >> 24) & 0xff) * sizeof(systemT)));
+	contextT *to_c = (contextT *)((size_t)to_s->context + (((temp->to >> 16) & 0xff) * sizeof(contextT)));
+	hyperContextT *to_h = (hyperContextT *)((size_t)to_c->hypercontext + (((temp->to >> 12) & 0xf) * sizeof(hyperContextT)));
+
+	systemT *from_s = (systemT *)((size_t)galaxyT + (((temp->from >> 24) & 0xff) * sizeof(systemT)));
+	contextT *from_c = (contextT *)((size_t)from_s->context + (((temp->from >> 16) & 0xff) * sizeof(contextT)));
+	hyperContextT *from_h = (hyperContextT *)((size_t)from_c->hypercontext + (((temp->from >> 12) & 0xf) * sizeof(hyperContextT)));
+
+	unsigned debug, deepstate;
+	debug = (to_h->VT_CTRL >> 1) & 0x1;
+	deepstate = (to_h->VT_CTRL >> 3) & 0xff;
+
+	if((deepstate != RUNNING) || debug) {
+	  /* Release waiting hypercontext */
+	  from_h->VT_CTRL &= 0xfffff807;
+	  from_h->VT_CTRL |= RUNNING << 3;
+
+	  from_h->stalled += PTHREAD_JOIN_STALL;
+
+	  /* Remove from TCU list */
+	  if(temp == system->threadReq) {
+	    system->threadReq = temp->next;
+	    free(temp);
+	  }
+	  else {
+	    struct newThreadT *p, *c;
+	    c = system->threadReq;
+	    while(c) {
+	      if(c == temp) {
+		break;
+	      }
+	      p = c;
+	      c = c->next;
+	    }
+	    p->next = c->next;
+	    free(temp);
+	    temp = p;
+	  }
+
+	  /* Set ThreadControlUnit.status */
+	  ThreadControlUnit.status = PTHREAD_JOIN_STALL;
+	}
+	else {
+	  /* Do nothing, thread is stalled and TCU does nothing */
+	  /* Allow others to work */
+	  temp = temp->next;
+	  if(temp == NULL) {
+	    goto ThreadControlUnit_done;
+	  }
+	  else {
+	    goto ThreadControlUnit_next;
+	  }
+	}
+      }
+      break;
+    default:
+      printf("Unknown ThreadControlUnit request\n");
+      break;
+    }
+  }
+  else {
+    ThreadControlUnit.status--;
+  }
+
+ ThreadControlUnit_done:
+  /* Stall all in list */
+  {
+    struct newThreadT *t = system->threadReq;
+    while(t) {
+      /* Get context and hypercontext from t->from */
+      /* t->from = VT_CTRL */
+      systemT *s = (systemT *)((size_t)galaxyT + (((t->from >> 24) & 0xff) * sizeof(systemT)));
+      contextT *c = (contextT *)((size_t)s->context + (((t->from >> 16) & 0xff) * sizeof(contextT)));
+      hyperContextT *h = (hyperContextT *)((size_t)c->hypercontext + (((t->from >> 12) & 0xf) * sizeof(hyperContextT)));
+      h->stalled++;
+      t = t->next;
+    }
+  }
 
   return 0;
 }
@@ -843,9 +1057,9 @@ void serviceMemRequest(systemT *system, unsigned findBank, unsigned numBanks, un
 #endif
 		    hcnt->memoryAccessCount++;
 #ifdef NOSTALLS
-		    hcnt->stallCount++;
+		    hcnt->stallCount += MEMORY_STALL;
 #else
-		    hcnt->stalled++;
+		    hcnt->memoryStall = MEMORY_STALL;
 #endif
 		    temp = temp->next;
 		  }

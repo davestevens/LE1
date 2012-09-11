@@ -993,62 +993,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 			      printf("source3: %d\n", ret.source3);
 			      printf("\t0x%x\n", *(pS_GPR + ret.source3));
 #endif
-			      /* TODO: find free thread here
-				 setup r7 (thread_id)
-				 put in list to start at end of current cycle
-			      */
-			      {
-				unsigned i, deepstate, debug;
-				hyperContextT *hcnt;
-				unsigned found = 0;
-				unsigned *GPR;
-				for(i=0;i<context->numHyperContext;i++)
-				  {
-#ifdef INSDEBUG
-				    printf("\thypercontext: %d\n", i);
-#endif
-				    hcnt = (hyperContextT *)((size_t)context->hypercontext + (i * sizeof(hyperContextT)));
-#ifdef INSDEBUG
-				    printf("\t0x%08x\n", hcnt->VT_CTRL);
-#endif
-				    deepstate = (hcnt->VT_CTRL >> 3) & 0xff;
-				    debug = (hcnt->VT_CTRL >> 1) & 0x1;
-
-				    if((deepstate == READY) && (!debug))
-				      {
-#ifdef INSDEBUG
-					printf("need to set this thread up!\n");
-#endif
-					found = 1;
-
-					hcnt->programCounter = *(pS_GPR + ret.source2);
-					GPR = hcnt->S_GPR;
-					*(GPR + 3) = *(pS_GPR + ret.source3);
-#ifdef INSDEBUG
-					printf("\t\tset PC: 0x%x\n", hcnt->programCounter);
-					printf("\t\tset args: 0x%x\n", *(GPR + 3));
-#endif
-
-					/* then need to set r7 to id */
-					*(S_GPR + ret.target2) = hcnt->VT_CTRL >> 12;
-
-					newThreadRequest(hypercontext->VT_CTRL, hcnt->VT_CTRL, system);
-
-					break;
-				      }
-				    /*else
-				      {
-					printf("\tnot available\n");
-					}*/
-				  }
-
-				if(!found)
-				  {
-				    /* TODO: error out, need to allow to carry on */
-				    printf("ERROR: There was a problem allocating a new thread (vthread_create_local)\n");
-				  }
-			      }
-			      /*newThreadRequest(VT_CTRL, *(pS_GPR + ret.source2), *(pS_GPR + ret.source3), system, context, 0);*/
+			      newThreadRequest(hypercontext->VT_CTRL, 0, *(pS_GPR + ret.source2), *(pS_GPR + ret.source3), system, VTHREAD_CREATE_LOCAL);
 
 			      break;
 			    case 1:
@@ -1067,72 +1012,8 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 			      printf("source3: %d\n", ret.source3);
 			      printf("\t0x%x\n", *(pS_GPR + ret.source3));
 #endif
-			      /* TODO: find free thread here
-				 setup r7 (thread_id)
-				 put in list to start at end of current cycle
-				 REMOTE WILL CURRENTLY LOOK AT LOCAL HYPERCONTEXTS AS WELL
-			      */
-			      {
-				unsigned i, j, deepstate, debug;
-				contextT *cnt;
-				hyperContextT *hcnt;
-				unsigned found = 0;
-				unsigned *GPR;
-				for(i=0;i<system->numContext;i++)
-				  {
-#ifdef INSDEBUG
-				    printf("\tcontext: %d\n", i);
-#endif
-				    cnt = (contextT *)((size_t)system->context + (i * sizeof(contextT)));
 
-				    for(j=0;j<cnt->numHyperContext;j++)
-				      {
-#ifdef INSDEBUG
-					printf("\thypercontext: %d\n", j);
-#endif
-					hcnt = (hyperContextT *)((size_t)cnt->hypercontext + (j * sizeof(hyperContextT)));
-#ifdef INSDEBUG
-					printf("\t0x%08x\n", hcnt->VT_CTRL);
-#endif
-					deepstate = (hcnt->VT_CTRL >> 3) & 0xff;
-					debug = (hcnt->VT_CTRL >> 1) & 0x1;
-
-					if((deepstate == READY) && (!debug))
-					  {
-#ifdef INSDEBUG
-					    printf("need to set this thread up!\n");
-#endif
-					    found = 1;
-
-					    hcnt->programCounter = *(pS_GPR + ret.source2);
-					    GPR = hcnt->S_GPR;
-					    *(GPR + 3) = *(pS_GPR + ret.source3);
-#ifdef INSDEBUG
-					    printf("\t\tset PC: 0x%x\n", hcnt->programCounter);
-					    printf("\t\tset args: 0x%x\n", *(GPR + 3));
-#endif
-					    /* then need to set r7 to id */
-					    *(S_GPR + ret.target2) = hcnt->VT_CTRL >> 12;
-
-					    newThreadRequest(hypercontext->VT_CTRL, hcnt->VT_CTRL, system);
-
-					    break;
-					  }
-					/*else
-					  {
-					    printf("\tnot available\n");
-					    }*/
-				      }
-				    if(found)
-				      break;
-				  }
-
-				if(!found)
-				  {
-				    /* TODO: error out, need to allow to carry on */
-				    printf("ERROR: There was a problem allocating a new thread (vthread_create_remote)\n");
-				  }
-			      }
+			      newThreadRequest(hypercontext->VT_CTRL, 0, *(pS_GPR + ret.source2), *(pS_GPR + ret.source3), system, VTHREAD_CREATE_REMOTE);
 			      break;
 			    default:
 			      /*ret.opcode = XXX;
@@ -1820,13 +1701,6 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 			  /* need to set new PC */
 			  ret.newPC = hypercontext->programCounter + ret.source1;
 			  ret.newPCValid = 1;
-			  /* need to add stall cycles */
-#ifdef NOSTALLS
-			  hypercontext->stallCount += PIPELINE_REFILL;
-#else
-			  hypercontext->stalled += PIPELINE_REFILL;
-#endif
-			  hypercontext->controlFlowChange++;
 			}
 		      else
 			{
@@ -1851,13 +1725,6 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 			  /* need to set new PC */
 			  ret.newPC = hypercontext->programCounter + ret.source1;
 			  ret.newPCValid = 1;
-			  /* need to add stall cycles */
-#ifdef NOSTALLS
-			  hypercontext->stallCount += PIPELINE_REFILL;
-#else
-			  hypercontext->stalled += PIPELINE_REFILL;
-#endif
-			  hypercontext->controlFlowChange++;
 			}
 		      break;
 		    }
@@ -2055,12 +1922,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 			  /*printf("source: %d\n", *(pS_GPR + ret.source1));
 			    printf("ret.target: %d\n", *(pS_GPR + ret.target));
 			    printf("ret.target2: %d\n", *(pS_GPR + ret.target2));*/
-			  hypercontext->VT_CTRL &= 0xfffff807;
-			  hypercontext->VT_CTRL |= TERMINATED_ASYNC_HOST << 3;
-			  hypercontext->joinWaiting = *(pS_GPR + ret.source1);
-#if 0
-			  *(join + (cnt * HCNT) + hcnt) = *(pS_GPR + ret.source1);
-#endif
+			  newThreadRequest(hypercontext->VT_CTRL, *(pS_GPR + ret.source1), 0, 0, system, VTHREAD_JOIN);
 			  break;
 			default:
 			  printf("UNKNOWN CASM3 custom instruction\n");
