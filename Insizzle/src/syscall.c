@@ -722,7 +722,7 @@ void syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long long
   case CLOSE:
     /* r3 = close(r3) */
     {
-      int fd = (int)*(S_GPR + 3);
+      int fd = getFilePointer(*(S_GPR + 3));
 
       int ret = close(fd);
 
