@@ -486,7 +486,7 @@ unsigned checkBundle(hyperContextT *hypercontext, unsigned s, unsigned e) {
   return (((e / w) >> 2) - ((s / w) >> 2));
 }
 
-instruction instructionDecode(unsigned inst, unsigned immediate, /*unsigned *dram,*/ hyperContextT *hypercontext, systemT *system, contextT *context, unsigned VT_CTRL, unsigned dramSize)
+instruction instructionDecode(unsigned inst, unsigned immediate, hyperContextT *hypercontext, systemT *system, unsigned dramSize)
 {
   instruction this; /* TODO: possibly zero this out */
 
@@ -558,7 +558,7 @@ instruction instructionDecode(unsigned inst, unsigned immediate, /*unsigned *dra
       break;
     }
 
-  this.packet = getOp(this.format, this.opc, inst, immediate, /*dram,*/ hypercontext, system, context, VT_CTRL, dramSize);
+  this.packet = getOp(this.format, this.opc, inst, immediate, hypercontext, system, dramSize);
 
   return this;
 }
@@ -823,7 +823,7 @@ int serviceThreadRequests(systemT *system)
 	    free(temp);
 	  }
 	  else {
-	    struct newThreadT *p, *c;
+	    struct newThreadT *p = NULL, *c;
 	    c = system->threadReq;
 	    while(c) {
 	      if(c == temp) {
@@ -901,7 +901,7 @@ int serviceThreadRequests(systemT *system)
 	    free(temp);
 	  }
 	  else {
-	    struct newThreadT *p, *c;
+	    struct newThreadT *p = NULL, *c;
 	    c = system->threadReq;
 	    while(c) {
 	      if(c == temp) {
@@ -948,7 +948,7 @@ int serviceThreadRequests(systemT *system)
 	    free(temp);
 	  }
 	  else {
-	    struct newThreadT *p, *c;
+	    struct newThreadT *p = NULL, *c;
 	    c = system->threadReq;
 	    while(c) {
 	      if(c == temp) {
@@ -1005,6 +1005,131 @@ int serviceThreadRequests(systemT *system)
   return 0;
 }
 
+/*
+ */
+void performMemoryOp(struct memReqT *temp, unsigned dramSize, systemT *system)
+{
+	switch(temp->memOp)
+	{
+		case mLDSB:
+			if(temp->value >= dramSize)
+			{
+				if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
+				*(temp->pointer) = 0;
+			}
+			else
+				_LDSB_iss(temp->pointer, (temp->value + (size_t)(system->dram)));
+			break;
+		case mLDBs:
+			if(temp->value >= dramSize)
+			{
+				if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
+				*(temp->pointer) = 0;
+			}
+			else
+				_LDBs_iss(temp->pointer, (temp->value + (size_t)(system->dram)));
+			break;
+		case mLDUB:
+			if(temp->value >= dramSize)
+			{
+				if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
+				*(temp->pointer) = 0;
+			}
+			else
+				_LDUB_iss(temp->pointer, (temp->value + (size_t)(system->dram)));
+			break;
+		case mLDSH:
+			if(temp->value >= dramSize)
+			{
+				if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
+				*(temp->pointer) = 0;
+			}
+			else
+				_LDSH_iss(temp->pointer, (temp->value + (size_t)(system->dram)));
+			break;
+		case mLDUH:
+			if(temp->value >= dramSize)
+			{
+				if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
+				*(temp->pointer) = 0;
+			}
+			else
+				_LDUH_iss(temp->pointer, (temp->value + (size_t)(system->dram)));
+			break;
+		case mLDW:
+			if(temp->value >= dramSize)
+			{
+				if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
+				*(temp->pointer) = 0;
+			}
+			else
+				_LDW_iss(temp->pointer, (temp->value + (size_t)(system->dram)));
+			break;
+		case mSTB:
+			if(temp->value >= dramSize)
+			{
+				unsigned fZero = 0;
+				if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
+				_STB_iss((temp->value + (size_t)(system->dram)), &fZero);
+			}
+			else {
+				unsigned *tempP = (unsigned *)malloc(sizeof(int));
+				*tempP = temp->pointerV;
+				_STB_iss((temp->value + (size_t)(system->dram)), tempP);
+				free(tempP);
+			}
+			break;
+		case mSTBs:
+			if(temp->value >= dramSize)
+			{
+				if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
+				unsigned fZero = 0;
+				_STB_iss((temp->value + (size_t)(system->dram)), &fZero);
+			}
+			else {
+				unsigned *tempP = (unsigned *)malloc(sizeof(int));
+				*tempP = temp->pointerV;
+				_STB_iss((temp->value + (size_t)(system->dram)), tempP);
+				free(tempP);
+			}
+			break;
+		case mSTH:
+			if(temp->value >= dramSize)
+			{
+				if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
+				unsigned fZero = 0;
+				_STH_iss((temp->value + (size_t)(system->dram)), &fZero);
+			}
+			else {
+				unsigned *tempP = (unsigned *)malloc(sizeof(int));
+				*tempP = temp->pointerV;
+				_STH_iss((temp->value + (size_t)(system->dram)), tempP);
+				free(tempP);
+			}
+			break;
+		case mSTW:
+		{
+			if(temp->value >= dramSize)
+			{
+				if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
+				unsigned fZero = 0;
+				_STW_iss((temp->value + (size_t)(system->dram)), &fZero);
+			}
+			else {
+				unsigned *tempP = (unsigned *)malloc(sizeof(int));
+				*tempP = temp->pointerV;
+				_STW_iss((temp->value + (size_t)(system->dram)), tempP);
+				free(tempP);
+			}
+		}
+		break;
+		default:
+			printf("Unknown memory operation.\n");
+			break;
+	}
+}
+
+#ifndef MEMORY_PREF_LOWER
 void serviceMemRequest(systemT *system, unsigned findBank, unsigned numBanks, unsigned dramSize)
 {
   /* print all memReqs */
@@ -1068,183 +1193,7 @@ void serviceMemRequest(systemT *system, unsigned findBank, unsigned numBanks, un
 #ifdef DEBUGmem
 		    printf("this one will get it\n");
 #endif
-		    switch(temp->memOp)
-		      {
-		      case mLDSB:
-			if(temp->value >= dramSize)
-			  {
-			    if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
-			    *(temp->pointer) = 0;
-			  }
-			else
-			  _LDSB_iss(temp->pointer, (temp->value + (size_t)(system->dram)));
-			break;
-		      case mLDBs:
-			if(temp->value >= dramSize)
-			  {
-			    if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
-			    *(temp->pointer) = 0;
-			  }
-			else
-			  _LDBs_iss(temp->pointer, (temp->value + (size_t)(system->dram)));
-			break;
-		      case mLDUB:
-#ifdef DEBUGmem
-			printf("LDUB\n");
-			printf("temp->value: %d\n", temp->value);
-			printf("0x%08x\n", *(unsigned *)((size_t)system->dram + temp->value));
-#endif
-			if(temp->value >= dramSize)
-			  {
-			    if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
-			    *(temp->pointer) = 0;
-			  }
-			else
-			  _LDUB_iss(temp->pointer, (temp->value + (size_t)(system->dram)));
-#ifdef DEBUGmem
-			printf("%p -> 0x%x\n", (void *)temp->pointer, *(temp->pointer));
-#endif
-			break;
-		      case mLDSH:
-			if(temp->value >= dramSize)
-			  {
-			    if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
-			    *(temp->pointer) = 0;
-			  }
-			else
-			  _LDSH_iss(temp->pointer, (temp->value + (size_t)(system->dram)));
-#ifdef DEBUGmem
-			printf("value: 0x%x\n", *(unsigned *)(temp->pointer));
-#endif
-			break;
-		      case mLDUH:
-			if(temp->value >= dramSize)
-			  {
-			    if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
-			    *(temp->pointer) = 0;
-			  }
-			else
-			  _LDUH_iss(temp->pointer, (temp->value + (size_t)(system->dram)));
-			break;
-		      case mLDW:
-#ifdef DEBUGmem
-			printf("LDW!!!\n");
-#endif
-#ifdef DEBUGmem
-			printf("loading from: 0x%x\n", (temp->value));
-			printf("loading from: 0x%lx\n", (temp->value + (size_t)(system->dram)));
-#endif
-			if(temp->value >= dramSize)
-			  {
-			    if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
-			    *(temp->pointer) = 0;
-			  }
-			else
-			  _LDW_iss(temp->pointer, (temp->value + (size_t)(system->dram)));
-#ifdef DEBUGmem
-			printf("value: 0x%x\n", *(unsigned *)(temp->pointer));
-#endif
-			break;
-		      case mSTB:
-#ifdef DEBUGmem
-			printf("STB!!!\n");
-			printf("storing: 0x%x\n", temp->pointerV);
-			printf("to: 0x%x\n", (temp->value));
-#endif
-			if(temp->value >= dramSize)
-			  {
-			    unsigned fZero = 0;
-			    unsigned *zero = &fZero;
-			    if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
-			    _STB_iss((temp->value + (size_t)(system->dram)), zero);
-			  }
-			else {
-			  unsigned *tempP = (unsigned *)malloc(sizeof(int));
-			  *tempP = temp->pointerV;
-			  _STB_iss((temp->value + (size_t)(system->dram)), tempP);
-			  free(tempP);
-			}
-#ifdef DEBUGmem
-			printf("memory now: 0x%x\n", *(unsigned *)((size_t)system->dram + temp->value));
-#endif
-			break;
-		      case mSTBs:
-#ifdef DEBUGmem
-			printf("STBs!!!\n");
-			printf("storing: 0x%x\n", temp->pointerV);
-			printf("to: 0x%x\n", (temp->value));
-#endif
-			if(temp->value >= dramSize)
-			  {
-			    if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
-			    unsigned fZero = 0;
-			    unsigned *zero = &fZero;
-			    _STB_iss((temp->value + (size_t)(system->dram)), zero);
-			  }
-			else {
-			  unsigned *tempP = (unsigned *)malloc(sizeof(int));
-			  *tempP = temp->pointerV;
-			  _STB_iss((temp->value + (size_t)(system->dram)), tempP);
-			  free(tempP);
-			}
-#ifdef DEBUGmem
-			printf("memory now: 0x%x\n", *(unsigned *)((size_t)system->dram + temp->value));
-#endif
-			break;
-		      case mSTH:
-#ifdef DEBUGmem
-			printf("STH!!!\n");
-			printf("storing: 0x%x\n", temp->pointerV);
-			printf("to: 0x%x\n", (temp->value));
-#endif
-			if(temp->value >= dramSize)
-			  {
-			    if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
-			    unsigned fZero = 0;
-			    unsigned *zero = &fZero;
-			    _STH_iss((temp->value + (size_t)(system->dram)), zero);
-			  }
-			else {
-			  unsigned *tempP = (unsigned *)malloc(sizeof(int));
-			  *tempP = temp->pointerV;
-			  _STH_iss((temp->value + (size_t)(system->dram)), tempP);
-			  free(tempP);
-			}
-#ifdef DEBUGmem
-			printf("memory now: 0x%x\n", *(unsigned *)((size_t)system->dram + temp->value));
-#endif
-
-			break;
-		      case mSTW:
-			{
-#ifdef DEBUGmem
-			  printf("STW!!!\n");
-			  printf("storing: 0x%x\n", temp->pointerV);
-			  printf("to: 0x%x\n", (temp->value));
-#endif
-			  if(temp->value >= dramSize)
-			    {
-			      if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
-			      unsigned fZero = 0;
-			      unsigned *zero = &fZero;
-			      _STW_iss((temp->value + (size_t)(system->dram)), zero);
-			    }
-			  else {
-			    unsigned *tempP = (unsigned *)malloc(sizeof(int));
-			    *tempP = temp->pointerV;
-			    _STW_iss((temp->value + (size_t)(system->dram)), tempP);
-			    free(tempP);
-			  }
-#ifdef DEBUGmem
-			  printf("memory now: 0x%x\n", *(unsigned *)((size_t)system->dram + temp->value));
-#endif
-			}
-			break;
-		      default:
-			printf("unknown memory op :(\n");
-			break;
-		      }
-
+		    performMemoryOp(temp, dramSize, system);
 		    given = 1;
 		    struct memReqT *t = system->memReq;
 		    struct memReqT *p = NULL;
@@ -1277,6 +1226,100 @@ void serviceMemRequest(systemT *system, unsigned findBank, unsigned numBanks, un
 	}
     }
 }
+
+/* Service memory request, favoring lower value context */
+#else
+void serviceMemRequest(systemT *system, unsigned findBank, unsigned numBanks, unsigned dramSize)
+{
+	struct memReqT *temp;
+	unsigned context, hypercontext, whichBank;
+	contextT *cnt;
+	hyperContextT *hcnt;
+
+	unsigned given = 0;
+
+	temp = system->memReq;
+
+	if(temp == NULL)
+	{
+		/* Nothing in list */
+		return;
+	}
+	else
+	{
+		/* Loop through each available bank */
+		for(whichBank=0;whichBank<numBanks;whichBank++)
+		{
+			given = 0;
+			/* Give preference to lower numbers hypercontexts */
+			{
+				unsigned int c, hc;
+				for(c=0;c<system->numContext;++c) {
+					cnt = (contextT *)((size_t)system->context + (c * sizeof(contextT)));
+					for(hc=0;hc<cnt->numHyperContext;++hc) {
+						hcnt = (hyperContextT *)((size_t)cnt->hypercontext + (hc * sizeof(hyperContextT)));
+
+						/* Loop through list of memory request */
+						/* If any on this bank and this context/hypercontext then give it */
+						temp = system->memReq;
+						if(temp == NULL) {
+							return;
+						}
+						do {
+							if((((temp->value >> 2) & findBank) == whichBank)
+							   && (((temp->ctrlReg >> 16) & 0xFF) == c)
+							   && (((temp->ctrlReg >> 12) & 0XF) == hc)){
+
+								if(given) {
+									/* Stall it */
+									hcnt->memoryAccessCount++;
+#ifdef NOSTALLS
+									hcnt->stallCount += MEMORY_STALL;
+#else
+									hcnt->memoryStall = MEMORY_STALL;
+#endif
+									temp = temp->next;
+								}
+								else {
+									struct memReqT *t = system->memReq;
+									struct memReqT *p = NULL;
+
+									performMemoryOp(temp, dramSize, system);
+									given = 1;
+									/* Remove current from list */
+									do {
+										if(t == temp) {
+											if(t != system->memReq) {
+												p->next = t->next;
+												free(t);
+												temp = p->next;
+												break;
+											}
+											else {
+												struct memReqT *u = t->next;
+												free(t);
+												system->memReq = u;
+												temp = u;
+												break;
+											}
+										}
+										p = t;
+										t = t->next;
+									} while(t != NULL);
+								}
+							}
+							else {
+								temp = temp->next;
+							}
+						} while(temp != NULL);
+					}
+				}
+			}
+		}
+	}
+	return;
+}
+#endif
 
 void serviceMemRequestNOSTALLS(systemT *system, unsigned findBank, unsigned numBanks, unsigned dramSize)
 {
@@ -1346,183 +1389,7 @@ void serviceMemRequestNOSTALLS(systemT *system, unsigned findBank, unsigned numB
 #ifdef DEBUGmem
 		    printf("this one will get it\n");
 #endif
-		    switch(temp->memOp)
-		      {
-		      case mLDSB:
-			if(temp->value >= dramSize)
-			  {
-			    if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
-			    *(temp->pointer) = 0;
-			  }
-			else
-			  _LDSB_iss(temp->pointer, (temp->value + (size_t)(system->dram)));
-			break;
-		      case mLDBs:
-			if(temp->value >= dramSize)
-			  {
-			    if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
-			    *(temp->pointer) = 0;
-			  }
-			else
-			  _LDBs_iss(temp->pointer, (temp->value + (size_t)(system->dram)));
-			break;
-		      case mLDUB:
-#ifdef DEBUGmem
-			printf("LDUB\n");
-			printf("temp->value: %d\n", temp->value);
-			printf("0x%08x\n", *((unsigned *)system->dram + (temp->value)));
-			printf("0x%08x\n", *((unsigned *)system->dram + (temp->value >> 2)));
-#endif
-			if(temp->value >= dramSize)
-			  {
-			    if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
-			    *(temp->pointer) = 0;
-			  }
-			else
-			  _LDUB_iss(temp->pointer, (temp->value + (size_t)(system->dram)));
-#ifdef DEBUGmem
-			printf("%p -> 0x%x\n", (void *)temp->pointer, *(temp->pointer));
-#endif
-			break;
-		      case mLDSH:
-			if(temp->value >= dramSize)
-			  {
-			    if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
-			    *(temp->pointer) = 0;
-			  }
-			else
-			  _LDSH_iss(temp->pointer, (temp->value + (size_t)(system->dram)));
-#ifdef DEBUGmem
-			printf("value: 0x%x\n", *(unsigned *)(temp->pointer));
-#endif
-			break;
-		      case mLDUH:
-			if(temp->value >= dramSize)
-			  {
-			    if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
-			    *(temp->pointer) = 0;
-			  }
-			else
-			  _LDUH_iss(temp->pointer, (temp->value + (size_t)(system->dram)));
-			break;
-		      case mLDW:
-#ifdef DEBUGmem
-			printf("LDW!!!\n");
-#endif
-#ifdef DEBUGmem
-			printf("loading from: 0x%lx\n", (temp->value + (size_t)(system->dram)));
-#endif
-			if(temp->value >= dramSize)
-			  {
-			    if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
-			    *(temp->pointer) = 0;
-			  }
-			else
-			  _LDW_iss(temp->pointer, (temp->value + (size_t)(system->dram)));
-#ifdef DEBUGmem
-			printf("value: 0x%x\n", *(unsigned *)(temp->pointer));
-#endif
-			break;
-		      case mSTB:
-#ifdef DEBUGmem
-			printf("STB!!!\n");
-			printf("storing: 0x%x\n", temp->pointerV);
-			printf("to: 0x%x\n", (temp->value));
-#endif
-			if(temp->value >= dramSize)
-			  {
-			    unsigned fZero = 0;
-			    unsigned *zero = &fZero;
-			    if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
-			    _STB_iss((temp->value + (size_t)(system->dram)), zero);
-			  }
-			else {
-			  unsigned *tempP = (unsigned *)malloc(sizeof(int));
-			  *tempP = temp->pointerV;
-			  _STB_iss((temp->value + (size_t)(system->dram)), tempP);
-			  free(tempP);
-			}
-#ifdef DEBUGmem
-			printf("memory now: 0x%x\n", *(unsigned *)((size_t)system->dram + temp->value));
-#endif
-			break;
-		      case mSTBs:
-#ifdef DEBUGmem
-			printf("STBs!!!\n");
-			printf("storing: 0x%x\n", temp->pointerV);
-			printf("to: 0x%x\n", (temp->value));
-#endif
-			if(temp->value >= dramSize)
-			  {
-			    if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
-			    unsigned fZero = 0;
-			    unsigned *zero = &fZero;
-			    _STB_iss((temp->value + (size_t)(system->dram)), zero);
-			  }
-			else {
-			  unsigned *tempP = (unsigned *)malloc(sizeof(int));
-			  *tempP = temp->pointerV;
-			  _STB_iss((temp->value + (size_t)(system->dram)), tempP);
-			  free(tempP);
-			}
-#ifdef DEBUGmem
-			printf("memory now: 0x%x\n", *(unsigned *)((size_t)system->dram + temp->value));
-#endif
-			break;
-		      case mSTH:
-#ifdef DEBUGmem
-			printf("STH!!!\n");
-			printf("storing: 0x%x\n", temp->pointerV);
-			printf("to: 0x%x\n", (temp->value));
-#endif
-			if(temp->value >= dramSize)
-			  {
-			    if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
-			    unsigned fZero = 0;
-			    unsigned *zero = &fZero;
-			    _STH_iss((temp->value + (size_t)(system->dram)), zero);
-			  }
-			else {
-			  unsigned *tempP = (unsigned *)malloc(sizeof(int));
-			  *tempP = temp->pointerV;
-			  _STH_iss((temp->value + (size_t)(system->dram)), tempP);
-			  free(tempP);
-			}
-#ifdef DEBUGmem
-			printf("memory now: 0x%x\n", *(unsigned *)((size_t)system->dram + temp->value));
-#endif
-
-			break;
-		      case mSTW:
-			{
-#ifdef DEBUGmem
-			  printf("STW!!!\n");
-			  printf("storing: 0x%x\n", temp->pointerV);
-			  printf("to: 0x%x\n", (temp->value));
-#endif
-			  if(temp->value >= dramSize)
-			    {
-			      if(suppressOOB != 1) { printf("ERROR: OOB\n"); }
-			      unsigned fZero = 0;
-			      unsigned *zero = &fZero;
-			      _STW_iss((temp->value + (size_t)(system->dram)), zero);
-			    }
-			  else {
-			    unsigned *tempP = (unsigned *)malloc(sizeof(int));
-			    *tempP = temp->pointerV;
-			    _STW_iss((temp->value + (size_t)(system->dram)), tempP);
-			    free(tempP);
-			  }
-#ifdef DEBUGmem
-			  printf("memory now: 0x%x\n", *(unsigned *)((size_t)system->dram + temp->value));
-#endif
-			}
-			break;
-		      default:
-			printf("unknown memory op :(\n");
-			break;
-		      }
-
+		    performMemoryOp(temp, dramSize, system);
 		    given = 1;
 
 		    /* then remove from list */
@@ -1575,174 +1442,7 @@ void serviceMemRequestPERFECT(systemT *system, unsigned dramSize)
 	cnt = (contextT *)((size_t)system->context + (context * sizeof(contextT)));
 	hcnt = (hyperContextT *)((size_t)cnt->hypercontext + (hypercontext * sizeof(hyperContextT)));
 
-	switch(temp->memOp)
-	  {
-	  case mLDSB:
-	    if(temp->value >= dramSize)
-	      {
-		/*if(suppressOOB != 1) { printf("ERROR: OOB\n"); }*/
-		*(temp->pointer) = 0;
-	      }
-	    else
-	      {
-		_LDSB_iss(temp->pointer, (temp->value + (size_t)(system->dram)));
-#ifdef DEBUGmem
-		printf("LDSB: 0x%x\n", *(unsigned *)temp->pointer);
-#endif
-	      }
-	    break;
-	  case mLDBs:
-	    if(temp->value >= dramSize)
-	      {
-		/*if(suppressOOB != 1) { printf("ERROR: OOB\n"); }*/
-		*(temp->pointer) = 0;
-	      }
-	    else
-	      {
-		_LDBs_iss(temp->pointer, (temp->value + (size_t)(system->dram)));
-#ifdef DEBUGmem
-		printf("LDBs: 0x%x\n", *(unsigned *)temp->pointer);
-#endif
-	      }
-	    break;
-	  case mLDUB:
-	    if(temp->value >= dramSize)
-	      {
-		/*if(suppressOOB != 1) { printf("ERROR: OOB\n"); }*/
-		*(temp->pointer) = 0;
-	      }
-	    else
-	      {
-		_LDUB_iss(temp->pointer, (temp->value + (size_t)(system->dram)));
-#ifdef DEBUGmem
-		printf("LDUB: 0x%x\n", *(unsigned *)temp->pointer);
-#endif
-	      }
-	    break;
-	  case mLDSH:
-	    if(temp->value >= dramSize)
-	      {
-		/*if(suppressOOB != 1) { printf("ERROR: OOB\n"); }*/
-		*(temp->pointer) = 0;
-	      }
-	    else
-	      {
-		_LDSH_iss(temp->pointer, (temp->value + (size_t)(system->dram)));
-#ifdef DEBUGmem
-		printf("LDSH: 0x%x\n", *(unsigned *)temp->pointer);
-#endif
-	      }
-	    break;
-	  case mLDUH:
-	    if(temp->value >= dramSize)
-	      {
-		/*if(suppressOOB != 1) { printf("ERROR: OOB\n"); }*/
-		*(temp->pointer) = 0;
-	      }
-	    else
-	      {
-		_LDUH_iss(temp->pointer, (temp->value + (size_t)(system->dram)));
-#ifdef DEBUGmem
-		printf("LDUH: 0x%x\n", *(unsigned *)temp->pointer);
-#endif
-	      }
-	    break;
-	  case mLDW:
-	    if(temp->value >= dramSize)
-	      {
-		/*if(suppressOOB != 1) { printf("ERROR: OOB\n"); }*/
-		*(temp->pointer) = 0;
-	      }
-	    else
-	      {
-		_LDW_iss(temp->pointer, (temp->value + (size_t)(system->dram)));
-#ifdef DEBUGmem
-		printf("LDW: 0x%x\n", *(unsigned *)temp->pointer);
-#endif
-	      }
-	    break;
-	  case mSTB:
-	    if(temp->value >= dramSize)
-	      {
-		unsigned fZero = 0;
-		unsigned *zero = &fZero;
-		/*if(suppressOOB != 1) { printf("ERROR: OOB\n"); }*/
-		_STB_iss((temp->value + (size_t)(system->dram)), zero);
-	      }
-	    else
-	      {
-		unsigned *tempP = (unsigned *)malloc(sizeof(int));
-		*tempP = temp->pointerV;
-		_STB_iss((temp->value + (size_t)(system->dram)), tempP);
-		free(tempP);
-	      }
-#ifdef DEBUGmem
-	    printf("STB: 0x%x\n", *(unsigned *)((size_t)system->dram + temp->value));
-#endif
-	    break;
-	  case mSTBs:
-	    if(temp->value >= dramSize)
-	      {
-		/*if(suppressOOB != 1) { printf("ERROR: OOB\n"); }*/
-		unsigned fZero = 0;
-		unsigned *zero = &fZero;
-		_STB_iss((temp->value + (size_t)(system->dram)), zero);
-	      }
-	    else
-	      {
-		unsigned *tempP = (unsigned *)malloc(sizeof(int));
-		*tempP = temp->pointerV;
-		_STB_iss((temp->value + (size_t)(system->dram)), tempP);
-		free(tempP);
-	      }
-#ifdef DEBUGmem
-	    printf("STBs: 0x%x\n", *(unsigned *)((size_t)system->dram + temp->value));
-#endif
-	    break;
-	  case mSTH:
-	    if(temp->value >= dramSize)
-	      {
-		/*if(suppressOOB != 1) { printf("ERROR: OOB\n"); }*/
-		unsigned fZero = 0;
-		unsigned *zero = &fZero;
-		_STH_iss((temp->value + (size_t)(system->dram)), zero);
-	      }
-	    else
-	      {
-		unsigned *tempP = (unsigned *)malloc(sizeof(int));
-		*tempP = temp->pointerV;
-		_STH_iss((temp->value + (size_t)(system->dram)), tempP);
-		free(tempP);
-	      }
-#ifdef DEBUGmem
-	    printf("STH: 0x%x\n", *(unsigned *)((size_t)system->dram + temp->value));
-#endif
-	    break;
-	  case mSTW:
-	    {
-	      if(temp->value >= dramSize)
-		{
-		  /*if(suppressOOB != 1) { printf("ERROR: OOB\n"); }*/
-		  unsigned fZero = 0;
-		  unsigned *zero = &fZero;
-		  _STW_iss((temp->value + (size_t)(system->dram)), zero);
-		}
-	      else
-		{
-		  unsigned *tempP = (unsigned *)malloc(sizeof(int));
-		  *tempP = temp->pointerV;
-		  _STW_iss((temp->value + (size_t)(system->dram)), tempP);
-		  free(tempP);
-		}
-#ifdef DEBUGmem
-	      printf("STW: 0x%x\n", *(unsigned *)((size_t)system->dram + temp->value));
-#endif
-	    }
-	    break;
-	  default:
-	    printf("unknown memory op :(\n");
-	    break;
-	  }
+	performMemoryOp(temp, dramSize, system);
 
 	struct memReqT *t = system->memReq;
 	struct memReqT *p = NULL;
@@ -1981,16 +1681,16 @@ int insizzleAPIRdCtrl(vtCtrlStateE *val) {
     if((globalHC->VT_CTRL >> 2) & 0x1) {
       /* single step mode */
       switch((globalHC->VT_CTRL >> 3) & 0xff) {
-      case RDY:
+      case READY:
 	*val = SSTEP_READY;
 	break;
-      case RNG:
+      case RUNNING:
 	*val = SSTEP_RUNNING;
 	break;
-      case BML:
+      case BLOCKED_MUTEX_LOCK:
 	*val = SSTEP_BLOCKED_MUTEX_LOCK;
 	break;
-      case TS:
+      case TERMINATED_SYNC:
 	*val = SSTEP_TERMINATED_SYNC;
 	break;
       default:
@@ -2000,24 +1700,27 @@ int insizzleAPIRdCtrl(vtCtrlStateE *val) {
       }
     }
     else {
+	    printf("normal mode\n");
       /* normal mode */
+	    printf("%d\n", RDY);
       switch((globalHC->VT_CTRL >> 3) & 0xff) {
-      case RDY:
+      case READY:
+	      printf("ready\n");
 	*val = READY;
 	break;
-      case RNG:
+      case RUNNING:
 	*val = RUNNING;
 	break;
-      case BML:
+      case BLOCKED_MUTEX_LOCK:
 	*val = BLOCKED_MUTEX_LOCK;
 	break;
-      case TS:
+      case TERMINATED_SYNC:
 	*val = TERMINATED_SYNC;
 	break;
-      case TAS:
+      case TERMINATED_ASYNC_HOST:
 	*val = TERMINATED_ASYNC_HOST;
 	break;
-      case TA:
+      case TERMINATED_ASYNC:
 	*val = TERMINATED_ASYNC;
 	break;
       default:
@@ -2042,44 +1745,48 @@ int insizzleAPIWrCtrl(vtCtrlStateE val) {
     globalHC->VT_CTRL |= (1 << 1);
     break;
   case SSTEP_READY:
-    globalHC->VT_CTRL &= 0xfffffffd;
-    globalHC->VT_CTRL |= (RDY << 3);
+    globalHC->VT_CTRL &= 0xFFFFF805;
+    globalHC->VT_CTRL &= (1 << 2);
+    globalHC->VT_CTRL |= (READY << 3);
     break;
   case SSTEP_RUNNING:
-    globalHC->VT_CTRL &= 0xfffffffd;
-    globalHC->VT_CTRL |= (RNG << 3);
+    globalHC->VT_CTRL &= 0xFFFFF805;
+    globalHC->VT_CTRL &= (1 << 2);
+    globalHC->VT_CTRL |= (RUNNING << 3);
     break;
   case SSTEP_BLOCKED_MUTEX_LOCK:
-    globalHC->VT_CTRL &= 0xfffffffd;
-    globalHC->VT_CTRL |= (BML << 3);
+    globalHC->VT_CTRL &= 0xFFFFF805;
+    globalHC->VT_CTRL &= (1 << 2);
+    globalHC->VT_CTRL |= (BLOCKED_MUTEX_LOCK << 3);
     break;
   case SSTEP_TERMINATED_SYNC:
-    globalHC->VT_CTRL &= 0xfffffffd;
-    globalHC->VT_CTRL |= (TS << 3);
+    globalHC->VT_CTRL &= 0xFFFFF805;
+    globalHC->VT_CTRL &= (1 << 2);
+    globalHC->VT_CTRL |= (TERMINATED_SYNC << 3);
     break;
   case READY:
-    globalHC->VT_CTRL &= 0xfffffff9;
-    globalHC->VT_CTRL |= (RDY << 3);
+    globalHC->VT_CTRL &= 0xFFFFF801;
+    globalHC->VT_CTRL |= (READY << 3);
     break;
   case RUNNING:
-    globalHC->VT_CTRL &= 0xfffffff9;
-    globalHC->VT_CTRL |= (RNG << 3);
+    globalHC->VT_CTRL &= 0xFFFFF801;
+    globalHC->VT_CTRL |= (RUNNING << 3);
     break;
   case BLOCKED_MUTEX_LOCK:
-    globalHC->VT_CTRL &= 0xfffffff9;
-    globalHC->VT_CTRL |= (BML << 3);
+    globalHC->VT_CTRL &= 0xFFFFF801;
+    globalHC->VT_CTRL |= (BLOCKED_MUTEX_LOCK << 3);
     break;
   case TERMINATED_ASYNC_HOST:
-    globalHC->VT_CTRL &= 0xfffffff9;
-    globalHC->VT_CTRL |= (TAS << 3);
+    globalHC->VT_CTRL &= 0xFFFFF801;
+    globalHC->VT_CTRL |= (TERMINATED_ASYNC_HOST << 3);
     break;
   case TERMINATED_ASYNC:
-    globalHC->VT_CTRL &= 0xfffffff9;
-    globalHC->VT_CTRL |= (TA << 3);
+    globalHC->VT_CTRL &= 0xFFFFF801;
+    globalHC->VT_CTRL |= (TERMINATED_ASYNC << 3);
     break;
   case TERMINATED_SYNC:
-    globalHC->VT_CTRL &= 0xfffffff9;
-    globalHC->VT_CTRL |= (TS << 3);
+    globalHC->VT_CTRL &= 0xFFFFF801;
+    globalHC->VT_CTRL |= (TERMINATED_SYNC << 3);
     break;
   default:
     printf("unknown Control State requested (%d)\n", val);

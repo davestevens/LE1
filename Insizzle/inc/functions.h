@@ -83,7 +83,6 @@ typedef enum {
   mLDSB, mLDBs, mLDUB, mLDSH, mLDUH, mLDW, mSTB, mSTBs, mSTH, mSTW
 } memOpT;
 
-
 typedef enum {
   S_PRED, GPR, FPR, VR, CR, IMM32, LINK, CURR_PC, PKT_PC, NXTPKT_OFFS, PLUS1SYLL, MEM, IMM9, IMM12, IMM8
 } regT;
@@ -178,14 +177,15 @@ int printCounts(hyperContextT *);
 unsigned checkActive(void);
 instructionPacket fetchInstruction(contextT *, unsigned, contextConfig *);
 unsigned checkBundle(hyperContextT *, unsigned, unsigned);
-instruction instructionDecode(unsigned, unsigned, /*unsigned *,*/ hyperContextT *, systemT *, contextT *, unsigned, unsigned);
-packetT getOp(unsigned, unsigned, unsigned, unsigned, /*unsigned *,*/ hyperContextT *, systemT *, contextT *, unsigned, unsigned);
+instruction instructionDecode(unsigned, unsigned, hyperContextT *, systemT *, unsigned);
+packetT getOp(unsigned, unsigned, unsigned, unsigned, hyperContextT *, systemT *, unsigned);
 void memRequest(systemT *, unsigned *, unsigned, unsigned, memOpT, unsigned);
 int memoryDump(unsigned, unsigned, unsigned *);
 void newThreadRequest(unsigned, unsigned, unsigned, unsigned, systemT *, unsigned);
 
 int serviceThreadRequests(systemT *);
 
+void performMemoryOp(struct memReqT *, unsigned, systemT *);
 void serviceMemRequest(systemT *, unsigned, unsigned, unsigned);
 void serviceMemRequestNOSTALLS(systemT *, unsigned, unsigned, unsigned);
 void serviceMemRequestPERFECT(systemT *, unsigned);
