@@ -38,6 +38,7 @@ unsigned long long cycleCount;
 unsigned int STACK_SIZE; /* stack size per hypercontext in KB */
 unsigned int PRINT_OUT; /* switch to output cycle information */
 unsigned int SINGLE_STEP;
+unsigned int STAGGER; /* In multicore cpuid mode start context staggered */
 
 /* list of calls with names, pcs and registers required */
 typedef struct {

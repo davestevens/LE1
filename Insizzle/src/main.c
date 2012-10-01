@@ -46,6 +46,7 @@ int main(int argc, char *argv[])
   STACK_SIZE = 8; /* Default stack size to 8 KiB */
   PRINT_OUT = 0;
   SINGLE_STEP = 0;
+  STAGGER = 0;
   printf("Insizzle (%s)\n", versionNumber);
 
   /* signal catch (SIGSEGV and SIGUSR1) */
@@ -78,23 +79,25 @@ int main(int argc, char *argv[])
   printf("Galaxy setup completed.\n");
   /* for each other argv */
   for(i=2;i<(unsigned)argc;i++) {
-    if(!strcmp(argv[i], "-similarIRAM")) {
+	  if(!strncmp(argv[i], "-similarIRAM", 12)) {
       similarIRAM = 1;
     }
-    else if(!strcmp(argv[i], "-suppressOOB")) {
+    else if(!strncmp(argv[i], "-suppressOOB", 12)) {
       suppressOOB = 1;
     }
-    else if(!strncmp(argv[i], "-stack=", 7)) {
-      sscanf(argv[i], "-stack=%d", (int *)&STACK_SIZE_ARG);
+    else if(!strncmp(argv[i], "-stack", 6)) {
+      STACK_SIZE_ARG = atoi(argv[++i]);
     }
-    else if(!strcmp(argv[i], "-printout")) {
+    else if(!strncmp(argv[i], "-printout", 9)) {
       PRINT_OUT = 1;
     }
-    else if(!strcmp(argv[i], "-singlestep")) {
-      printf("SINGLE_STEP\n");
+    else if(!strncmp(argv[i], "-singlestep", 11)) {
       SINGLE_STEP = 1;
     }
-    else if(!strcmp(argv[i], "-calls_list")) {
+    else if(!strncmp(argv[i], "-stagger", 8)) {
+      STAGGER = atoi(argv[++i]);
+    }
+    else if(!strncmp(argv[i], "-calls_list", 11)) {
       /* setup calls list */
       callsList = NULL;
       if(setupCallsList(argv[i+1]) != 0) {
@@ -102,7 +105,7 @@ int main(int argc, char *argv[])
       }
       i++;
     }
-    else if(!strcmp(argv[i], "-llvm")) {
+    else if(!strncmp(argv[i], "-llvm", 5)) {
       llvm = 1;
     }
     else {
@@ -231,8 +234,6 @@ int main(int argc, char *argv[])
 #else
   while(checkActive())
     {
-#endif
-#ifndef API
       if(PRINT_OUT) {
 	printf("------------------------------------------------------------ end of cycle %lld\n", cycleCount);
       }
@@ -993,10 +994,9 @@ int setupGalaxy(void)
 #else
 	      hypercontext->VT_CTRL |= RUNNING << 3;
 #endif
-	      /*hypercontext->VT_CTRL |= 1 << 1;*/
-	      /*hypercontext->VT_CTRL |= 1 << 2; *//* single step mode */
 
-	      hypercontext->stalled = 0;
+	      /* Introduce stagger effect of hardware */
+	      hypercontext->stalled = (STAGGER * j);
 	      hypercontext->checkedPC = -1;
 
 	      hypercontext->cycleCount = 0;
