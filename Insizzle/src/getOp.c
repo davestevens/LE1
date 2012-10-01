@@ -5,9 +5,9 @@
 void insertSource(sourceReg *, regT, unsigned short, unsigned char, unsigned, unsigned char);
 void insertDest(destReg *, regT, unsigned char, unsigned short, unsigned char, unsigned char, unsigned);
 
-packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, /*unsigned *dataP,*/ hyperContextT *hypercontext, systemT *system, contextT *context, unsigned VT_CTRL, unsigned dramSize)
+packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, hyperContextT *hypercontext, systemT *system, unsigned dramSize)
 {
-  unsigned clust = VT_CTRL; /* TODO: Remove this */
+  unsigned clust;
   unsigned extra;
   packetT ret;
   unsigned i;
