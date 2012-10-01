@@ -70,6 +70,10 @@ int main(int argc, char *argv[])
     printf("error reading config\n");
     return -1;
   }
+  /* all setup perfomed
+     reset rand()
+  */
+  srand(1);
 
   printf("Galaxy setup completed.\n");
   /* for each other argv */
@@ -207,11 +211,6 @@ int main(int argc, char *argv[])
 #endif
   start = time(NULL);
 #endif
-
-  /* all setup perfomed
-     reset rand()
-  */
-  srand(1);
 
 #ifdef API
   int insizzleAPIClock(galaxyConfigT *galaxyConfig, hcTracePacketT gTracePacket[][MASTERCFG_CONTEXTS_MAX][MASTERCFG_HYPERCONTEXTS_MAX])
@@ -443,7 +442,7 @@ int main(int argc, char *argv[])
 				      printf("PC: 0x%x, this.imm: 0x%08x\n", (hypercontext->programCounter + 4), this.imm);
 #endif
 
-				    inst = instructionDecode(this.op, this.imm, /*system->dram,*/ hypercontext, system, context, hypercontext->VT_CTRL, (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1024));
+				    inst = instructionDecode(this.op, this.imm, /*system->dram,*/ hypercontext, system, /*context, hypercontext->VT_CTRL, */(((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1024));
 
 				    /*printf("%d : %d : ", *(hypercontext->S_GPR + 60), *(hypercontext->pS_GPR + 60));*/
   if((inst.packet.addr == 0) && (inst.packet.target == 1)) {
@@ -1119,7 +1118,9 @@ int freeMem(void)
 }
 
 void stateDumpToTerminal(instruction inst, hyperContextT *hypercontext, unsigned long long cycleCount) {
-  system("clear");
+  if(system("clear") == -1) {
+    exit(-1);
+  }
   printf("CycleCount: %llu\n", cycleCount);
   printf("PC:         0x%x\n", hypercontext->programCounter);
   printf("SP:         0x%x\n", hypercontext->linkReg);
