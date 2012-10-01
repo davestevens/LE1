@@ -1253,11 +1253,10 @@ void serviceMemRequest(systemT *system, unsigned findBank, unsigned numBanks, un
 			given = 0;
 			/* Give preference to lower numbers hypercontexts */
 			{
-				unsigned int c, hc;
-				for(c=0;c<system->numContext;++c) {
-					cnt = (contextT *)((size_t)system->context + (c * sizeof(contextT)));
-					for(hc=0;hc<cnt->numHyperContext;++hc) {
-						hcnt = (hyperContextT *)((size_t)cnt->hypercontext + (hc * sizeof(hyperContextT)));
+				for(context=0;context<system->numContext;++context) {
+					cnt = (contextT *)((size_t)system->context + (context * sizeof(contextT)));
+					for(hypercontext=0;hypercontext<cnt->numHyperContext;++hypercontext) {
+						hcnt = (hyperContextT *)((size_t)cnt->hypercontext + (hypercontext * sizeof(hyperContextT)));
 
 						/* Loop through list of memory request */
 						/* If any on this bank and this context/hypercontext then give it */
@@ -1267,8 +1266,8 @@ void serviceMemRequest(systemT *system, unsigned findBank, unsigned numBanks, un
 						}
 						do {
 							if((((temp->value >> 2) & findBank) == whichBank)
-							   && (((temp->ctrlReg >> 16) & 0xFF) == c)
-							   && (((temp->ctrlReg >> 12) & 0XF) == hc)){
+							   && (((temp->ctrlReg >> 16) & 0xFF) == context)
+							   && (((temp->ctrlReg >> 12) & 0XF) == hypercontext)){
 
 								if(given) {
 									/* Stall it */
