@@ -7,6 +7,7 @@
 # -DINSDEBUG - print lots of information about everything
 # -DDEBUGmem - print information about memory accesses
 # -DNOSTALLS - count stall events but don't execute them
+# -DMEMORY_PREF_LOWER - switches to alternative memory service routine
 
 CC = gcc
 CFLAGS = -c -Wall -pedantic -std=c99 -Wextra `xml2-config --cflags` -D_XOPEN_SOURCE
