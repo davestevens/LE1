@@ -820,6 +820,7 @@ int setupGalaxy(void)
 
       system->memReq = NULL;
       system->threadReq = NULL;
+      system->mutex = NULL;
 
 #ifndef API
       printf("Please specify the location of the dram binary for system %d\n> ", i);

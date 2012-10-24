@@ -163,6 +163,12 @@ struct newThreadT {
   struct newThreadT *next;
 };
 
+typedef struct mutextT {
+  unsigned data;
+  unsigned status;
+  struct mutexT *next;
+} mutexT;
+
 /* syscall function */
 void syscall(unsigned *, systemT *, unsigned, unsigned long long);
 

@@ -92,6 +92,8 @@ typedef struct {
 
   struct newThreadT *threadReq;
 
+  struct mutexT *mutex;
+
   unsigned numContext;
 } systemT;
 
@@ -116,5 +118,9 @@ typedef struct tcu_t {
 } tcu_t;
 
 tcu_t ThreadControlUnit;
+
+/* Mutex */
+#define MUTEX_LOCKED 1
+#define MUTEX_FREE 0
 
 #endif

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "functions.h"
 #include "macros.h"
+#include <stdlib.h>
 
 void insertSource(sourceReg *, regT, unsigned short, unsigned char, unsigned, unsigned char);
 void insertDest(destReg *, regT, unsigned char, unsigned short, unsigned char, unsigned char, unsigned);
@@ -1923,6 +1924,163 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 			    printf("ret.target: %d\n", *(pS_GPR + ret.target));
 			    printf("ret.target2: %d\n", *(pS_GPR + ret.target2));*/
 			  newThreadRequest(hypercontext->VT_CTRL, *(pS_GPR + ret.source1), 0, 0, system, VTHREAD_JOIN);
+			  break;
+			case 3:
+			  //printf("\t\tvthread_mutex_init\n");
+			  /* Initialise mutex pointed to by source 1 */
+			  ret.source1 = (inst & 0x3f);
+			  ret.target = ((inst >> 15) & 0x3f);
+			  /* Search the mutexT to check there isn't alread a mutex on this data item */
+			  {
+			    mutexT *m = (mutexT *)system->mutex;
+			    if(m == NULL) {
+			      //printf("no other mutexs\n");
+			      system->mutex = (struct mutexT *)calloc(1, sizeof(mutexT));
+			      if(system->mutex == NULL) {
+				fprintf(stderr, "Error allocating memory (mutexT)\n");
+				exit(-1);
+			      }
+			      m = (mutexT *)system->mutex;
+			    }
+			    else {
+			      mutexT *p = m;
+			      while(m) {
+				//printf("looping through mutexs: 0x%08x\n", *(S_GPR + (ret.source1)));
+				if(m->data == *(S_GPR + (ret.source1))) {
+				  //printf("already mutex\n");
+				  *(S_GPR + (ret.target)) = -1;
+				  break;
+				}
+				p = m;
+				m = (mutexT *)m->next;
+			      }
+			      p->next = (struct mutexT *)calloc(1, sizeof(mutexT));
+			      m = (mutexT *)p->next;
+			    }
+			    m->data = *(S_GPR + (ret.source1));
+			    m->status = MUTEX_FREE;
+			  }
+			  *(S_GPR + (ret.target)) = 0;
+			  break;
+			case 4:
+			  //printf("\t\tvthread_mutex_destroy\n");
+			  /* Find the correct item and remove it from the list */
+			  ret.source1 = (inst & 0x3f);
+			  ret.target = ((inst >> 15) & 0x3f);
+			  {
+			    mutexT *m = (mutexT *)system->mutex;
+			    if(m == NULL) {
+			      //printf("no mutexs\n");
+			      *(S_GPR + (ret.target)) = -1;
+			      break;
+			    }
+			    else {
+			      mutexT *p = m;
+			      unsigned f = 0;
+			      while(m) {
+				printf("looping through mutexs: 0x%08x\n", *(S_GPR + (ret.source1)));
+				if(m->data == *(S_GPR + (ret.source1))) {
+				  /*printf("already mutex\n");
+				  *(S_GPR + (ret.target)) = -1;
+				  break;*/
+				  f = 1;
+				  break;
+				}
+				p = m;
+				m = (mutexT *)m->next;
+			      }
+			      if(f) {
+				if(m->status == MUTEX_LOCKED) {
+				  printf("destroying mutex which is locked\n");
+				}
+				/* Figure out if it is head */
+				if(m == (mutexT *)system->mutex) {
+				  system->mutex = m->next;
+				  free(m);
+				}
+				else {
+				  p->next = m->next;
+				  free(m);
+				}
+			      }
+			      else {
+				//printf("could not find mutex\n");
+				*(S_GPR + (ret.target)) = -1;
+				break;
+			      }
+			    }
+			    *(S_GPR + (ret.target)) = 0;
+			  }
+			  break;
+			case 5:
+			  //printf("\t\tvthread_mutex_lock\n");
+			  ret.source1 = (inst & 0x3f);
+			  ret.target = ((inst >> 15) & 0x3f);
+			  {
+			    mutexT *m = (mutexT *)system->mutex;
+			    if(m == NULL) {
+			      //printf("no mutexs\n");
+			      *(S_GPR + (ret.target)) = -1;
+			      break;
+			    }
+			    else {
+			      unsigned f = 0;
+			      while(m) {
+				//printf("looping through mutexs: 0x%08x\n", *(S_GPR + (ret.source1)));
+				if(m->data == *(S_GPR + (ret.source1))) {
+				  /* Check if already locked */
+				  if(m->status == MUTEX_LOCKED) {
+				    //printf("already locked (0x%08x)\n", hypercontext->programCounter);
+				    ret.newPCValid = 1;
+				    ret.newPC = hypercontext->programCounter;
+				    *(S_GPR + (ret.target)) = -1;
+				    f = 1;
+				  }
+				  else {
+				    m->status = MUTEX_LOCKED;
+				    *(S_GPR + (ret.target)) = 0;
+				    f = 1;
+				  }
+				  break;
+				}
+				m = (mutexT *)m->next;
+			      }
+			      if(!f) {
+				//printf("could not find mutex\n");
+				*(S_GPR + (ret.target)) = -1;
+			      }
+			    }
+			  }
+			  break;
+			case 6:
+			  //printf("\t\tvthread_mutex_unlock\n");
+			  ret.source1 = (inst & 0x3f);
+			  ret.target = ((inst >> 15) & 0x3f);
+			  /* Find the mutex and set to unlocked */
+			  {
+			    mutexT *m = (mutexT *)system->mutex;
+			    if(m == NULL) {
+			      //printf("no mutexs\n");
+			      *(S_GPR + (ret.target)) = -1;
+			      break;
+			    }
+			    else {
+			      unsigned f = 0;
+			      while(m) {
+				//printf("looping through mutexs: 0x%08x\n", *(S_GPR + (ret.source1)));
+				if(m->data == *(S_GPR + (ret.source1))) {
+				  m->status = MUTEX_FREE;
+				  *(S_GPR + (ret.target)) = 0;
+				  f = 1;
+				}
+				m = (mutexT *)m->next;
+			      }
+			      if(!f) {
+				//printf("could not find mutex\n");
+				*(S_GPR + (ret.target)) = -1;
+			      }
+			    }
+			  }
 			  break;
 			default:
 			  printf("UNKNOWN CASM3 custom instruction\n");
