@@ -21,8 +21,8 @@ my $galaxy = XMLin("$machine_name", ForceArray => 1); # contains LE1 configurati
 ######################################
 
 if($galaxy->{type}[0] eq "homogeneous") { # for when dealing with hetrogeneous or homogeneous le1 systems
-    for(my $tempS=0;$tempS<$galaxy->{systems}[0];$tempS++) {
-	my $system = $galaxy->{system}[0];
+    for(my $tempS=0;$tempS<$galaxy->{'systems'}[0];$tempS++) {
+	my $system = $galaxy->{'system'}[0];
 
 	$stack_size = $system->{'STACK_SIZE'}[0];
 	$stack_size =~ /0x(\w+)/;
@@ -32,7 +32,7 @@ if($galaxy->{type}[0] eq "homogeneous") { # for when dealing with hetrogeneous o
 	$dram_size =~ /0x(\w+)/;
 	$dram_size = hex($1);
 
-	my $context = $system->{context}[0];
+	my $context = $system->{'context'}[0];
 	for(my $tempHC=0;$tempHC<$context->{HYPERCONTEXTS}[0];$tempHC++) {
 	    my $hypercontext = $context->{hypercontext}[0];
 	    my $total_GPR = 0;
@@ -111,7 +111,7 @@ VEX
 }
 else {
     my $tempS = -1;
-    while(my $system = $galaxy->{system}[++$tempS]) {
+    while(my $system = $galaxy->{'system'}[++$tempS]) {
 
 	$stack_size = $system->{'STACK_SIZE'}[0];
 	$stack_size =~ /0x(\w+)/;
@@ -122,7 +122,7 @@ else {
 	$dram_size = hex($1);
 
 	my $tempC = -1;
-	while(my $context = $system->{context}[++$tempC]) {
+	while(my $context = $system->{'context'}[++$tempC]) {
 	    my $tempHC = -1;
 	    while(my $hypercontext = $context->{hypercontext}[++$tempHC]) {
 		my $total_GPR = 0;
