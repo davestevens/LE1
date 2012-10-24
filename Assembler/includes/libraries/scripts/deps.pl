@@ -107,6 +107,10 @@
 # PTHREAD
 @vthread_create = ("pthread/pthread.c");
 @vthread_join = ("pthread/pthread.c");
+@vthread_mutex_init = ("pthread/pthread.c");
+@vthread_mutex_destroy = ("pthread/pthread.c");
+@vthread_mutex_lock = ("pthread/pthread.c");
+@vthread_mutex_unlock = ("pthread/pthread.c");
 
 # CTYPE
 @toupper = ("ctype/toupper.c");
