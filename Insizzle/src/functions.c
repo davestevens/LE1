@@ -1699,12 +1699,8 @@ int insizzleAPIRdCtrl(vtCtrlStateE *val) {
       }
     }
     else {
-	    printf("normal mode\n");
-      /* normal mode */
-	    printf("%d\n", RDY);
       switch((globalHC->VT_CTRL >> 3) & 0xff) {
       case READY:
-	      printf("ready\n");
 	*val = READY;
 	break;
       case RUNNING:
