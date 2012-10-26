@@ -120,7 +120,7 @@ typedef struct tcu_t {
 tcu_t ThreadControlUnit;
 
 /* Mutex */
-#define MUTEX_LOCKED 1
+#define MUTEX_LOCK 1
 #define MUTEX_FREE 0
 
 #endif

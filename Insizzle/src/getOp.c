@@ -1990,7 +1990,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 				m = (mutexT *)m->next;
 			      }
 			      if(f) {
-				if(m->status == MUTEX_LOCKED) {
+				if(m->status == MUTEX_LOCK) {
 				  printf("destroying mutex which is locked\n");
 				}
 				/* Figure out if it is head */
@@ -2029,7 +2029,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 				//printf("looping through mutexs: 0x%08x\n", *(S_GPR + (ret.source1)));
 				if(m->data == *(S_GPR + (ret.source1))) {
 				  /* Check if already locked */
-				  if(m->status == MUTEX_LOCKED) {
+				  if(m->status == MUTEX_LOCK) {
 				    //printf("already locked (0x%08x)\n", hypercontext->programCounter);
 				    ret.newPCValid = 1;
 				    ret.newPC = hypercontext->programCounter;
@@ -2037,7 +2037,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 				    f = 1;
 				  }
 				  else {
-				    m->status = MUTEX_LOCKED;
+				    m->status = MUTEX_LOCK;
 				    *(S_GPR + (ret.target)) = 0;
 				    f = 1;
 				  }
