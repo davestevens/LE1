@@ -48,6 +48,13 @@ algorithms.
  *
  *  @(#) $Id: decode.c,v 1.2 2003/07/18 10:19:21 honda Exp $
  */
+#include "global.h"
+#include "decode.h"
+//#include "init.h"
+#include "huffman.h"
+
+extern unsigned char OutData_comp_buf[RGB_NUM][BMP_OUT_SIZE];
+
 void ChenIDct(int *x, int *y);
 
 int rgb_buf[4][RGB_NUM][DCTSIZE2];
@@ -129,6 +136,9 @@ BoundIDctMatrix(int *matrix, int Bound)
 }
 
 
+void what(void) {
+  return;
+}
 
 void
 WriteOneBlock(int *store, unsigned char *out_buf, int width, int height,
@@ -144,8 +154,11 @@ WriteOneBlock(int *store, unsigned char *out_buf, int width, int height,
             diff = width * i;
             for(e = hoffs; e < hoffs + DCTSIZE; e++){
                 if(e < width){
-		  printf(""); /* TODO */
 		  out_buf[diff + e] = (unsigned char)(*(store++));
+		  //printf("");
+		  /* THIS NEEDS TO BE ADDED OTHERWISE IT CAUSES AN ERROR IN VEX OUTPUT? */
+		  //what();
+		  /* TODO */
                 }else{
                     break;
                 }
@@ -365,7 +378,7 @@ decode_start(int* out_data_image_width, int* out_data_image_height, int* out_dat
     
     
     if(p_jinfo_smp_fact == SF1_1_1){
-        printf("Decode 1:1:1 NumMCU = %d\n",p_jinfo_NumMCU);
+      //printf("Decode 1:1:1 NumMCU = %d\n",p_jinfo_NumMCU);
         
         /*
          * 1_1_1
@@ -391,7 +404,7 @@ decode_start(int* out_data_image_width, int* out_data_image_height, int* out_dat
         }
         
     }else{
-        printf("Decode 4:1:1 NumMCU = %d\n",p_jinfo_NumMCU);
+      //printf("Decode 4:1:1 NumMCU = %d\n",p_jinfo_NumMCU);
         /*
          * 4_1_1
          */

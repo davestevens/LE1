@@ -42,7 +42,7 @@
 #include "marker.c"
 #include "chenidct.c"
 #include "huffman.h"
-#include "decode.c"
+//#include "decode.c"
 #include "huffman.c"
 #include "jfif_read.c"
 #include "jpeg2bmp.c"
@@ -53,11 +53,11 @@ main ()
       main_result = 0;
       jpeg2bmp_main ();
 
-      printf ("Result: %d\n", main_result);
+      //printf ("Result: %d\n", main_result);
       if (main_result == 21745) {
-          printf("RESULT: PASS\n");
+	//printf("RESULT: PASS\n");
       } else {
-          printf("RESULT: FAIL\n");
+	//printf("RESULT: FAIL\n");
       }
 
       return main_result;

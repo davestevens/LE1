@@ -124,11 +124,11 @@ main ()
 {
       main_result = 0;
       aes_main ();
-      printf ("Result: %d\n", main_result);
+      //printf ("Result: %d\n", main_result);
       if (main_result == 32) {
-          printf("RESULT: PASS\n");
+	//printf("RESULT: PASS\n");
       } else {
-          printf("RESULT: FAIL\n");
+	//printf("RESULT: FAIL\n");
       }
       return main_result;
     }

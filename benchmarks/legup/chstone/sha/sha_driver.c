@@ -37,11 +37,12 @@
 const LONG outData[5] =
   { 0x006a5a37UL, 0x93dc9485UL, 0x2c412112UL, 0x63f7ba43UL, 0xad73f922UL };
 
+  int main_result;
+
 int
 main ()
 {
   int i;
-  int main_result;
       main_result = 0;
       sha_stream ();
 
@@ -50,11 +51,11 @@ main ()
 
 	  main_result += (sha_info_digest[i] == outData[i]);
 	}
-      printf ("Result: %d\n", main_result);
+      //printf ("Result: %d\n", main_result);
       if (main_result == 5) {
-          printf("RESULT: PASS\n");
+	//printf("RESULT: PASS\n");
       } else {
-          printf("RESULT: FAIL\n");
+	//printf("RESULT: FAIL\n");
       }
 
       return main_result;

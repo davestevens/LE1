@@ -85,12 +85,12 @@ const word outData[N] =
 
 const word outLARc[M] = { 32, 33, 22, 13, 7, 5, 3, 2 };
 
+  int main_result;
 
 int
 main ()
 {
   int i;
-  int main_result;
   word so[N];
   word LARc[M];
       main_result = 0;
@@ -105,11 +105,11 @@ main ()
       for (i = 0; i < M; i++)
 	main_result += (LARc[i] == outLARc[i]);
 
-      printf ("Result: %d\n", main_result);
+      //printf ("Result: %d\n", main_result);
       if (main_result == 168) {
-          printf("RESULT: PASS\n");
+	//printf("RESULT: PASS\n");
       } else {
-          printf("RESULT: FAIL\n");
+	//printf("RESULT: FAIL\n");
       }
       return main_result;
     }

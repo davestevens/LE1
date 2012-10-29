@@ -852,19 +852,20 @@ blowfish_main ()
   return check;
 }
 
+  int main_result;
+
 int
 main ()
 {
-  int main_result;
 
       main_result = 0;
       main_result = blowfish_main ();
 
-      printf ("Result: %d\n", main_result);
+      //printf ("Result: %d\n", main_result);
       if (main_result == 5200) {
-          printf("RESULT: PASS\n");
+	//printf("RESULT: PASS\n");
       } else {
-          printf("RESULT: FAIL\n");
+	//printf("RESULT: FAIL\n");
       }
 
       return main_result;

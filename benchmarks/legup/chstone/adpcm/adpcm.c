@@ -864,11 +864,12 @@ adpcm_main ()
     }
 }
 
+int main_result;
+
 int
 main ()
 {
   int i;
-  int main_result;
 
       main_result = 0;
       adpcm_main ();
@@ -886,11 +887,11 @@ main ()
 	      main_result++;
 	    }
 	}
-      printf ("Result: %d\n", main_result);
+      //printf ("Result: %d\n", main_result);
       if (main_result == 150) {
-          printf("RESULT: PASS\n");
+	//printf("RESULT: PASS\n");
       } else {
-          printf("RESULT: FAIL\n");
+	//printf("RESULT: FAIL\n");
       }
       return main_result;
     }

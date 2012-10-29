@@ -205,7 +205,7 @@ first_marker(void)
     c2 = read_byte();
 
     if(c1 != 0xFF || c2 != M_SOI){
-        printf( "Not Jpeg File!\n");
+      //printf( "Not Jpeg File!\n");
         EXIT;
     } else {
     	main_result++;
@@ -259,11 +259,11 @@ get_sof()
     p_jinfo_image_width = read_word();
     p_jinfo_num_components = read_byte();
 
-    printf("length         = %d\n",length);
+    /*printf("length         = %d\n",length);
     printf("data_precision = %d\n",p_jinfo_data_precision);
     printf("image_height   = %d\n",p_jinfo_image_height);
     printf("image_width    = %d\n",p_jinfo_image_width);
-    printf("num_components = %d\n",p_jinfo_num_components);
+    printf("num_components = %d\n",p_jinfo_num_components);*/
 
     if (length == out_length_get_sof)
     {
@@ -305,11 +305,11 @@ get_sof()
         *p_comp_info_v_samp_factor = (c     ) & 15;
         *p_comp_info_quant_tbl_no = read_byte();
 
-        printf(" index         = %d\n",*p_comp_info_index);
+        /*printf(" index         = %d\n",*p_comp_info_index);
         printf(" id            = %d\n",*p_comp_info_id);
         printf(" h_samp_factor = %d\n",*p_comp_info_h_samp_factor);
         printf(" v_samp_factor = %d\n",*p_comp_info_v_samp_factor);
-        printf(" quant_tbl_no  = %d\n\n",*p_comp_info_quant_tbl_no);
+        printf(" quant_tbl_no  = %d\n\n",*p_comp_info_quant_tbl_no);*/
     	
     if (*p_comp_info_index == out_index_get_sof[ci])
     {
@@ -340,10 +340,10 @@ get_sof()
      */
     if(p_jinfo_comps_info_h_samp_factor[0] == 2){
         p_jinfo_smp_fact = SF4_1_1;
-        printf("\nSampling Factor is 4:1:1\n");
+        //printf("\nSampling Factor is 4:1:1\n");
     }else{
         p_jinfo_smp_fact = SF1_1_1;
-        printf("\nSampling Factor is 1:1:1\n");
+        //printf("\nSampling Factor is 1:1:1\n");
     }
 }
 
@@ -364,8 +364,8 @@ get_sos()
     length = read_word();
     num_comp = read_byte();
 
-    printf(" length = %d\n",length);
-    printf(" num_comp = %d\n",num_comp);
+    /*printf(" length = %d\n",length);
+      printf(" num_comp = %d\n",num_comp);*/
 	
     if (length == out_length_get_sos)
     {
@@ -389,7 +389,7 @@ get_sos()
             if( cc == *p_comp_info_id)
                 goto id_found;
         }
-        printf("Bad Component ID!\n");
+        //printf("Bad Component ID!\n");
         EXIT;
 
       id_found:
@@ -397,9 +397,9 @@ get_sos()
         *p_comp_info_dc_tbl_no = (c >> 4) & 15;
         *p_comp_info_ac_tbl_no = (c     ) & 15;
         
-        printf(" comp_id       = %d\n",cc);
+        /*printf(" comp_id       = %d\n",cc);
         printf(" dc_tbl_no     = %d\n",*p_comp_info_dc_tbl_no);
-        printf(" ac_tbl_no     = %d\n",*p_comp_info_ac_tbl_no);
+        printf(" ac_tbl_no     = %d\n",*p_comp_info_ac_tbl_no);*/
 
     if (cc == out_comp_id_get_sos[i_get_sos])
     {
@@ -446,7 +446,7 @@ get_dht()
     length = read_word();
     length -=2;
 
-    printf(" length = %d\n",length);
+    //printf(" length = %d\n",length);
 
     if (length == out_length_get_dht[i_get_dht])
     {
@@ -456,7 +456,7 @@ get_dht()
     while(length > 16){
         index = read_byte();
 
-        printf(" index = 0x%x\n",index);
+        //printf(" index = 0x%x\n",index);
 
     if (index == out_index_get_dht[i_get_dht])
     {
@@ -481,7 +481,7 @@ get_dht()
 			count += p_xhtbl_bits[i];
         }
 
-        printf(" count = %d\n",count);
+        //printf(" count = %d\n",count);
 
     if (count == out_count_get_dht[i_get_dht])
     {
@@ -511,7 +511,7 @@ get_dqt()
     length = read_word();
     length -=2;
 
-    printf(" length = %d\n",length);
+    //printf(" length = %d\n",length);
 
     if (length == out_length_get_dqt[i_get_dqt])
     {
@@ -525,8 +525,8 @@ get_dqt()
         /* Table Number */
         num &= 0x0f;
 
-    printf(" prec = %d\n",prec);
-    printf(" num  = %d\n",num);
+	//printf(" prec = %d\n",prec);
+	//printf(" num  = %d\n",num);
 
     if (prec == out_prec_get_dht[i_get_dqt])
     {
@@ -574,7 +574,7 @@ read_markers(unsigned char* buf)
             unread_marker = next_marker();
         }
 
-        printf("\nmarker = 0x%x\n",unread_marker);
+        //printf("\nmarker = 0x%x\n",unread_marker);
 
     if (unread_marker == out_unread_marker[i_marker++])
     {

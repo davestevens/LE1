@@ -95,7 +95,7 @@ pgetc()
 
     if ((temp = *CurHuffReadBuf++)==MARKER_MARKER){   /* If MARKER then */
         if ((temp = *CurHuffReadBuf++)){ /* if next is not 0xff, then marker */
-            printf("Unanticipated marker detected.\n");
+	  //printf("Unanticipated marker detected.\n");
         }else{
             return(MARKER_MARKER);
         }
@@ -238,7 +238,7 @@ DecodeHuffman(int *Xhuff_huffval, int Dhuff_ml, int *Dhuff_maxcode, int *Dhuff_m
         p = Dhuff_valptr[l] + code - Dhuff_mincode[l];
         return(Xhuff_huffval[p]);
     }else{
-        printf("Huffman read error\n");
+      //printf("Huffman read error\n");
         EXIT;
     }
 
