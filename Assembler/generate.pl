@@ -368,25 +368,25 @@ sub readArgs {
 	elsif($arg eq '-k')                   { $keep = 1; }
 	elsif($arg eq '-falconmlhack')        { $falconMLHack = 1; }
 	elsif($arg eq '-llvm')                { $llvm = 1; }
-	elsif($arg =~ /-skip(vex)?/)          { $skip = 1; }
-	elsif($arg =~ /-o(\w+)/)              { $outputDir = $1; }
+	elsif($arg =~ /^\s*-skip(vex)?/)          { $skip = 1; }
+	elsif($arg =~ /^\s*-o(\w+)/)              { $outputDir = $1; }
 	elsif($arg eq '-memalign')            { $memAlign = 1; }
-	elsif($arg =~ /-fmm=(.+)/)            { $fmm = $1; }
-	elsif($arg =~ /-xmlMM=(.+)/i)         { $xmlMM = $1; }
+	elsif($arg =~ /^\s*-fmm=(.+)/)            { $fmm = $1; }
+	elsif($arg =~ /^\s*-xmlMM=(.+)/i)         { $xmlMM = $1; }
         # VEX (use for clusters)
-	elsif($arg =~ /-width=(\d+)/)         { $arguments .= ' -width ' . $1 . ' '; }
-	elsif($arg =~ /-MALLOC_SIZE=(\d+)/)   { $mallocSize = $1; }
-	elsif($arg =~ /-DRAM_OFFSET=0x(\w+)/) { $dramBaseOffset = hex($1); }
+	elsif($arg =~ /^\s*-width=(\d+)/)         { $arguments .= ' -width ' . $1 . ' '; }
+	elsif($arg =~ /^\s*-MALLOC_SIZE=(\d+)/)   { $mallocSize = $1; }
+	elsif($arg =~ /^\s*-DRAM_OFFSET=0x(\w+)/) { $dramBaseOffset = hex($1); }
 	# inlude path for pthread.h
 	elsif($arg eq '-pthread')             { $arguments .= ' -I' . $le1_folder . '/' . $assembler_folder . '/includes/libraries/pthread/' ;}
 	# macro for getCPUID function
 	elsif($arg eq '-cpuid')               { $arguments .= ' -DgetCPUID\(x\)=_asm1\(0x0,x\) '; }
 	elsif($arg eq '-syscall')             { $syscall = 1; }
-	elsif($arg =~ /-D(.+)=(.+)/)          { $arguments .= ' ' . $arg . ' '; }
-	elsif($arg =~ /-h(elp)?/)             { &help; }
+	elsif($arg =~ /^\s*-D(.+)=(.+)/)          { $arguments .= ' ' . $arg . ' '; }
+	elsif($arg =~ /^\s*-h(elp)?/)             { &help; }
 	# any other flag sent
-	elsif($arg =~ /^(-\w+)/)              { $arguments .= ' ' . $arg . ' '; }
-	elsif($arg =~ /-I(.+)/)               { $arguments .= ' ' . $arg . ' '; }
+	elsif($arg =~ /^\s*(-\w+)/)              { $arguments .= ' ' . $arg . ' '; }
+	elsif($arg =~ /^\s*-I(.+)/)               { $arguments .= ' ' . $arg . ' '; }
 	else                                  { $inputDir = $arg; }
     }
 
