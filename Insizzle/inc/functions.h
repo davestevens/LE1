@@ -41,7 +41,7 @@ unsigned int SINGLE_STEP;
 unsigned int STAGGER; /* In multicore cpuid mode start context staggered */
 
 /* list of calls with names, pcs and registers required */
-typedef struct {
+typedef struct callsList_t{
   unsigned pc;
   char *name;
   char registers[7];
@@ -163,7 +163,7 @@ struct newThreadT {
   struct newThreadT *next;
 };
 
-typedef struct mutextT {
+struct mutexT {
   unsigned data;
   unsigned status;
   struct mutexT *next;

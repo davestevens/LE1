@@ -1932,7 +1932,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 			  ret.target = ((inst >> 15) & 0x3f);
 			  /* Search the mutexT to check there isn't alread a mutex on this data item */
 			  {
-			    mutexT *m = (mutexT *)system->mutex;
+			    struct mutexT *m = (struct mutexT *)system->mutex;
 			    if(m == NULL) {
 			      //printf("no other mutexs\n");
 			      system->mutex = (struct mutexT *)calloc(1, sizeof(mutexT));
@@ -1940,22 +1940,22 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 				fprintf(stderr, "Error allocating memory (mutexT)\n");
 				exit(-1);
 			      }
-			      m = (mutexT *)system->mutex;
+			      m = (struct mutexT *)system->mutex;
 			    }
 			    else {
-			      mutexT *p = m;
+			      struct mutexT *p = m;
 			      while(m) {
 				//printf("looping through mutexs: 0x%08x\n", *(S_GPR + (ret.source1)));
-				if(m->data == *(S_GPR + (ret.source1))) {
+				      if(m->data == (unsigned)*(S_GPR + (ret.source1))) {
 				  //printf("already mutex\n");
 				  *(S_GPR + (ret.target)) = -1;
 				  break;
 				}
 				p = m;
-				m = (mutexT *)m->next;
+				m = (struct mutexT *)m->next;
 			      }
 			      p->next = (struct mutexT *)calloc(1, sizeof(mutexT));
-			      m = (mutexT *)p->next;
+			      m = (struct mutexT *)p->next;
 			    }
 			    m->data = *(S_GPR + (ret.source1));
 			    m->status = MUTEX_FREE;
@@ -1968,14 +1968,14 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 			  ret.source1 = (inst & 0x3f);
 			  ret.target = ((inst >> 15) & 0x3f);
 			  {
-			    mutexT *m = (mutexT *)system->mutex;
+			    struct mutexT *m = (struct mutexT *)system->mutex;
 			    if(m == NULL) {
 			      //printf("no mutexs\n");
 			      *(S_GPR + (ret.target)) = -1;
 			      break;
 			    }
 			    else {
-			      mutexT *p = m;
+			      struct mutexT *p = m;
 			      unsigned f = 0;
 			      while(m) {
 				printf("looping through mutexs: 0x%08x\n", *(S_GPR + (ret.source1)));
@@ -1987,14 +1987,14 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 				  break;
 				}
 				p = m;
-				m = (mutexT *)m->next;
+				m = (struct mutexT *)m->next;
 			      }
 			      if(f) {
 				if(m->status == MUTEX_LOCK) {
 				  printf("destroying mutex which is locked\n");
 				}
 				/* Figure out if it is head */
-				if(m == (mutexT *)system->mutex) {
+				if(m == (struct mutexT *)system->mutex) {
 				  system->mutex = m->next;
 				  free(m);
 				}
@@ -2017,7 +2017,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 			  ret.source1 = (inst & 0x3f);
 			  ret.target = ((inst >> 15) & 0x3f);
 			  {
-			    mutexT *m = (mutexT *)system->mutex;
+			    struct mutexT *m = (struct mutexT *)system->mutex;
 			    if(m == NULL) {
 			      //printf("no mutexs\n");
 			      *(S_GPR + (ret.target)) = -1;
@@ -2043,7 +2043,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 				  }
 				  break;
 				}
-				m = (mutexT *)m->next;
+				m = (struct mutexT *)m->next;
 			      }
 			      if(!f) {
 				//printf("could not find mutex\n");
@@ -2058,7 +2058,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 			  ret.target = ((inst >> 15) & 0x3f);
 			  /* Find the mutex and set to unlocked */
 			  {
-			    mutexT *m = (mutexT *)system->mutex;
+			    struct mutexT *m = (struct mutexT *)system->mutex;
 			    if(m == NULL) {
 			      //printf("no mutexs\n");
 			      *(S_GPR + (ret.target)) = -1;
@@ -2073,7 +2073,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 				  *(S_GPR + (ret.target)) = 0;
 				  f = 1;
 				}
-				m = (mutexT *)m->next;
+				m = (struct mutexT *)m->next;
 			      }
 			      if(!f) {
 				//printf("could not find mutex\n");
