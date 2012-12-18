@@ -22,14 +22,14 @@ SRC = $(wildcard $(SRCDIR)/*.c)
 OBJ = $(SRC:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
 
 TARGET = INSIZZLE
-TARGETAPI = INSIZZLEAPI
+TARGETAPI = INSIZZLEAPI.so
 
 REV_PERL = `perl scripts/revision.pl ${TARGET} ${TARGET}`
 
 debug:		CFLAGS += -g
 release:	CFLAGS += -O3 -fno-strict-aliasing
 mbMem:		CFLAGS += -DmicroblazeMemDump
-API:		CFLAGS += -DAPI
+API:		CFLAGS += -DAPI -fPIC
 NOSTALLS:	CFLAGS += -DNOSTALLS
 VTHREAD:	CFLAGS += -DVTHREAD
 VTHREAD_NOSTALLS: CFLAGS += -DVTHREAD -DNOSTALLS
@@ -49,7 +49,7 @@ $(TARGET): $(OBJ)
 	@echo ${REV_PERL}
 
 $(TARGETAPI): $(OBJ)
-	ar cr $(TARGETAPI) $(OBJ)
+	$(CC) -shared -o $(TARGETAPI) $(OBJ)
 
 $(OBJDIR)/%.o: $(SRCDIR)/%.c
 	$(CC) $(CFLAGS) $< -o $@ -I$(INCDIR) -I$(LE1_DRIVER_INC) $(VTAPI)
@@ -58,4 +58,6 @@ clean:
 		rm -f $(OBJ) $(TARGET) $(TARGETAPI)
 
 distclean:
-		rm -f *~ \#* $(OBJDIR)/*.o $(SRCDIR)/*~ $(INCDIR)/*~ $(TARGET) $(TARGETAPI)
+		rm -f $(OBJ) $(TARGET) $(TARGETAPI)
+		find . -name '*~' -delete
+		find . -name '#*' -delete
