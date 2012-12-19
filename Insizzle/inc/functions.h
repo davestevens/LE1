@@ -170,7 +170,7 @@ struct mutexT {
 } mutexT;
 
 /* syscall function */
-void syscall(unsigned *, systemT *, unsigned, unsigned long long);
+void _syscall(unsigned *, systemT *, unsigned, unsigned long long);
 
 void sigsegv_debug(int);
 void sigusr1_debug(int);

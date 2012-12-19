@@ -1447,7 +1447,7 @@ packetT getOp(unsigned format, unsigned opc, unsigned inst, unsigned immediate, 
 		      /*printf("case0\n");*/
 		      ret.opcode = SYSCALL;
 		      /* call syscall function */
-		      syscall(S_GPR, system, (inst & 0xfffff), cycleCount);
+		      _syscall(S_GPR, system, (inst & 0xfffff), cycleCount);
 		      /* TODO: implement! */
 		      break;
 		    case 1:

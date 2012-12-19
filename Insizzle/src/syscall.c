@@ -44,7 +44,7 @@ void freeFilePointer(int i) {
   filepointer[i-1].valid = 0;
 }
 
-void syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long long cycleCount) {
+void _syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long long cycleCount) {
   unsigned long dram = (size_t)system->dram;
 
   if(llvm) {
