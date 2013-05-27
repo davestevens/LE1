@@ -108,7 +108,7 @@ void _syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long lon
     /* All assume registers are availabe in current
        registers, due to VEX seeming to work this way
     */
-  case PRINTF:
+  case INS_PRINTF:
     /* r3 = printf(r3, r4...r10);*/
     {
       char format[256] = {'\0'};
@@ -185,7 +185,7 @@ void _syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long lon
       /*pcre_split_free(_temp);*/
     }
     break;
-  case FOPEN:
+  case INS_FOPEN:
     /* r3 = fopen(r3, r4) */
     {
       char filename[256] = {'\0'};
@@ -206,7 +206,7 @@ void _syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long lon
       }
     }
     break;
-  case FCLOSE:
+  case INS_FCLOSE:
     /* r3 = fclose(r3) */
     {
       /* TODO: this will break in 64 bit mode */
@@ -217,7 +217,7 @@ void _syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long lon
       *(S_GPR + 3) = (unsigned)ret;
     }
     break;
-  case FWRITE:
+  case INS_FWRITE:
     /* r3 = fwrite(r3, r4, r5, r6) */
     {
       void *ptr = (void *)(*(S_GPR + 3) + dram);
@@ -232,7 +232,7 @@ void _syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long lon
 			  
     }
     break;
-  case FREAD:
+  case INS_FREAD:
     /* r3 = fread(r3, r4, r5, r6) */
     {
       void *ptr = (void *)(*(S_GPR + 3) + dram);
@@ -247,7 +247,7 @@ void _syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long lon
       *(S_GPR + 3) = (unsigned)ret;
     }
     break;
-  case FPRINTF:
+  case INS_FPRINTF:
     /* r3 = fprintf(r3, r4, r5...r10) */
     {
       FILE *stream = getFilePointer(*(S_GPR + 3));
@@ -311,7 +311,7 @@ void _syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long lon
       /*pcre_split_free(_temp);*/
     }
     break;
-  case FSEEK:
+  case INS_FSEEK:
     /* r3 = fseek(r3, r4, r5) */
     {
       FILE *stream = getFilePointer(*(S_GPR + 3));
@@ -323,7 +323,7 @@ void _syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long lon
       *(S_GPR + 3) = (unsigned)ret;
     }
     break;
-  case FTELL:
+  case INS_FTELL:
     /* r3 = ftell(r3) */
     {
       FILE *stream = getFilePointer(*(S_GPR + 3));
@@ -333,7 +333,7 @@ void _syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long lon
       *(S_GPR + 3) = (unsigned)ret;
     }
     break;
-  case SNPRINTF:
+  case INS_SNPRINTF:
     /* r3 = snprintf(r3, r4, r5, ...) */
     {
       char *s = (char *)(*(S_GPR + 3) + dram);
@@ -409,12 +409,12 @@ void _syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long lon
       endianSwapLittle2Big(s, 1, strlen(sLittle), sLittle);
     }
     break;
-  case CLOCK:
+  case INS_CLOCK:
     {
       *(S_GPR + 3) = (unsigned)cycleCount;
     }
     break;
-  case FSCANF:
+  case INS_FSCANF:
     /* r3 = fscanf(r3, r4, ...) */
     {
       FILE *stream = getFilePointer(*(S_GPR + 3));
@@ -494,7 +494,7 @@ void _syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long lon
       *(S_GPR + 3) = (unsigned)ret;
     }
     break;
-  case FGETC:
+  case INS_FGETC:
     /* r3 = fgetc(r3, r4) */
     {
       FILE *stream = getFilePointer(*(S_GPR + 3));
@@ -504,7 +504,7 @@ void _syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long lon
       *(S_GPR + 3) = (unsigned)ret;
     }
     break;
-  case UNGETC:
+  case INS_UNGETC:
     /* r3 = ungetc(r3) */
     {
       int c = (int)*(S_GPR + 3);
@@ -515,7 +515,7 @@ void _syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long lon
       *(S_GPR + 3) = (unsigned)ret;
     }
     break;
-  case ATOI:
+  case INS_ATOI:
     /* r3 = atoi(r3) */
     {
       char str[256] = {'\0'};
@@ -527,7 +527,7 @@ void _syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long lon
       *(S_GPR + 3) = ret;/*((ret >> 24) & 0xff) | (((ret >> 16) & 0xff) << 8) | (((ret >> 8) & 0xff) << 16) | ((ret & 0xff) << 24);*/
     }
     break;
-  case SRAND:
+  case INS_SRAND:
     /* srand(r3) */
     {
       unsigned seed = *(S_GPR + 3);
@@ -535,7 +535,7 @@ void _syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long lon
       srand(seed);
     }
     break;
-  case RAND:
+  case INS_RAND:
     /* r3 = rand() */
     {
       int ret = rand();
@@ -544,7 +544,7 @@ void _syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long lon
       *(S_GPR + 3) = ret;/*((ret >> 24) & 0xff) | (((ret >> 16) & 0xff) << 8) | (((ret >> 8) & 0xff) << 16) | ((ret & 0xff) << 24);*/
     }
     break;
-  case SPRINTF:
+  case INS_SPRINTF:
     /* r3 = sprintf(r3, r4, ...) */
     {
       char *s = (char *)(*(S_GPR + 3) + dram);
@@ -618,7 +618,7 @@ void _syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long lon
       endianSwapLittle2Big(s, 1, strlen(sLittle), sLittle);
     }
     break;
-  case SSCANF:
+  case INS_SSCANF:
     /* r3 = sscanf(r3, r4, ...) */
     /* NOTE: limited to one match per string */
     {
@@ -695,7 +695,7 @@ void _syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long lon
       /*pcre_split_free(_temp);*/
     }
     break;
-  case FPUTC:
+  case INS_FPUTC:
     /* r3 = fputc(r3, r4) */
     {
       int c = (int)*(S_GPR + 3);
@@ -706,7 +706,7 @@ void _syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long lon
       *(S_GPR + 3) = (unsigned)ret;
     }
     break;
-  case OPEN:
+  case INS_OPEN:
     /* r3 = open(r3, r4) */
     {
       char filename[256] = {'\0'};
@@ -719,7 +719,7 @@ void _syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long lon
       *(S_GPR + 3) = (unsigned)ret;
     }
     break;
-  case CLOSE:
+  case INS_CLOSE:
     /* r3 = close(r3) */
     {
       size_t fd = (size_t)getFilePointer(*(S_GPR + 3));
@@ -729,7 +729,7 @@ void _syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long lon
       *(S_GPR + 3) = (unsigned)ret;
     }
     break;
-  case READ:
+  case INS_READ:
     /* r3 = read(r3, r4, r5) */
     {
       int fd = (int)*(S_GPR + 3);
@@ -744,7 +744,7 @@ void _syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long lon
       *(S_GPR + 3) = (unsigned)ret;
     }
     break;
-  case WRITE:
+  case INS_WRITE:
     /* r3 = write(r3, r4, r5) */
     {
       int fd = (int)*(S_GPR + 3);
@@ -760,7 +760,7 @@ void _syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long lon
       *(S_GPR + 3) = (unsigned)ret;
     }
     break;
-  case LSEEK:
+  case INS_LSEEK:
     /* r3 = lseek(r3, r4, r5) */
     {
       int fd = (int)*(S_GPR + 3);
@@ -772,7 +772,7 @@ void _syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long lon
       *(S_GPR + 3) = (unsigned)ret;
     }
     break;
-  case FSTAT:
+  case INS_FSTAT:
     /* r3 = fstat(r3, r4) */
     {
       int fd = (int)*(S_GPR + 3);
@@ -805,7 +805,7 @@ void _syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long lon
       *(S_GPR + 3) = (unsigned)ret;
     }
     break;
-  case STRTOL:
+  case INS_STRTOL:
     /* r3 = strtol(r3, r4, r5) */
     {
       char str[256] = {'\0'};
@@ -827,7 +827,7 @@ void _syscall(unsigned *S_GPR, systemT *system, unsigned call, unsigned long lon
       *(S_GPR + 3) = (unsigned)ret;
     }
     break;
-  case STRTOD:
+  case INS_STRTOD:
     /* r3 = strtod(r3, r4) */
     /* TODO: THIS IS BROKEN */
     {
