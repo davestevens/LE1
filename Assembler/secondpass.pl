@@ -575,6 +575,15 @@ sub operation {
     {
 	$layout =~ s/RBRi/RBRI/;
     }
+    # Hacky check for new MULT opcodes
+    if($opcode_name =~ /MULT/) {
+        # Bump upto RRI (32bit) even if 9bit imm
+        if($layout eq "RRi") {
+            $layout = "RRI";
+        }
+        # set subformat
+        $syllable |= 1 << 12;
+    }
     open OPCTXT, "< $opcodes_txt" or die "Second Pass Failed\nCould not find $opcodes_txt file ($!)\n";
     while( <OPCTXT> )
     {
