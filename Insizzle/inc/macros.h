@@ -57,6 +57,11 @@
 #define MLSHH(t,s1,s2)  t = INT16((s1) >> 16) * INT16((s2) >> 16)
 #define MLUHH(t,s1,s2) t = UINT16((s1) >> 16) * UINT16((s2) >> 16)
 
+#define MULTLU(t,s1,s2) t = UINT16(s1) * UINT16(s2)
+#define MULTHU(t,s1,s2) t = UINT16((s1) >> 16) * UINT16((s2) >> 16)
+#define MULTLS(t,s1,s2) t = INT16(s1) * INT16(s2)
+#define MULTHS(t,s1,s2) t = INT16((s1) >> 16) * INT16((s2) >> 16)
+
 #define ADD(t,s1,s2) t = (s1) + (s2)
 #define AND(t,s1,s2) t = (s1) & (s2)
 #define ANDC(t,s1,s2) t = ~(s1) & (s2)
