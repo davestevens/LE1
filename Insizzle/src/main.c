@@ -1224,16 +1224,16 @@ void printOut(instruction inst, instructionPacket this, hyperContextT *hypercont
 
 static const char *op_strings[] =
   {
-    "GOTO"  , "CALL"  , "ENTRY" , "RETURN", "BRANCH", "BRANCHF" , "LDSB"  , "LDUB"  , "LDSH" , "LDUH"   ,
-    "LDHU"  , "LDW"   , "STB"   , "STH"   , "STW"   , "MLSL"    , "MLUL"  , "MLSH"  , "MLUH" , "MLSLL"  ,
-    "MLULL" , "MLSLH" , "MLULH" , "MLSHH" , "MLUHH" , "ADD"     , "AND"   , "ANDC"  , "ANDL" , "CMPEQ"  ,
-    "CMPGES", "CMPGEU", "CMPGTS", "CMPGTU", "CMPLES", "CMPLEU"  , "CMPLTS", "CMPLTU", "CMPNE", "MAXS"   ,
-    "MAXU"  , "MINS"  , "MINU"  , "MFB"   , "MFL"   , "MOV"     , "MTL"   , "MTB"   , "MTBF" , "MPY"    ,
-    "NANDL" , "NOP"   , "NORL"  , "ORL"   , "OR"    , "ORC"     , "PFT"   , "SBIT"  , "SBITF", "SH1ADD" ,
-    "SH2ADD", "SH3ADD", "SH4ADD", "SHL"   , "SHRS"  , "SHRU"    , "SWBT"  , "SWBF"  , "SUB"  , "SEXTB"  ,
-    "SEXTH" , "TBIT"  , "TBITF" , "XNOP"  , "XOR"   , "ZEXTB"   , "ZEXTH" , "ADDCG" , "DIVS" , "RSUB"   ,
-    "MVL2G" , "MVG2L" , "HALT"  , "CUSTOM", "LDL"   , "PSYSCALL", "STL"   , "GOTOL" , "CALLL", "SYSCALL",
-    "RFI"   , "RDCTRL", "WRCTRL", "MLSHS", "CUPID"  , "CALLABS"
+    "GOTO"  , "CALL"  , "ENTRY" , "RETURN", "BRANCH", "BRANCHF" , "LDSB"  , "LDUB"  , "LDSH"  , "LDUH"   ,
+    "LDHU"  , "LDW"   , "STB"   , "STH"   , "STW"   , "MLSL"    , "MLUL"  , "MLSH"  , "MLUH"  , "MLSLL"  ,
+    "MLULL" , "MLSLH" , "MLULH" , "MLSHH" , "MLUHH" , "ADD"     , "AND"   , "ANDC"  , "ANDL"  , "CMPEQ"  ,
+    "CMPGES", "CMPGEU", "CMPGTS", "CMPGTU", "CMPLES", "CMPLEU"  , "CMPLTS", "CMPLTU", "CMPNE" , "MAXS"   ,
+    "MAXU"  , "MINS"  , "MINU"  , "MFB"   , "MFL"   , "MOV"     , "MTL"   , "MTB"   , "MTBF"  , "MPY"    ,
+    "NANDL" , "NOP"   , "NORL"  , "ORL"   , "OR"    , "ORC"     , "PFT"   , "SBIT"  , "SBITF" , "SH1ADD" ,
+    "SH2ADD", "SH3ADD", "SH4ADD", "SHL"   , "SHRS"  , "SHRU"    , "SWBT"  , "SWBF"  , "SUB"   , "SEXTB"  ,
+    "SEXTH" , "TBIT"  , "TBITF" , "XNOP"  , "XOR"   , "ZEXTB"   , "ZEXTH" , "ADDCG" , "DIVS"  , "RSUB"   ,
+    "MVL2G" , "MVG2L" , "HALT"  , "CUSTOM", "LDL"   , "PSYSCALL", "STL"   , "GOTOL" , "CALLL" , "SYSCALL",
+    "RFI"   , "RDCTRL", "WRCTRL", "MLSHS", "CUPID"  , "CALLABS" , "MULTLU", "MULTHU", "MULTLS", "MULTHS"
   };
 
 void returnOpcode(opT op)
