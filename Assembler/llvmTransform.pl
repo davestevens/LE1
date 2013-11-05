@@ -329,7 +329,7 @@ sub pushData {
     }
     elsif($type eq "HALF") {
 	# need to push any full words to data
-	if(!($currentAddr % 4) && $currentAddr) {
+	if(!($currentAddr % 4) && $currentAddr && !$cleanLine) {
 	    push @data, $currentLine;
 	    $currentLine = 0;
 	    $cleanLine = 1;
@@ -368,7 +368,7 @@ sub pushData {
     }
     elsif($type eq "SPACE") {
 	# need to push any full words to data
-	if(!($currentAddr % 4) && $currentAddr) {
+	if(!($currentAddr % 4) && $currentAddr && !$cleanLine) {
 	    push @data, $currentLine;
 	    $currentLine = 0;
 	    $cleanLine = 1;
