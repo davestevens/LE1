@@ -639,8 +639,6 @@ int main(int argc, char *argv[])
 	    }
 	  /* TODO: here need to service memory requests */
 	  /* print all memory requests */
-	  /*#ifndef API &&*/
-#if !defined(API)
 	  {
 	    unsigned findBank, findBankT, i;
 	    findBank=0;
@@ -653,9 +651,6 @@ int main(int argc, char *argv[])
 	    serviceMemRequest(system, findBank, ((SYS->DRAM_SHARED_CONFIG >> 24) & 0xff), (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1024));
 #endif
 	  }
-#else
-	  serviceMemRequestPERFECT(system, (((SYS->DRAM_SHARED_CONFIG >> 8) & 0xffff) * 1024));
-#endif
 
 #ifdef VTHREAD
 	  /* Peform Thread maintenance */
