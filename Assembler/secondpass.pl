@@ -1283,7 +1283,7 @@ sub return_layout()
 		{
 		    $dec = $dec >> 1;
 		}
-		if(($dec > 0x7FF) || ($dec < -0xFFF))
+		if(($dec > 0x7FF) || ($dec < -0x800))
 		{
 		    $type .= "O";
 		    my ($success, $twos_comp) = &twoscomp($dec,32);
@@ -1349,7 +1349,7 @@ sub return_layout()
 		{
 		    $dec = $dec >> 1;
 		}
-		if(($dec > 0x7FF) || ($dec < -0xFFF))
+		if(($dec > 0x7FF) || ($dec < -0x800))
 		{
 		    $type .= "O";
 		    my ($success, $twos_comp) = &twoscomp($dec,32);
@@ -1406,7 +1406,7 @@ sub return_layout()
 		    $size = $size >> 1;
 		}
 		$value .= "$size^$reg_num,";
-		if(($size > 0x7FF) || ($size < -0xFFF))
+		if(($size > 0x7FF) || ($size < -0x800))
 		{
 		    $type .= "A";
 		}
